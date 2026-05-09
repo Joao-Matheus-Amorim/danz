@@ -1,27 +1,32 @@
 {
-  "name": "oticas-tiago-meta-agent",
-  "version": "1.0.1",
-  "description": "Agente para Meta Ads + Google Sheets das Óticas do Tiago: dashboard, alertas, análise de campanhas/conjuntos/criativos e automações seguras.",
+  "name": "trafego-automator",
+  "version": "1.1.0",
+  "description": "Automação de tráfego pago para Dental Lead, Óticas do Tiago e empresas personalizáveis.",
   "main": "src/index.js",
   "type": "commonjs",
   "scripts": {
     "start": "node src/index.js run --client all",
     "dev": "node src/index.js run --client all --dry-run",
-    "sync": "node src/index.js sync --client all",
-    "dashboard": "node src/index.js dashboard --client all",
-    "analyze": "node src/index.js analyze --client all",
-    "criativos": "node src/index.js analyze --client all",
-    "criativos:dry": "node src/index.js analyze --client all --dry-run",
-    "alerts": "node src/index.js alerts --client all",
-    "alertas": "node src/index.js alerts --client all",
+    "dry": "node src/index.js run --client all --dry-run",
+    "sync": "node src/index.js sync --client meta",
+    "dashboard": "node src/index.js dashboard --client meta",
+    "analyze": "node src/index.js analyze --client meta",
+    "criativos": "node src/index.js analyze --client meta",
+    "criativos:dry": "node src/index.js analyze --client meta --dry-run",
+    "alerts": "node src/index.js alerts --client meta",
+    "alertas": "node src/index.js alerts --client meta",
+    "fill:dental": "node src/index.js preenchimento --client dental",
+    "fill:oticas": "node src/index.js preenchimento --client oticas",
+    "fill:todos": "node src/index.js preenchimento --client all",
+    "preenchimento": "node src/index.js preenchimento --client all",
     "validate": "node src/index.js validate",
     "validar": "node src/index.js validate",
-    "dry": "node src/index.js run --client all --dry-run",
     "otica1": "node src/index.js run --client otica1",
     "otica2": "node src/index.js run --client otica2",
+    "dental": "node src/index.js preenchimento --client dental",
     "scheduler": "node scheduler.js",
     "schedule": "node scheduler.js",
-    "check": "node --check src/index.js && node --check scheduler.js"
+    "check": "node --check src/index.js && node --check scheduler.js && node --check src/config/clients.js && node --check src/jobs/fillSheetOnly.js"
   },
   "dependencies": {
     "axios": "^1.7.9",
@@ -38,7 +43,8 @@
     "dashboard",
     "leads",
     "cpl",
-    "roi"
+    "roi",
+    "trafego-pago"
   ],
   "license": "MIT"
 }
