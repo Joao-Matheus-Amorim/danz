@@ -1,5 +1,6 @@
 const { listClients, getClient, consolidated } = require('../src/web/mockData');
 const { notifyWhatsapp, listNotifications } = require('../src/services/notificationCenter');
+const { listTasks, listTaskRuns, runTask } = require('../src/services/taskRunner');
 
 function sendJson(res, status, payload) {
   res.statusCode = status;
@@ -60,8 +61,14 @@ module.exports = async function handler(req, res) {
       return sendJson(res, 200, data.alerts || []);
     }
 
-    if (path === '/api/notifications') {
-      return sendJson(res, 200, listNotifications());
+    if (path === '/api/notifications') return sendJson(res, 200, listNotifications());
+    if (path === '/api/tasks') return sendJson(res, 200, listTasks());
+    if (path === '/api/tasks/runs') return sendJson(res, 200, listTaskRuns());
+
+    if (path === '/api/tasks/run' && req.method === 'POST') {
+      const body = await readBody(req);
+      const run = await runTask(body.taskKey || 'full_cycle', { real: body.real === true });
+      return sendJson(res, 200, run);
     }
 
     if (path === '/api/alerts/send-demo' && req.method === 'POST') {
