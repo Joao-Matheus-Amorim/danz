@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const { listClients, getClient, consolidated } = require('./mockData');
 const { notifyWhatsapp, listNotifications } = require('../services/notificationCenter');
+const { listTasks, listTaskRuns, runTask } = require('../services/taskRunner');
 
 const PORT = Number(process.env.PORT || 3000);
 const PUBLIC_DIR = path.join(__dirname, '../../public');
@@ -88,6 +89,20 @@ async function router(req, res) {
 
   if (url.pathname === '/api/notifications') {
     return sendJson(res, listNotifications());
+  }
+
+  if (url.pathname === '/api/tasks') {
+    return sendJson(res, listTasks());
+  }
+
+  if (url.pathname === '/api/tasks/runs') {
+    return sendJson(res, listTaskRuns());
+  }
+
+  if (url.pathname === '/api/tasks/run' && req.method === 'POST') {
+    const body = await readBody(req);
+    const run = await runTask(body.taskKey || 'full_cycle', { real: body.real === true });
+    return sendJson(res, run);
   }
 
   if (url.pathname === '/api/alerts/send-demo' && req.method === 'POST') {
