@@ -1,9 +1,18 @@
 let currentClient = 'all';
 let lastNotificationId = null;
+let currentPage = 'dashboard';
 
 const money = (value) => Number(value || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 const num = (value) => Number(value || 0).toLocaleString('pt-BR', { maximumFractionDigits: 2 });
 const pct = (value) => `${num(value)}%`;
+
+const pages = [
+  { id: 'dashboard', label: 'Dashboard', icon: '▣' },
+  { id: 'campanhas', label: 'Campanhas', icon: '◈' },
+  { id: 'criativos', label: 'Criativos', icon: '◉' },
+  { id: 'automacao', label: 'Automação', icon: '⟳' },
+  { id: 'whatsapp', label: 'WhatsApp', icon: '✉' },
+];
 
 async function api(path, options) {
   const response = await fetch(path, options);
@@ -23,10 +32,12 @@ function escapeHtml(value) {
 }
 
 async function init() {
+  renderPageNav();
   const clients = await api('/api/clients');
   const items = [{ key: 'all', name: 'Consolidado' }, ...clients];
 
-  for (const root of [clientNav, mobileClients, quickNav]) {
+  for (const root of [clientNav, quickNav]) {
+    if (!root) continue;
     root.innerHTML = items.map((client) => `
       <button class="${client.key === 'all' ? 'active' : ''} ${root.id === 'quickNav' ? 'chip' : ''}" data-client="${client.key}">${client.name}</button>
     `).join('');
@@ -45,57 +56,87 @@ async function init() {
   bindParallax();
 }
 
+function renderPageNav() {
+  const html = pages.map((page) => `
+    <button class="nav-page ${page.id === currentPage ? 'active' : ''}" data-page="${page.id}">${page.icon} ${page.label}</button>
+  `).join('');
+
+  if (pageNav) pageNav.innerHTML = html;
+  if (mobileNav) mobileNav.innerHTML = html;
+
+  document.querySelectorAll('[data-page]').forEach((button) => {
+    button.onclick = () => showPage(button.dataset.page);
+  });
+}
+
+function showPage(pageId) {
+  currentPage = pageId;
+  document.querySelectorAll('.page').forEach((page) => page.classList.toggle('active', page.id === `page-${pageId}`));
+  document.querySelectorAll('[data-page]').forEach((button) => button.classList.toggle('active', button.dataset.page === pageId));
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
 async function loadClient(client) {
   currentClient = client;
   document.querySelectorAll('button[data-client]').forEach((button) => button.classList.toggle('active', button.dataset.client === client));
 
   const data = await api(`/api/dashboard?client=${client}`);
-  pageTitle.innerHTML = `${data.name || 'Dashboard'} <span class="gradient">Glass OS</span>`;
+  if (pageTitle) pageTitle.innerHTML = `${data.name || 'Dashboard'} <span class="gradient">Control Room</span>`;
 
   const summary = data.summary || {};
-  kpis.innerHTML = [
-    kpi('Gasto', money(summary.spend)),
-    kpi('Leads', num(summary.leads), 'blue'),
-    kpi('CPL', money(summary.cpl), 'green'),
-    kpi('CTR', pct(summary.ctr), 'blue'),
-    kpi('ROI', `${num(summary.roi)}x`, 'orange'),
-    kpi('Valor total', money(summary.totalValue), 'green'),
-  ].join('');
+  if (kpis) {
+    kpis.innerHTML = [
+      kpi('Gasto', money(summary.spend)),
+      kpi('Leads', num(summary.leads), 'blue'),
+      kpi('CPL', money(summary.cpl), 'green'),
+      kpi('CTR', pct(summary.ctr), 'blue'),
+      kpi('ROI', `${num(summary.roi)}x`, 'orange'),
+      kpi('Valor total', money(summary.totalValue), 'green'),
+    ].join('');
+  }
 
-  campaignRows.innerHTML = (data.campaigns || []).map((campaign) => `
-    <tr>
-      <td>${campaign.client ? `<small>${campaign.client}</small><br>` : ''}<strong>${campaign.name}</strong></td>
-      <td>${money(campaign.spend)}</td>
-      <td>${num(campaign.leads)}</td>
-      <td>${money(campaign.cpl)}</td>
-      <td>${pct(campaign.ctr)}</td>
-      <td>${num(campaign.roi)}x</td>
-      <td>${campaign.status}</td>
-    </tr>
-  `).join('');
+  if (campaignRows) {
+    campaignRows.innerHTML = (data.campaigns || []).map((campaign) => `
+      <tr>
+        <td>${campaign.client ? `<small>${campaign.client}</small><br>` : ''}<strong>${campaign.name}</strong></td>
+        <td>${money(campaign.spend)}</td>
+        <td>${num(campaign.leads)}</td>
+        <td>${money(campaign.cpl)}</td>
+        <td>${pct(campaign.ctr)}</td>
+        <td>${num(campaign.roi)}x</td>
+        <td>${campaign.status}</td>
+      </tr>
+    `).join('');
+  }
 
-  creativeRows.innerHTML = (data.creatives || []).map((creative) => `
-    <tr>
-      <td><strong>${creative.name}</strong></td>
-      <td>${creative.campaign}</td>
-      <td>${money(creative.spend)}</td>
-      <td>${num(creative.leads)}</td>
-      <td>${creative.cpl ? money(creative.cpl) : '—'}</td>
-      <td>${pct(creative.ctr)}</td>
-      <td><span class="status ${statusClass(creative.status)}">${creative.status}</span></td>
-      <td>${creative.recommendation}</td>
-    </tr>
-  `).join('');
+  if (creativeRows) {
+    creativeRows.innerHTML = (data.creatives || []).map((creative) => `
+      <tr>
+        <td><strong>${creative.name}</strong></td>
+        <td>${creative.campaign}</td>
+        <td>${money(creative.spend)}</td>
+        <td>${num(creative.leads)}</td>
+        <td>${creative.cpl ? money(creative.cpl) : '—'}</td>
+        <td>${pct(creative.ctr)}</td>
+        <td><span class="status ${statusClass(creative.status)}">${creative.status}</span></td>
+        <td>${creative.recommendation}</td>
+      </tr>
+    `).join('');
+  }
 
-  alerts.innerHTML = (data.alerts || []).map((alert) => `
-    <div class="alert ${alert.severity}"><span class="dot"></span><div><strong>${alert.type}${alert.client ? ` · ${alert.client}` : ''}</strong><p>${alert.message}<br><b>Ação:</b> ${alert.action}</p></div></div>
-  `).join('') || '<p class="muted">Nenhum alerta ativo.</p>';
+  if (alerts) {
+    alerts.innerHTML = (data.alerts || []).map((alert) => `
+      <div class="alert ${alert.severity}"><span class="dot"></span><div><strong>${alert.type}${alert.client ? ` · ${alert.client}` : ''}</strong><p>${alert.message}<br><b>Ação:</b> ${alert.action}</p></div></div>
+    `).join('') || '<p class="muted">Nenhum alerta ativo.</p>';
+  }
 
-  const spends = (data.campaigns || []).map((campaign) => campaign.spend);
-  const maxSpend = Math.max(...spends, 1);
-  bars.innerHTML = spends.map((value) => `
-    <div class="bar" title="${money(value)}" style="height:${Math.max(8, (value / maxSpend) * 100)}%"></div>
-  `).join('');
+  if (bars) {
+    const spends = (data.campaigns || []).map((campaign) => campaign.spend);
+    const maxSpend = Math.max(...spends, 1);
+    bars.innerHTML = spends.map((value) => `
+      <div class="bar" title="${money(value)}" style="height:${Math.max(8, (value / maxSpend) * 100)}%"></div>
+    `).join('');
+  }
 
   setTimeout(bindTilt, 30);
 }
@@ -134,23 +175,26 @@ async function runAutomationTask(taskKey = 'full_cycle') {
   });
   await loadTaskRuns();
   await loadNotifications();
+  showPage('automacao');
   showToast(`Rotina ${run.taskKey} executada`);
 }
 
 async function loadNotifications() {
   const data = await api('/api/notifications');
-  notificationCount.textContent = `${data.length} notificações`;
+  if (notificationCount) notificationCount.textContent = `${data.length} notificações`;
 
-  notifications.innerHTML = data.length ? data.map((notification) => `
-    <div class="notification ${notification.severity}">
-      <span class="dot"></span>
-      <div>
-        <strong>${escapeHtml(notification.title)} · ${escapeHtml(notification.client)}</strong>
-        <p>${escapeHtml(notification.message)}<br><b>Ação:</b> ${escapeHtml(notification.action || '-')}</p>
-        <div class="meta">${escapeHtml(notification.status)} · ${escapeHtml(notification.provider || 'mock')} · ${new Date(notification.createdAt).toLocaleString('pt-BR')}</div>
+  if (notifications) {
+    notifications.innerHTML = data.length ? data.map((notification) => `
+      <div class="notification ${notification.severity}">
+        <span class="dot"></span>
+        <div>
+          <strong>${escapeHtml(notification.title)} · ${escapeHtml(notification.client)}</strong>
+          <p>${escapeHtml(notification.message)}<br><b>Ação:</b> ${escapeHtml(notification.action || '-')}</p>
+          <div class="meta">${escapeHtml(notification.status)} · ${escapeHtml(notification.provider || 'mock')} · ${new Date(notification.createdAt).toLocaleString('pt-BR')}</div>
+        </div>
       </div>
-    </div>
-  `).join('') : '<p class="muted">Nenhuma notificação enviada ainda.</p>';
+    `).join('') : '<p class="muted">Nenhuma notificação enviada ainda.</p>';
+  }
 
   if (data[0] && lastNotificationId && data[0].id !== lastNotificationId) showToast();
   if (data[0]) lastNotificationId = data[0].id;
@@ -166,6 +210,7 @@ async function sendDemoAlert() {
     }),
   });
   await loadNotifications();
+  showPage('whatsapp');
   showToast('Alerta WhatsApp mock enviado');
 }
 
@@ -176,6 +221,7 @@ async function simulate(action) {
     body: JSON.stringify({ client: currentClient, creativeId: 'ad_demo' }),
   });
   await loadNotifications();
+  showPage('whatsapp');
   showToast('Ação simulada registrada');
 }
 
