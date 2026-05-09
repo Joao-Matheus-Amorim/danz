@@ -3,44 +3,126 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Tráfego Automator — Dashboard</title>
-  <style>
-    :root{--bg:#080a10;--card:#111522;--card2:#171c2b;--line:rgba(255,255,255,.08);--text:#eef3ff;--muted:#8a93a8;--green:#00e5a0;--blue:#27a4ff;--orange:#ff8a3d;--red:#ff4d6d}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top left,rgba(0,229,160,.12),transparent 28%),var(--bg);color:var(--text);font-family:Inter,system-ui,Segoe UI,Arial,sans-serif}.app{display:grid;grid-template-columns:250px 1fr;min-height:100vh}.side{background:rgba(17,21,34,.92);border-right:1px solid var(--line);padding:24px;position:sticky;top:0;height:100vh}.logo{font-weight:900;letter-spacing:.08em;color:var(--green);font-size:14px;text-transform:uppercase;margin-bottom:28px}.nav button{width:100%;border:1px solid transparent;background:transparent;color:var(--muted);padding:12px 14px;border-radius:12px;text-align:left;font-weight:700;margin-bottom:8px;cursor:pointer}.nav button.active,.nav button:hover{background:rgba(0,229,160,.08);border-color:rgba(0,229,160,.18);color:var(--green)}main{padding:28px;max-width:1400px;width:100%;margin:0 auto}.top{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:24px}.title h1{margin:0;font-size:28px}.title p{margin:6px 0 0;color:var(--muted)}.selects{display:flex;gap:10px;flex-wrap:wrap}.chip{border:1px solid var(--line);background:var(--card);color:var(--muted);padding:10px 14px;border-radius:999px;font-weight:800;cursor:pointer}.chip.active{color:#00130d;background:var(--green);border-color:var(--green)}.grid{display:grid;gap:16px}.kpis{grid-template-columns:repeat(6,1fr);margin-bottom:16px}.card{background:linear-gradient(180deg,var(--card),rgba(17,21,34,.72));border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.22)}.label{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.1em;font-weight:900}.value{font-size:24px;font-weight:950;margin-top:8px}.green{color:var(--green)}.blue{color:var(--blue)}.orange{color:var(--orange)}.red{color:var(--red)}.layout{grid-template-columns:1.4fr .8fr}.section-title{font-size:16px;font-weight:950;margin:0 0 14px;display:flex;justify-content:space-between;align-items:center;gap:10px}.pill{font-size:10px;letter-spacing:.08em;text-transform:uppercase;border:1px solid rgba(0,229,160,.25);color:var(--green);background:rgba(0,229,160,.08);padding:5px 8px;border-radius:999px}.table-wrap{overflow:auto}.table{width:100%;border-collapse:collapse;min-width:760px}.table th{color:var(--muted);font-size:11px;text-align:left;text-transform:uppercase;letter-spacing:.08em;padding:12px;border-bottom:1px solid var(--line)}.table td{padding:13px 12px;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px}.status{display:inline-flex;padding:6px 9px;border-radius:999px;font-size:11px;font-weight:900}.s-DESTAQUE{background:rgba(0,229,160,.12);color:var(--green)}.s-CPL_ALTO,.s-SEM_LEAD_COM_GASTO{background:rgba(255,77,109,.12);color:var(--red)}.s-OK{background:rgba(39,164,255,.12);color:var(--blue)}.alert,.notification{display:flex;gap:12px;padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--card2);margin-bottom:10px}.dot{width:10px;height:10px;border-radius:50%;background:var(--blue);margin-top:4px;flex:none}.critical .dot{background:var(--red);box-shadow:0 0 20px var(--red)}.warning .dot{background:var(--orange)}.success .dot{background:var(--green)}.alert strong,.notification strong{display:block;margin-bottom:5px}.alert p,.notification p{margin:0;color:var(--muted);font-size:13px;line-height:1.45}.meta{font-size:11px;color:var(--muted);margin-top:6px}.actions{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}.action{border:1px solid var(--line);background:var(--card2);color:var(--text);border-radius:14px;padding:14px;text-align:left;cursor:pointer}.action:hover{border-color:var(--green)}.mobilebar{display:none}.bars{display:flex;align-items:end;gap:6px;height:140px;margin-top:12px}.bar{flex:1;border-radius:6px 6px 0 0;background:linear-gradient(180deg,var(--green),rgba(0,229,160,.24))}.toast{position:fixed;right:18px;bottom:18px;z-index:50;max-width:360px;background:#102016;border:1px solid rgba(0,229,160,.35);box-shadow:0 24px 80px rgba(0,0,0,.35);border-radius:16px;padding:14px;display:none}.toast.show{display:block}.toast strong{color:var(--green);display:block;margin-bottom:4px}.toast p{color:var(--muted);font-size:13px;margin:0}@media(max-width:980px){.app{grid-template-columns:1fr}.side{display:none}.mobilebar{display:flex;position:sticky;top:0;z-index:20;background:rgba(8,10,16,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding:12px;gap:8px;overflow:auto}.mobilebar button{white-space:nowrap}.top{align-items:flex-start;flex-direction:column}.kpis{grid-template-columns:repeat(2,1fr)}.layout{grid-template-columns:1fr}main{padding:16px 14px 90px}.title h1{font-size:23px}.actions{grid-template-columns:1fr}.value{font-size:22px}.toast{left:12px;right:12px;bottom:12px;max-width:none}}@media(max-width:420px){.kpis{grid-template-columns:1fr}.chip{font-size:12px;padding:9px 12px}.card{padding:14px}}
-  </style>
+  <title>Tráfego Automator — Glass OS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/glass.css" />
 </head>
 <body>
+  <div class="water"></div>
+  <div class="orb one"></div>
+  <div class="orb two"></div>
+  <div class="orb three"></div>
+  <div class="noise"></div>
+
   <div class="mobilebar" id="mobileClients"></div>
+
   <div class="app">
-    <aside class="side"><div class="logo">Tráfego Automator</div><div class="nav" id="clientNav"></div></aside>
+    <aside class="side">
+      <div class="brand">
+        <div class="brand-mark"></div>
+        <div>
+          <strong>Tráfego Automator</strong>
+          <small>Glass OS</small>
+        </div>
+      </div>
+      <div class="nav" id="clientNav"></div>
+    </aside>
+
     <main>
-      <div class="top"><div class="title"><h1 id="pageTitle">Dashboard</h1><p>Meta Ads, planilhas, alertas, campanhas, conjuntos e criativos em uma visão mobile-first.</p></div><div class="selects" id="quickNav"></div></div>
-      <section class="grid kpis" id="kpis"></section>
-      <section class="grid layout">
-        <div class="card"><h2 class="section-title">Campanhas por cliente</h2><div class="table-wrap"><table class="table"><thead><tr><th>Campanha</th><th>Gasto</th><th>Leads</th><th>CPL</th><th>CTR</th><th>ROI</th><th>Status</th></tr></thead><tbody id="campaignRows"></tbody></table></div></div>
-        <div class="card"><h2 class="section-title">Alertas ativos</h2><div id="alerts"></div><div class="actions"><button class="action" onclick="simulate('pause-creative')"><strong>⏸️ Pausar</strong><br><small>Pausar criativo ruim</small></button><button class="action" onclick="simulate('test-campaign')"><strong>🧪 Testar</strong><br><small>Criar campanha isolada</small></button><button class="action" onclick="sendDemoAlert()"><strong>📲 Enviar alerta</strong><br><small>WhatsApp mock</small></button></div></div>
+      <section class="hero">
+        <div class="glass hero-card tilt" data-depth="10">
+          <span class="eyebrow">Meta Ads intelligence · mock mode</span>
+          <h1 id="pageTitle">Dashboard <span class="gradient">Glass OS</span></h1>
+          <p class="muted">
+            Painel responsivo com glassmorphism 3D, alertas em tempo real, campanhas, conjuntos, criativos e fluxo WhatsApp mock preparado para integração real.
+          </p>
+          <div class="client-tabs" id="quickNav"></div>
+        </div>
+
+        <div class="glass holo tilt" data-depth="16">
+          <div class="holo-plate">
+            <div class="holo-ring"></div>
+          </div>
+        </div>
       </section>
-      <section class="grid layout" style="margin-top:16px">
-        <div class="card"><h2 class="section-title">Criativos: performance e decisão</h2><div class="table-wrap"><table class="table"><thead><tr><th>Criativo</th><th>Campanha</th><th>Gasto</th><th>Leads</th><th>CPL</th><th>CTR</th><th>Análise</th><th>Ação sugerida</th></tr></thead><tbody id="creativeRows"></tbody></table></div></div>
-        <div class="card"><h2 class="section-title">Distribuição de gasto</h2><div class="bars" id="bars"></div><p style="color:var(--muted);font-size:13px;line-height:1.55">Use esta visão para perceber rapidamente campanhas que consomem verba demais com pouco retorno. No modo real, os dados vêm da Meta API.</p></div>
+
+      <section class="kpis" id="kpis"></section>
+
+      <section class="layout">
+        <div class="glass card tilt">
+          <h2 class="section-title">Campanhas por cliente <span class="pill">flow table</span></h2>
+          <div class="table-wrap">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Campanha</th>
+                  <th>Gasto</th>
+                  <th>Leads</th>
+                  <th>CPL</th>
+                  <th>CTR</th>
+                  <th>ROI</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="campaignRows"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="glass card tilt">
+          <h2 class="section-title">Alertas ativos</h2>
+          <div id="alerts"></div>
+          <div class="actions">
+            <button class="action" onclick="simulate('pause-creative')"><strong>⏸️ Pausar</strong><br><small>Pausar criativo ruim</small></button>
+            <button class="action" onclick="simulate('test-campaign')"><strong>🧪 Testar</strong><br><small>Criar campanha isolada</small></button>
+            <button class="action" onclick="sendDemoAlert()"><strong>📲 Enviar alerta</strong><br><small>WhatsApp mock</small></button>
+          </div>
+        </div>
       </section>
-      <section style="margin-top:16px" class="card">
+
+      <section class="layout">
+        <div class="glass card tilt">
+          <h2 class="section-title">Criativos: performance e decisão</h2>
+          <div class="table-wrap">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Criativo</th>
+                  <th>Campanha</th>
+                  <th>Gasto</th>
+                  <th>Leads</th>
+                  <th>CPL</th>
+                  <th>CTR</th>
+                  <th>Análise</th>
+                  <th>Ação sugerida</th>
+                </tr>
+              </thead>
+              <tbody id="creativeRows"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="glass card tilt">
+          <h2 class="section-title">Distribuição de gasto</h2>
+          <div class="bars" id="bars"></div>
+          <p class="muted">Camadas fluidas para perceber rapidamente campanhas consumindo verba demais com pouco retorno.</p>
+        </div>
+      </section>
+
+      <section class="glass card tilt">
         <h2 class="section-title">WhatsApp mock / alertas em tempo real <span class="pill" id="notificationCount">0 notificações</span></h2>
         <div id="notifications"></div>
       </section>
     </main>
   </div>
-  <div class="toast" id="toast"><strong>Alerta enviado</strong><p>Notificação registrada e WhatsApp simulado em tempo real.</p></div>
-<script>
-let currentClient='all';let lastNotificationId=null;
-const money=v=>Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});const num=v=>Number(v||0).toLocaleString('pt-BR',{maximumFractionDigits:2});const pct=v=>`${num(v)}%`;
-async function api(path,opts){const r=await fetch(path,opts);return r.json()}function kpi(label,value,cls=''){return `<div class="card"><div class="label">${label}</div><div class="value ${cls}">${value}</div></div>`}function statusClass(s){return 's-'+String(s||'OK').replaceAll(' ','_')}function escapeHtml(s){return String(s||'').replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]))}
-async function init(){const clients=await api('/api/clients');const items=[{key:'all',name:'Consolidado'},...clients];for(const root of [clientNav,mobileClients,quickNav]){root.innerHTML=items.map(c=>`<button class="${c.key==='all'?'active':''} ${root.id==='quickNav'?'chip':''}" data-client="${c.key}">${c.name}</button>`).join('');root.querySelectorAll('button').forEach(b=>b.onclick=()=>loadClient(b.dataset.client))}await loadClient('all');await loadNotifications();setInterval(loadNotifications,5000)}
-async function loadClient(client){currentClient=client;document.querySelectorAll('button[data-client]').forEach(b=>b.classList.toggle('active',b.dataset.client===client));const data=await api('/api/dashboard?client='+client);pageTitle.textContent=data.name||'Dashboard';const s=data.summary||{};kpis.innerHTML=[kpi('Gasto',money(s.spend)),kpi('Leads',num(s.leads),'blue'),kpi('CPL',money(s.cpl),'green'),kpi('CTR',pct(s.ctr),'blue'),kpi('ROI',num(s.roi)+'x','orange'),kpi('Valor total',money(s.totalValue),'green')].join('');campaignRows.innerHTML=(data.campaigns||[]).map(c=>`<tr><td>${c.client?`<small>${c.client}</small><br>`:''}<strong>${c.name}</strong></td><td>${money(c.spend)}</td><td>${num(c.leads)}</td><td>${money(c.cpl)}</td><td>${pct(c.ctr)}</td><td>${num(c.roi)}x</td><td>${c.status}</td></tr>`).join('');creativeRows.innerHTML=(data.creatives||[]).map(c=>`<tr><td><strong>${c.name}</strong></td><td>${c.campaign}</td><td>${money(c.spend)}</td><td>${num(c.leads)}</td><td>${c.cpl?money(c.cpl):'—'}</td><td>${pct(c.ctr)}</td><td><span class="status ${statusClass(c.status)}">${c.status}</span></td><td>${c.recommendation}</td></tr>`).join('');alerts.innerHTML=(data.alerts||[]).map(a=>`<div class="alert ${a.severity}"><span class="dot"></span><div><strong>${a.type}${a.client?' · '+a.client:''}</strong><p>${a.message}<br><b>Ação:</b> ${a.action}</p></div></div>`).join('')||'<p style="color:var(--muted)">Nenhum alerta ativo.</p>';const spends=(data.campaigns||[]).map(c=>c.spend);const max=Math.max(...spends,1);bars.innerHTML=spends.map(v=>`<div class="bar" title="${money(v)}" style="height:${Math.max(8,(v/max)*100)}%"></div>`).join('')}
-async function loadNotifications(){const data=await api('/api/notifications');notificationCount.textContent=`${data.length} notificações`;notifications.innerHTML=data.length?data.map(n=>`<div class="notification ${n.severity}"><span class="dot"></span><div><strong>${escapeHtml(n.title)} · ${escapeHtml(n.client)}</strong><p>${escapeHtml(n.message)}<br><b>Ação:</b> ${escapeHtml(n.action||'-')}</p><div class="meta">${escapeHtml(n.status)} · ${escapeHtml(n.provider||'mock')} · ${new Date(n.createdAt).toLocaleString('pt-BR')}</div></div></div>`).join(''):'<p style="color:var(--muted)">Nenhuma notificação enviada ainda.</p>';if(data[0]&&lastNotificationId&&data[0].id!==lastNotificationId)showToast();if(data[0])lastNotificationId=data[0].id}
-async function sendDemoAlert(){await api('/api/alerts/send-demo',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({client:currentClient==='all'?'Ótica 2':currentClient,message:'Criativo gastou R$140 sem gerar leads. Recomenda-se pausar.'})});await loadNotifications();showToast()}
-async function simulate(action){await api('/api/actions/'+action,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({client:currentClient,creativeId:'ad_demo'})});await loadNotifications();showToast()}
-function showToast(){toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),3200)}
-init();
-</script>
+
+  <div class="toast" id="toast">
+    <strong>Alerta enviado</strong>
+    <p>Notificação registrada e WhatsApp simulado em tempo real.</p>
+  </div>
+
+  <script src="/assets/dashboard.js"></script>
 </body>
 </html>
