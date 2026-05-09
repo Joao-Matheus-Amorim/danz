@@ -3,6 +3,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const { listClients, getClient, consolidated } = require('./mockData');
+const { notifyWhatsapp, listNotifications } = require('../services/notificationCenter');
 
 const PORT = Number(process.env.PORT || 3000);
 const PUBLIC_DIR = path.join(__dirname, '../../public');
@@ -14,6 +15,17 @@ function sendJson(res, payload, status = 200) {
     'Cache-Control': 'no-store',
   });
   res.end(body);
+}
+
+function readBody(req) {
+  return new Promise((resolve) => {
+    let body = '';
+    req.on('data', (chunk) => { body += chunk; });
+    req.on('end', () => {
+      if (!body) return resolve({});
+      try { resolve(JSON.parse(body)); } catch (_) { resolve({ raw: body }); }
+    });
+  });
 }
 
 function sendFile(res, filePath, contentType = 'text/html; charset=utf-8') {
@@ -36,16 +48,14 @@ function contentTypeFor(filePath) {
   return 'text/html; charset=utf-8';
 }
 
-function router(req, res) {
+async function router(req, res) {
   const url = new URL(req.url, `http://${req.headers.host}`);
 
   if (url.pathname === '/api/health') {
     return sendJson(res, { ok: true, service: 'trafego-automator', mode: process.env.NODE_ENV || 'development' });
   }
 
-  if (url.pathname === '/api/clients') {
-    return sendJson(res, listClients());
-  }
+  if (url.pathname === '/api/clients') return sendJson(res, listClients());
 
   if (url.pathname === '/api/dashboard') {
     const client = url.searchParams.get('client') || 'all';
@@ -76,20 +86,50 @@ function router(req, res) {
     return sendJson(res, data.alerts || []);
   }
 
+  if (url.pathname === '/api/notifications') {
+    return sendJson(res, listNotifications());
+  }
+
+  if (url.pathname === '/api/alerts/send-demo' && req.method === 'POST') {
+    const body = await readBody(req);
+    const result = await notifyWhatsapp({
+      client: body.client || 'Ótica 2',
+      type: body.type || 'SEM_LEAD_COM_GASTO',
+      severity: body.severity || 'critical',
+      title: body.title || '🚨 Alerta em tempo real',
+      message: body.message || 'Criativo gastou verba sem gerar leads. O sistema recomenda pausar ou testar isolado.',
+      action: body.action || '1 pausar | 2 testar isolado | 3 manter rodando',
+      payload: body.payload || { creativeId: 'ad_demo' },
+    }, { dryRun: true });
+    return sendJson(res, result);
+  }
+
   if (url.pathname === '/api/actions/pause-creative' && req.method === 'POST') {
-    return sendJson(res, {
-      ok: true,
-      dryRun: true,
-      message: 'Ação simulada. Com AUTO_PAUSE_ENABLED=true e token real, este endpoint pausará o criativo na Meta.',
-    });
+    const body = await readBody(req);
+    const result = await notifyWhatsapp({
+      client: body.client || 'Sistema',
+      type: 'ACTION_PAUSE_CREATIVE',
+      severity: 'warning',
+      title: '⏸️ Pausa simulada de criativo',
+      message: `Pedido de pausa registrado para ${body.creativeId || 'criativo selecionado'}.`,
+      action: 'No modo real, chama a Meta API.',
+      payload: body,
+    }, { dryRun: true });
+    return sendJson(res, { ok: true, dryRun: true, result });
   }
 
   if (url.pathname === '/api/actions/test-campaign' && req.method === 'POST') {
-    return sendJson(res, {
-      ok: true,
-      dryRun: true,
-      message: 'Ação simulada. Com credenciais reais, este endpoint cria campanha pausada de teste isolado.',
-    });
+    const body = await readBody(req);
+    const result = await notifyWhatsapp({
+      client: body.client || 'Sistema',
+      type: 'ACTION_CREATE_TEST_CAMPAIGN',
+      severity: 'info',
+      title: '🧪 Campanha teste simulada',
+      message: `Pedido de campanha isolada registrado para ${body.creativeId || 'criativo selecionado'}.`,
+      action: 'No modo real, cria campanha pausada de teste.',
+      payload: body,
+    }, { dryRun: true });
+    return sendJson(res, { ok: true, dryRun: true, result });
   }
 
   const filePath = url.pathname === '/' ? path.join(PUBLIC_DIR, 'index.html') : path.join(PUBLIC_DIR, url.pathname.replace(/^\//, ''));
@@ -97,11 +137,7 @@ function router(req, res) {
 }
 
 const server = http.createServer((req, res) => {
-  try {
-    router(req, res);
-  } catch (error) {
-    sendJson(res, { ok: false, error: error.message }, 500);
-  }
+  router(req, res).catch((error) => sendJson(res, { ok: false, error: error.message }, 500));
 });
 
 server.listen(PORT, () => {
