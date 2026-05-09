@@ -2,15 +2,32 @@ const axios = require('axios');
 const { logger } = require('../utils/logger');
 const { normalizeInsight } = require('../domain/metrics');
 
+function isCliDryRun() {
+  return process.argv.includes('--dry-run');
+}
+
 class MetaAdsClient {
-  constructor({ accessToken = process.env.META_ACCESS_TOKEN, version = process.env.META_API_VERSION || 'v19.0' } = {}) {
-    if (!accessToken) throw new Error('META_ACCESS_TOKEN não configurado.');
+  constructor({ accessToken = process.env.META_ACCESS_TOKEN, version = process.env.META_API_VERSION || 'v19.0', dryRun = isCliDryRun() } = {}) {
+    this.dryRun = dryRun;
     this.accessToken = accessToken;
     this.version = version;
     this.baseUrl = `https://graph.facebook.com/${version}`;
+
+    if (!this.accessToken && !this.dryRun) {
+      throw new Error('META_ACCESS_TOKEN não configurado. Crie um arquivo .env baseado no .env.example.');
+    }
+
+    if (!this.accessToken && this.dryRun) {
+      logger.warn('[DRY RUN] META_ACCESS_TOKEN não configurado. A Meta API será simulada com dados vazios.');
+    }
   }
 
   async request(path, params = {}, method = 'GET') {
+    if (this.dryRun && !this.accessToken) {
+      logger.info(`[DRY RUN] Meta API simulada: ${method} ${path}`);
+      return { data: [], paging: null };
+    }
+
     const url = `${this.baseUrl}/${path.replace(/^\//, '')}`;
     try {
       const response = await axios.request({
@@ -29,11 +46,26 @@ class MetaAdsClient {
   }
 
   async validateToken() {
+    if (this.dryRun && !this.accessToken) {
+      return { id: 'dry-run', name: 'Meta API simulada sem token' };
+    }
     const me = await this.request('/me', { fields: 'id,name' });
     return me;
   }
 
   async getAdAccount(adAccountId) {
+    if (this.dryRun && !this.accessToken) {
+      return {
+        id: adAccountId,
+        name: 'Conta simulada',
+        account_status: 1,
+        currency: 'BRL',
+        balance: 0,
+        amount_spent: 0,
+        spend_cap: 0,
+      };
+    }
+
     return this.request(`/${adAccountId}`, {
       fields: 'id,name,account_status,currency,balance,amount_spent,spend_cap',
     });
@@ -53,6 +85,11 @@ class MetaAdsClient {
   }
 
   async getInsights({ client, level, since, until }) {
+    if (this.dryRun && !this.accessToken) {
+      logger.info(`[DRY RUN] Retornando insights vazios para ${client.name} | nível ${level} | ${since} até ${until}`);
+      return [];
+    }
+
     const fields = [
       'campaign_id',
       'campaign_name',
