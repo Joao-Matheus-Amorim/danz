@@ -1,11 +1,14 @@
 {
   "name": "trafego-automator",
-  "version": "1.1.0",
-  "description": "Automação de tráfego pago para Dental Lead, Óticas do Tiago e empresas personalizáveis.",
+  "version": "1.2.0",
+  "description": "Web service responsivo para automação de tráfego pago: Meta Ads, planilhas, dashboard, alertas e análise de criativos.",
   "main": "src/index.js",
   "type": "commonjs",
   "scripts": {
-    "start": "node src/index.js run --client all",
+    "start": "node src/web/server.js",
+    "web": "node src/web/server.js",
+    "web:dev": "node src/web/server.js",
+    "job:run": "node src/index.js run --client all",
     "dev": "node src/index.js run --client all --dry-run",
     "dry": "node src/index.js run --client all --dry-run",
     "sync": "node src/index.js sync --client meta",
@@ -26,7 +29,7 @@
     "dental": "node src/index.js preenchimento --client dental",
     "scheduler": "node scheduler.js",
     "schedule": "node scheduler.js",
-    "check": "node --check src/index.js && node --check scheduler.js && node --check src/config/clients.js && node --check src/jobs/fillSheetOnly.js"
+    "check": "node --check src/index.js && node --check scheduler.js && node --check src/config/clients.js && node --check src/jobs/fillSheetOnly.js && node --check src/web/server.js && node --check src/web/mockData.js"
   },
   "dependencies": {
     "axios": "^1.7.9",
@@ -44,7 +47,8 @@
     "leads",
     "cpl",
     "roi",
-    "trafego-pago"
+    "trafego-pago",
+    "web-service"
   ],
   "license": "MIT"
 }
