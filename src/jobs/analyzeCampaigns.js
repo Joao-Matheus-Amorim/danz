@@ -10,12 +10,16 @@ function shouldPause(row) {
   return ['SEM_LEAD_COM_GASTO', 'CPL_ALTO'].includes(row.status_analise);
 }
 
+function shouldRunMetaAction(row, noActions) {
+  return !noActions && rules.actionMode === 'auto_pause' && rules.autoPauseEnabled && shouldPause(row);
+}
+
 async function analyzeCampaigns({ clients, since, until, dryRun = false, noActions = false }) {
-  const meta = new MetaAdsClient();
-  const actions = new MetaActionsClient();
+  const meta = new MetaAdsClient({ dryRun });
   const sheets = new GoogleSheetsClient();
   const analyzedAdsByClient = new Map();
   const summaries = [];
+  let actions = null;
 
   for (const client of clients) {
     if (!client.adAccountId || client.adAccountId.includes('PREENCHER')) {
@@ -40,7 +44,8 @@ async function analyzeCampaigns({ clients, since, until, dryRun = false, noActio
     for (const row of actionable) {
       await sendWhatsApp(formatCreativeAlert(row), dryRun);
 
-      if (!noActions && rules.actionMode === 'auto_pause' && rules.autoPauseEnabled && shouldPause(row)) {
+      if (shouldRunMetaAction(row, noActions)) {
+        actions = actions || new MetaActionsClient();
         await actions.pauseAd(row.ad_id, dryRun);
       }
     }
