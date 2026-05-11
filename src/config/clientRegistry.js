@@ -25,6 +25,10 @@ function readJson(filePath) {
 
 function normalizeUnit(group, unit, index) {
   const columns = unit.columns || deriveUnitColumns(group.columnLayout, index);
+  const meta = { ...(group.meta || {}), ...(unit.meta || {}) };
+  const sharedAccountId = meta.adAccountId || group.adAccountId || null;
+  const unitAdAccountId = unit.adAccountId || sharedAccountId;
+
   return {
     ...unit,
     groupKey: `${group.companyId}:${group.state}:${unit.key}`,
@@ -40,6 +44,10 @@ function normalizeUnit(group, unit, index) {
     modules: { ...(group.modules || {}), ...(unit.modules || {}) },
     rules: { ...(group.rules || {}), ...(unit.rules || {}) },
     whatsapp: { ...(group.whatsapp || {}), ...(unit.whatsapp || {}) },
+    meta,
+    adAccountId: unitAdAccountId,
+    sharedAdAccountId: sharedAccountId,
+    campaignMatch: unit.campaignMatch || unit.match || null,
     columns,
   };
 }
@@ -98,6 +106,10 @@ function validateUnit(unit) {
 
   const adAccountError = validateAdAccount(unit.adAccountId);
   if (adAccountError) errors.push(adAccountError);
+
+  if (unit.meta?.mode === 'shared_ad_account' && !unit.campaignMatch) {
+    errors.push('campaignMatch obrigatório para conta Meta compartilhada');
+  }
 
   const unknown = unknownModules(unit.modules || {});
   if (unknown.length) errors.push(`módulos desconhecidos: ${unknown.join(', ')}`);
