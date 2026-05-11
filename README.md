@@ -1,398 +1,253 @@
 # Tráfego Automator
 
-Web service responsivo para gestão e automação de tráfego pago com foco inicial em **Dental Lead** e **Óticas do Tiago**.
-
-O projeto nasceu como automação de planilha/Meta Ads, mas evoluiu para um MVP de produto: dashboard mobile-first, API interna, métricas por cliente, campanhas, conjuntos, criativos, alertas e notificações WhatsApp em modo mock. As integrações reais com Meta Ads, Google Sheets e Z-API ficam isoladas para serem plugadas por último, quando as credenciais estiverem disponíveis.
+Plataforma de automação operacional para gestão de tráfego pago, com foco inicial no caso **Dental Leads**: empresa odontológica com clínicas em múltiplos estados, uma conta Meta Ads central e uma planilha literal que precisa ser preenchida diariamente para prestação do serviço.
 
 ---
 
-## Visão do produto
+## Decisão arquitetural atual
 
-O sistema foi desenhado para resolver uma dor clara de gestão de tráfego:
+A planilha **Dental Leads** é o contrato principal da automação.
 
-- planilhas manuais;
-- saldo de conta acabando sem aviso;
-- CPL alto percebido tarde;
-- criativos gastando sem gerar leads;
-- falta de visão consolidada por cliente/campanha;
-- demora para decidir se pausa, mantém ou testa um criativo isolado.
+O sistema deve se adaptar ao layout da planilha, sem destruir formatação, fórmulas, totais, cabeçalhos ou organização visual do cliente.
 
-A proposta é transformar isso em um painel e automação operacional:
+No caso Dental atual, a estrutura correta é:
 
-1. Coletar métricas da Meta Ads.
-2. Preencher planilhas quando necessário.
-3. Exibir dashboard por cliente.
-4. Classificar campanhas/conjuntos/criativos.
-5. Gerar alertas em tempo real.
-6. Enviar WhatsApp para o gestor/cliente.
-7. Permitir decisão: pausar, criar campanha teste isolada ou manter rodando.
+```text
+Dental Leads
+  -> uma conta Meta Ads central
+  -> campanhas representam clínicas/unidades
+  -> cada clínica é identificada por filtro de campanha
+  -> Leads e Valor são escritos na coluna correta da planilha
+```
+
+Uma clínica não precisa ter uma conta de anúncio própria. Ela pode ser uma unidade operacional dentro da mesma conta Meta, identificada por nome ou ID de campanha.
 
 ---
 
 ## Estado atual
 
-### Já funciona agora, sem API real
+### Implementado
 
-- Web dashboard responsivo em `http://localhost:3000`.
-- API interna com dados demo.
-- Clientes mockados:
-  - Dental Lead;
-  - Ótica 1;
-  - Ótica 2;
-  - visão consolidada.
-- KPIs no painel:
-  - gasto;
-  - leads;
-  - CPL;
-  - CTR;
-  - ROI;
-  - valor total.
-- Listagem de campanhas.
-- Listagem de conjuntos.
-- Listagem de criativos.
-- Alertas ativos.
-- Simulação de WhatsApp em tempo real.
-- Registro de notificações em memória.
-- Botões de ação simulados:
-  - pausar criativo;
-  - criar campanha teste isolada;
-  - enviar alerta demo.
-- Jobs CLI em modo `dry-run`, sem chamar Meta API real.
+- Dashboard demo e API mock.
+- Cliente Meta Ads estruturado para insights reais.
+- Cliente Google Sheets estruturado para escrita em planilhas.
+- Empresa `Dental Leads` em `data/companies/dental-leads.json`.
+- Clínicas SP e Bahia em:
+  - `data/clients/servicos/odontologia/sp/dental-leads-sp.json`
+  - `data/clients/servicos/odontologia/ba/dental-leads-ba.json`
+- M1 Registry:
+  - loader de empresas;
+  - loader de clínicas;
+  - validação de registry;
+  - filtros por empresa, grupo, segmento, estado, cidade e módulo;
+  - derivação automática de colunas da planilha.
+- M2 Dental Sheet:
+  - conta Meta Ads compartilhada;
+  - filtro de campanhas por clínica via `campaignMatch`;
+  - escrita cirúrgica em `Leads` e `Valor`;
+  - preservação de CPL, totais e formatação;
+  - suporte a `dry-run`.
 
-### Parcialmente pronto
+### Pendente para produção
 
-- Cliente Meta Ads (`MetaAdsClient`) já estruturado para buscar insights reais.
-- Cliente Google Sheets (`GoogleSheetsClient`) já estruturado para escrever planilhas.
-- Motor de análise de criativos/campanhas já estruturado.
-- Regras de CPL, saldo, CTR, gasto mínimo e destaque já configuráveis.
-- Scheduler já criado para rotinas automáticas.
-- Dental Lead em modo `sheet_only`, preparado para preencher planilha sem mexer em dashboard completo.
-- Ótica 1 e Ótica 2 em modo `meta_full`, preparados para fluxo completo.
-
-### Ainda não faz em produção
-
-- Não busca dados reais da Meta no dashboard web ainda.
-- Não envia WhatsApp real enquanto Z-API não for configurada.
-- Não pausa anúncios reais ainda pelo dashboard.
-- Não cria campanha real isolada ainda pelo dashboard.
-- Não tem banco de dados persistente.
-- Não tem login/autenticação.
-- Não tem painel visual para cadastrar novas empresas/regras.
-- Não tem webhook real de resposta do WhatsApp.
-- Não está deployado em produção.
-
----
-
-## Como rodar
-
-Instale dependências:
-
-```bash
-npm install
-```
-
-Valide sintaxe dos arquivos principais:
-
-```bash
-npm run check
-```
-
-Suba o dashboard web:
-
-```bash
-npm start
-```
-
-ou:
-
-```bash
-npm run web
-```
-
-Abra:
-
-```text
-http://localhost:3000
-```
+- Informar o `act_...` real da conta Meta central.
+- Configurar `META_ACCESS_TOKEN`.
+- Configurar Service Account Google Sheets.
+- Validar leitura real do Meta Ads.
+- Validar escrita real na planilha.
+- Criar logs persistentes.
+- Criar WhatsApp API real.
+- Criar login, painel Admin e contas somente leitura.
+- Criar banco de dados.
 
 ---
 
 ## Comandos principais
 
-### Web service
+Instalar dependências:
 
 ```bash
-npm start       # sobe o dashboard web
-npm run web     # alias do dashboard web
-npm run web:dev # alias de desenvolvimento
+npm install
 ```
 
-### Jobs e automações
+Validar sintaxe:
 
 ```bash
-npm run dry             # roda fluxo completo em dry-run
-npm run job:run         # roda fluxo real, exige .env real
-npm run sync            # sincroniza Meta Ads -> Sheets para clientes meta
-npm run dashboard       # gera dashboard no Sheets para clientes meta
-npm run analyze         # analisa campanhas/criativos
-npm run criativos       # alias de análise de criativos
-npm run criativos:dry   # análise em dry-run
-npm run alerts          # verifica alertas
-npm run alertas         # alias em português
+npm run check
 ```
 
-### Preenchimento de planilhas
+Rodar dashboard demo:
 
 ```bash
-npm run fill:dental # Dental Lead em modo sheet_only
-npm run fill:oticas # Ótica 1 e Ótica 2
-npm run fill:todos  # todos os clientes
+npm start
 ```
 
-### Scheduler
+---
+
+## M1 — Registry de empresas e clínicas
+
+Listar todas as unidades:
 
 ```bash
-npm run scheduler
-npm run schedule
+npm run registry:list
+```
+
+Listar por estado:
+
+```bash
+npm run registry:list -- --state SP
+npm run registry:list -- --state BA
+```
+
+Listar por empresa, segmento ou módulo:
+
+```bash
+npm run registry:list -- --company cmp_dental_leads
+npm run registry:list -- --segment odontologia
+npm run registry:list -- --module fillDentalSheet
+```
+
+Validar cadastro:
+
+```bash
+npm run registry:validate
+```
+
+Enquanto a conta Meta central estiver como `act_PREENCHER_CONTA_CENTRAL`, a validação deve avisar que o `adAccountId` está pendente.
+
+---
+
+## M2 — Preenchimento literal Dental
+
+Dry-run geral:
+
+```bash
+npm run dental:fill:dry -- --since 2026-05-01 --until 2026-05-11
+```
+
+Dry-run por estado:
+
+```bash
+npm run dental:fill:dry -- --state SP --since 2026-05-01 --until 2026-05-11
+npm run dental:fill:dry -- --state BA --since 2026-05-01 --until 2026-05-11
+```
+
+Execução real:
+
+```bash
+npm run dental:fill -- --state SP --since 2026-05-01 --until 2026-05-11
+```
+
+A execução real exige credenciais Meta Ads e Google Sheets configuradas no `.env`.
+
+---
+
+## Conta Meta central compartilhada
+
+Nos arquivos Dental, o estado usa uma conta central:
+
+```json
+{
+  "meta": {
+    "mode": "shared_ad_account",
+    "adAccountId": "act_PREENCHER_CONTA_CENTRAL",
+    "insightLevel": "campaign",
+    "unitMatchField": "campaign_name"
+  }
+}
+```
+
+Cada clínica define como encontrar suas campanhas:
+
+```json
+{
+  "key": "pimentas",
+  "name": "Pimentas",
+  "campaignMatch": {
+    "contains": ["Pimentas"]
+  }
+}
+```
+
+Também é possível mapear por ID:
+
+```json
+{
+  "campaignMatch": {
+    "ids": ["1234567890", "9876543210"]
+  }
+}
 ```
 
 ---
 
-## API interna atual
-
-### Health
-
-```http
-GET /api/health
-```
-
-### Clientes
-
-```http
-GET /api/clients
-```
-
-### Dashboard
-
-```http
-GET /api/dashboard?client=all
-GET /api/dashboard?client=dental
-GET /api/dashboard?client=otica1
-GET /api/dashboard?client=otica2
-```
-
-### Campanhas, conjuntos e criativos
-
-```http
-GET /api/campaigns?client=all
-GET /api/adsets?client=all
-GET /api/creatives?client=all
-```
-
-### Alertas
-
-```http
-GET /api/alerts?client=all
-GET /api/notifications
-```
-
-### Simulação de alerta WhatsApp
-
-```http
-POST /api/alerts/send-demo
-```
-
-Exemplo PowerShell:
-
-```powershell
-curl.exe -X POST "http://localhost:3000/api/alerts/send-demo" -H "Content-Type: application/json" -d '{"client":"Ótica 2","message":"Criativo gastou R$140 sem gerar leads. Recomenda-se pausar."}'
-```
-
-### Ações simuladas
-
-```http
-POST /api/actions/pause-creative
-POST /api/actions/test-campaign
-```
-
-Hoje essas ações registram notificação e simulam o fluxo. No futuro, elas chamarão a Meta Ads API.
-
----
-
-## Estrutura do projeto
-
-```txt
-trafego-automator/
-├─ public/
-│  └─ index.html                  # dashboard responsivo/mobile-first
-├─ src/
-│  ├─ config/
-│  │  ├─ clients.js               # clientes base + extra clients via JSON
-│  │  └─ rules.js                 # regras de CPL, saldo, CTR, gasto etc.
-│  ├─ domain/
-│  │  ├─ analyzer.js              # classificação de campanhas/criativos
-│  │  └─ metrics.js               # normalização e cálculo de métricas
-│  ├─ jobs/
-│  │  ├─ analyzeCampaigns.js      # análise + alertas + ações opcionais
-│  │  ├─ buildDashboard.js        # geração de KPIs no Sheets
-│  │  ├─ checkAlerts.js           # saldo/status de conta
-│  │  ├─ fillSheetOnly.js         # preenchimento de planilha Dental/sheet_only
-│  │  └─ syncSheets.js            # Meta Ads -> Sheets
-│  ├─ services/
-│  │  ├─ alerts.js                # alertas legados/WhatsApp opcional
-│  │  ├─ googleSheets.js          # integração Google Sheets
-│  │  ├─ metaActions.js           # pausa/campanha teste via Meta
-│  │  ├─ metaAds.js               # leitura Meta Ads API
-│  │  └─ notificationCenter.js    # notificações mock/WhatsApp mock
-│  ├─ utils/
-│  │  ├─ cli.js
-│  │  ├─ date.js
-│  │  └─ logger.js
-│  ├─ web/
-│  │  ├─ mockData.js              # dados demo do dashboard
-│  │  └─ server.js                # servidor HTTP/API
-│  └─ index.js                    # CLI/jobs
-├─ docs/
-│  └─ ARCHITECTURE_UML.md         # UML, arquitetura e roadmap
-├─ scheduler.js
-├─ package.json
-└─ README.md
-```
-
----
-
-## Configuração futura via `.env`
-
-As variáveis reais ficam para a última fase.
-
-### Meta Ads
-
-```env
-META_ACCESS_TOKEN=EAAB...
-META_API_VERSION=v19.0
-OTICA1_AD_ACCOUNT_ID=act_123456789012345
-OTICA2_AD_ACCOUNT_ID=act_987654321098765
-```
-
-### Google Sheets
-
-```env
-GOOGLE_SERVICE_ACCOUNT_EMAIL=service-account@project.iam.gserviceaccount.com
-GOOGLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
-SPREADSHEET_ID_TIAGO=1xglEDDEf7ZIwx_dFnHuL_i9ZPC15vpXAz9Tlscsz3V0
-```
-
-### Dental Lead
-
-```env
-DENTAL_SHEET_ID=1xglEDDEf7ZIwx_dFnHuL_i9ZPC15vpXAz9Tlscsz3V0
-DENTAL_SHEET_GID=498302069
-DENTAL_WRITE_CPL=false
-DENTAL_AD_ACCOUNTS_JSON={"Pimentas":"act_123456789012345","Guarulhos Nazaré":"act_987654321098765"}
-```
-
-### WhatsApp/Z-API
-
-```env
-WHATSAPP_PROVIDER=zapi
-ZAPI_INSTANCE_ID=...
-ZAPI_TOKEN=...
-ZAPI_CLIENT_TOKEN=...
-WHATSAPP_TO=5521999999999
-```
-
-Enquanto essas variáveis não existirem, o sistema continua apresentável via mock.
-
----
-
-## Regras de análise
-
-Configuráveis no `.env`:
-
-```env
-ALERT_BALANCE_MIN_BRL=50
-ALERT_CPL_MAX_BRL=30
-MIN_SPEND_TO_EVALUATE_BRL=20
-MAX_SPEND_WITHOUT_LEAD_BRL=40
-MIN_IMPRESSIONS_TO_EVALUATE=500
-MIN_CTR_GOOD=1.0
-MIN_LEADS_FOR_WINNER=5
-GOOD_CPL_BRL=20
-```
-
-O motor classifica criativos/campanhas em estados como:
-
-- `OK`;
-- `DESTAQUE`;
-- `CPL_ALTO`;
-- `CTR_BAIXO`;
-- `SEM_GASTO`;
-- `SEM_LEAD_COM_GASTO`.
-
----
-
-## Segurança das automações
-
-Por padrão, o sistema deve operar em modo seguro:
-
-```env
-ACTION_MODE=notify
-AUTO_PAUSE_ENABLED=false
-```
-
-Para permitir pausa automática real no futuro:
-
-```env
-ACTION_MODE=auto_pause
-AUTO_PAUSE_ENABLED=true
-```
-
-Mesmo assim, a recomendação é manter logs, confirmação e auditoria antes de executar ações reais em contas de anúncio.
-
----
-
-## UML e roadmap
-
-Veja o arquivo:
+## Estrutura atual
 
 ```text
-docs/ARCHITECTURE_UML.md
+data/
+  companies/
+    dental-leads.json
+  clients/
+    servicos/
+      odontologia/
+        sp/dental-leads-sp.json
+        ba/dental-leads-ba.json
+
+docs/
+  PMBOK_PROJECT_MANAGEMENT_PLAN.md
+  FUNCTIONAL_REQUIREMENTS.md
+  SYSTEM_ARCHITECTURE_UML.md
+  M1_CLIENT_REGISTRY_MODULE.md
+  M2_DENTAL_SHEET_AUTOMATION_SPEC.md
+
+src/
+  config/
+    clientRegistry.js
+    companyLoader.js
+    clients.js
+    rules.js
+  domain/
+    modules.js
+    metrics.js
+    analyzer.js
+  jobs/
+    dentalSheetFill.js
+    fillSheetOnly.js
+    syncSheets.js
+    analyzeCampaigns.js
+    buildDashboard.js
+    checkAlerts.js
+  services/
+    metaAds.js
+    googleSheets.js
+    metaActions.js
+    notificationCenter.js
+  utils/
+    cli.js
+    date.js
+    logger.js
+    sheetsColumns.js
 ```
-
-Ele contém:
-
-- arquitetura atual do MVP;
-- arquitetura alvo de produção;
-- sequência de alerta mock;
-- sequência futura com WhatsApp real;
-- modelo conceitual de domínio;
-- roadmap técnico.
 
 ---
 
-## Roadmap sugerido
+## Governança documental
 
-1. Finalizar demo visual e fluxo mock.
-2. Adicionar persistência local/banco para métricas e notificações.
-3. Conectar dashboard aos jobs internos, ainda sem Meta real.
-4. Plugar Meta Ads API real.
-5. Plugar Google Sheets real.
-6. Plugar WhatsApp/Z-API real.
-7. Criar webhook de resposta do WhatsApp.
-8. Transformar botões simulados em ações reais com confirmação.
-9. Adicionar login e multiusuário.
-10. Fazer deploy em produção.
+A partir deste marco, cada bloco completo de construção deve atualizar:
+
+1. `README.md` — estado operacional e comandos atuais;
+2. documento funcional/técnico correspondente em `docs/`;
+3. `docs/SYSTEM_ARCHITECTURE_UML.md` — quando houver mudança arquitetural, fluxo ou entidade.
+
+Um bloco só é considerado completo quando código e documentação estão coerentes.
 
 ---
 
-## Status resumido
+## Roadmap atualizado
 
-```txt
-MVP visual: pronto
-API mock: pronta
-Alertas mock: prontos
-WhatsApp mock: pronto
-Jobs Meta/Sheets: base pronta
-Integrações reais: pendentes por falta de credenciais
-Banco/login/deploy: próximos passos
-```
+1. **M1 Registry** — funcional via JSON/CLI.
+2. **M2 Dental Sheet literal** — funcional via JSON/CLI e dry-run.
+3. **M3 Métricas detalhadas** — criar abas auxiliares Campanhas, Conjuntos, Criativos, Alertas e Log Execuções.
+4. **M4 WhatsApp API** — enviar resumo e alertas conforme módulo habilitado.
+5. **M5 Painel Admin/Cliente** — cadastro visual, usuários, permissões e execução manual.
+6. **M6 Módulos Admin avançados** — upload de criativos, criação de campanhas e pausa com aprovação.
