@@ -1,0 +1,9 @@
+{
+  "id": "cmp_dental_leads",
+  "name": "Dental Leads",
+  "segment": "odontologia",
+  "defaultGroup": "servicos",
+  "enabled": true,
+  "spreadsheetId": "1xglEDDEf7ZIwx_dFnHuL_i9ZPC15vpXAz9Tlscsz3V0",
+  "description": "Empresa odontológica usada como primeiro modelo operacional de planilha literal Dental Leads."
+}
