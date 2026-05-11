@@ -30,6 +30,38 @@ function numberValue(value) {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
+function normalizeText(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+}
+
+function metricMatchesUnit(row, unit) {
+  const match = unit.campaignMatch || {};
+  const target = normalizeText(row.campanha || row.campaign_name || row.campaign_id || '');
+
+  if (Array.isArray(match.ids) && match.ids.length > 0) {
+    return match.ids.includes(row.campaign_id);
+  }
+
+  if (Array.isArray(match.exact) && match.exact.length > 0) {
+    return match.exact.some((item) => target === normalizeText(item));
+  }
+
+  if (Array.isArray(match.contains) && match.contains.length > 0) {
+    return match.contains.some((item) => target.includes(normalizeText(item)));
+  }
+
+  return false;
+}
+
+function filterRowsForUnit(rows = [], unit) {
+  if (unit.meta?.mode !== 'shared_ad_account') return rows;
+  return rows.filter((row) => metricMatchesUnit(row, unit));
+}
+
 function totalsFromRows(rows = []) {
   return rows.reduce(
     (acc, row) => ({
@@ -66,6 +98,23 @@ async function updateCells({ sheetsClient, spreadsheetId, updates, dryRun }) {
   return { cells: updates.length };
 }
 
+async function getRowsForDay({ meta, unit, day }) {
+  const insightLevel = unit.meta?.insightLevel || (unit.meta?.mode === 'shared_ad_account' ? 'campaign' : 'account');
+  const rows = await meta.getInsights({
+    client: {
+      key: unit.key,
+      name: unit.name,
+      adAccountId: unit.adAccountId,
+      leadValue: 0,
+    },
+    level: insightLevel,
+    since: day,
+    until: day,
+  });
+
+  return filterRowsForUnit(rows, unit);
+}
+
 async function fillDentalSheet({ scope = {}, since, until, dryRun = false } = {}) {
   const units = filterUnits(loadUnits(), { ...scope, module: scope.module || 'fillDentalSheet', enabled: true });
   const meta = new MetaAdsClient({ dryRun });
@@ -82,8 +131,10 @@ async function fillDentalSheet({ scope = {}, since, until, dryRun = false } = {}
       unitName: unit.name,
       state: unit.state,
       sheetName: unit.sheetName,
+      metaMode: unit.meta?.mode || 'single_ad_account',
       status: 'pending',
       cells: 0,
+      matchedRows: 0,
       error: null,
     };
 
@@ -98,18 +149,8 @@ async function fillDentalSheet({ scope = {}, since, until, dryRun = false } = {}
       }
 
       for (const day of days) {
-        const rows = await meta.getInsights({
-          client: {
-            key: unit.key,
-            name: unit.name,
-            adAccountId: unit.adAccountId,
-            leadValue: 0,
-          },
-          level: 'account',
-          since: day,
-          until: day,
-        });
-
+        const rows = await getRowsForDay({ meta, unit, day });
+        result.matchedRows += rows.length;
         const total = totalsFromRows(rows);
         const row = dayToRow(day, unit.rowOffset);
         const leadsCell = `${unit.columns.leads}${row}`;
@@ -165,4 +206,6 @@ module.exports = {
   dateRangeDays,
   dayToRow,
   totalsFromRows,
+  metricMatchesUnit,
+  filterRowsForUnit,
 };
