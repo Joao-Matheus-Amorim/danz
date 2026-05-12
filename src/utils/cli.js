@@ -36,6 +36,8 @@ function parseArgs(argv = process.argv.slice(2)) {
     today: flags.has('--today') || flags.has('--hoje') || values.today === true || values.hoje === true,
     pendingMonth: flags.has('--pending-month') || flags.has('--mes-pendente') || values['pending-month'] === true || values['mes-pendente'] === true,
     monthToDate: flags.has('--month-to-date') || flags.has('--mes-ate-hoje') || values['month-to-date'] === true || values['mes-ate-hoje'] === true,
+    timeZone: values.timeZone || values['time-zone'] || values.fuso || null,
+    defaultDateMode: values.defaultDateMode || values['default-date-mode'] || values.modoPadrao || null,
     sheetName: values.sheetName || values.sheet || values.aba || null,
     fields: values.fields || values.campos || 'leads,value',
     delivery: values.delivery || values.entrega || 'none',
