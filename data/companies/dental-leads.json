@@ -6,7 +6,38 @@
   "enabled": true,
   "spreadsheetId": "1xglEDDEf7ZIwx_dFnHuL_i9ZPC15vpXAz9Tlscsz3V0",
   "spreadsheetUrl": "https://docs.google.com/spreadsheets/d/1xglEDDEf7ZIwx_dFnHuL_i9ZPC15vpXAz9Tlscsz3V0/edit?pli=1&gid=498302069#gid=498302069",
-  "primarySheetGid": "498302069",
-  "primarySheetName": "SP · MAIO",
-  "description": "Empresa odontológica usada como primeiro modelo operacional de planilha literal Dental Leads."
+  "defaultSheetGid": "498302069",
+  "defaultSheetName": "SP · MAIO",
+  "sheetCatalog": [
+    {
+      "state": "SP",
+      "month": "abril",
+      "year": 2026,
+      "sheetName": "SP · Abril",
+      "type": "state_month"
+    },
+    {
+      "state": "BA",
+      "month": "abril",
+      "year": 2026,
+      "sheetName": "Bahia · Abril",
+      "type": "state_month"
+    },
+    {
+      "state": "SP",
+      "month": "maio",
+      "year": 2026,
+      "sheetName": "SP · MAIO",
+      "gid": "498302069",
+      "type": "state_month"
+    },
+    {
+      "state": "BA",
+      "month": "maio",
+      "year": 2026,
+      "sheetName": "Bahia · MAIO",
+      "type": "state_month"
+    }
+  ],
+  "description": "Empresa odontológica usada como primeiro modelo operacional de planilha literal Dental Leads. A planilha possui múltiplas abas por estado e mês; defaultSheetName é apenas a aba de referência inicial, não a única aba."
 }
