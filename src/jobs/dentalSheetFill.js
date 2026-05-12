@@ -3,6 +3,9 @@ const { GoogleSheetsClient } = require('../services/googleSheets');
 const { filterUnits, loadUnits, validateAdAccount } = require('../config/clientRegistry');
 const { logger } = require('../utils/logger');
 const { saveUnitRunResult } = require('../database/repositories');
+const { resolveSheetNameForUnit } = require('../domain/sheetResolver');
+
+const ALLOWED_FIELDS = new Set(['leads', 'value', 'cpl']);
 
 function dateRangeDays(since, until) {
   const days = [];
@@ -37,6 +40,17 @@ function normalizeText(value) {
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
     .trim();
+}
+
+function parseFields(fields = 'leads,value') {
+  const parsed = String(fields || 'leads,value')
+    .split(',')
+    .map((field) => field.trim())
+    .filter(Boolean);
+
+  const invalid = parsed.filter((field) => !ALLOWED_FIELDS.has(field));
+  if (invalid.length) throw new Error(`Campos inválidos: ${invalid.join(', ')}. Use: leads,value,cpl.`);
+  return parsed.length ? parsed : ['leads', 'value'];
 }
 
 function metricMatchesUnit(row, unit) {
@@ -86,6 +100,26 @@ function persistUnitResult(result) {
   }
 }
 
+function buildFieldUpdates({ unit, sheetName, row, total, selectedFields }) {
+  const updates = [];
+  const valuesByField = {
+    leads: total.leads,
+    value: total.value,
+    cpl: total.leads > 0 ? total.value / total.leads : '',
+  };
+
+  for (const field of selectedFields) {
+    const column = unit.columns[field];
+    if (!column) continue;
+    updates.push({
+      range: sheetRef(sheetName, `${column}${row}`),
+      values: [[valueForEmptyMode(valuesByField[field], unit.emptyMode)]],
+    });
+  }
+
+  return updates;
+}
+
 async function updateCells({ sheetsClient, spreadsheetId, updates, dryRun }) {
   if (dryRun) {
     logger.info(`[DRY RUN] Atualizaria ${updates.length} células em ${spreadsheetId}`);
@@ -124,15 +158,25 @@ async function getRowsForDay({ meta, unit, day }) {
   return filterRowsForUnit(rows, unit);
 }
 
-async function fillDentalSheet({ scope = {}, since, until, dryRun = false, jobRunId = null } = {}) {
+async function fillDentalSheet({
+  scope = {},
+  since,
+  until,
+  dryRun = false,
+  jobRunId = null,
+  fields = 'leads,value',
+  delivery = 'none',
+  sheetName = null,
+} = {}) {
   const units = filterUnits(loadUnits(), { ...scope, module: scope.module || 'fillDentalSheet', enabled: true });
   const meta = new MetaAdsClient({ dryRun });
   const sheetsClient = new GoogleSheetsClient();
   const days = dateRangeDays(since, until);
+  const selectedFields = parseFields(fields);
   const updatesBySpreadsheet = new Map();
   const results = [];
 
-  logger.info(`Dental Sheet Fill | unidades: ${units.length} | período: ${since} até ${until}`);
+  logger.info(`Dental Sheet Fill | unidades: ${units.length} | período: ${since} até ${until} | campos=${selectedFields.join(',')} | delivery=${delivery}`);
 
   for (const unit of units) {
     const result = {
@@ -142,7 +186,7 @@ async function fillDentalSheet({ scope = {}, since, until, dryRun = false, jobRu
       unitName: unit.name,
       state: unit.state,
       city: unit.city,
-      sheetName: unit.sheetName,
+      sheetName: null,
       metaMode: unit.meta?.mode || 'single_ad_account',
       status: 'pending',
       cells: 0,
@@ -150,7 +194,7 @@ async function fillDentalSheet({ scope = {}, since, until, dryRun = false, jobRu
       error: null,
       startedAt: new Date().toISOString(),
       finishedAt: null,
-      details: { since, until, dryRun, scope },
+      details: { since, until, dryRun, scope, fields: selectedFields, delivery },
     };
 
     try {
@@ -166,25 +210,18 @@ async function fillDentalSheet({ scope = {}, since, until, dryRun = false, jobRu
       }
 
       for (const day of days) {
+        const resolvedSheetName = sheetName || resolveSheetNameForUnit(unit, day, { sheetName });
+        result.sheetName = result.sheetName || resolvedSheetName;
         const rows = await getRowsForDay({ meta, unit, day });
         result.matchedRows += rows.length;
         const total = totalsFromRows(rows);
         const row = dayToRow(day, unit.rowOffset);
-        const leadsCell = `${unit.columns.leads}${row}`;
-        const valueCell = `${unit.columns.value}${row}`;
         const spreadsheetUpdates = updatesBySpreadsheet.get(unit.spreadsheetId) || [];
+        const fieldUpdates = buildFieldUpdates({ unit, sheetName: resolvedSheetName, row, total, selectedFields });
 
-        spreadsheetUpdates.push({
-          range: sheetRef(unit.sheetName, leadsCell),
-          values: [[valueForEmptyMode(total.leads, unit.emptyMode)]],
-        });
-        spreadsheetUpdates.push({
-          range: sheetRef(unit.sheetName, valueCell),
-          values: [[valueForEmptyMode(total.value, unit.emptyMode)]],
-        });
-
+        spreadsheetUpdates.push(...fieldUpdates);
         updatesBySpreadsheet.set(unit.spreadsheetId, spreadsheetUpdates);
-        result.cells += 2;
+        result.cells += fieldUpdates.length;
       }
 
       result.status = 'success';
@@ -212,6 +249,8 @@ async function fillDentalSheet({ scope = {}, since, until, dryRun = false, jobRu
     since,
     until,
     dryRun,
+    fields: selectedFields,
+    delivery,
     totalUnits: units.length,
     success: results.filter((item) => item.status === 'success').length,
     skipped: results.filter((item) => item.status === 'skipped').length,
@@ -228,4 +267,6 @@ module.exports = {
   totalsFromRows,
   metricMatchesUnit,
   filterRowsForUnit,
+  parseFields,
+  buildFieldUpdates,
 };
