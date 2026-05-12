@@ -14,17 +14,29 @@ Issue oficial:
 #1 — Sprint 1: Fundação de Qualidade, Segurança e Testes antes das integrações reais
 ```
 
-Bloqueadores atuais para produção:
+### Q1 implementado neste bloco
 
-- token Meta ainda precisa migrar para `Authorization: Bearer`;
-- testes unitários ainda precisam ser adicionados;
-- CI/CD ainda precisa rodar `npm run check` e `npm test`;
-- endpoints operacionais precisam de proteção/rate limit;
-- notificações e execuções ainda precisam de persistência;
-- payloads POST precisam de validação formal;
-- retry para falhas transitórias da Meta API precisa ser implementado.
+- Token Meta migrado para header `Authorization: Bearer <token>`.
+- Retry controlado para Meta API em 408, 429, 5xx e timeouts.
+- Jest adicionado com `npm test`.
+- Testes unitários para `metrics.js`.
+- Testes unitários para `analyzer.js`.
+- Testes para segurança do `MetaAdsClient`.
+- Testes para validação/rate limit HTTP.
+- GitHub Actions CI com `npm run check` e `npm test`.
+- Headers de segurança no servidor HTTP e na função serverless.
+- Rate limit básico para APIs públicas e operacionais.
+- Token operacional obrigatório para POSTs sensíveis.
+- Validação de payloads em `/api/tasks/run`, `/api/alerts/send-demo` e ações simuladas.
 
-Enquanto Q1 não estiver concluída, integrações reais devem ser tratadas como **staging/controladas**, não produção.
+### Ainda pendente antes de produção
+
+- Persistência local SQLite para notificações e execuções.
+- Logs persistentes por execução/unidade.
+- Validação real em staging com Meta Ads e Google Sheets.
+- Revisão final dos workflows após instalação das dependências.
+
+Enquanto Q1/Q2 não estiverem concluídos, integrações reais devem ser tratadas como **staging/controladas**, não produção.
 
 ---
 
@@ -53,7 +65,7 @@ Uma clínica não precisa ter uma conta de anúncio própria. Ela pode ser uma u
 ### Implementado
 
 - Dashboard demo e API mock.
-- Cliente Meta Ads estruturado para insights reais.
+- Cliente Meta Ads estruturado para insights reais com autenticação Bearer segura.
 - Cliente Google Sheets estruturado para escrita em planilhas.
 - Empresa `Dental Leads` em `data/companies/dental-leads.json`.
 - Clínicas SP e Bahia em:
@@ -71,10 +83,18 @@ Uma clínica não precisa ter uma conta de anúncio própria. Ela pode ser uma u
   - escrita cirúrgica em `Leads` e `Valor`;
   - preservação de CPL, totais e formatação;
   - suporte a `dry-run`.
+- Q1 parcial:
+  - testes unitários;
+  - CI;
+  - headers de segurança;
+  - rate limit;
+  - proteção de endpoints operacionais;
+  - validação de payloads;
+  - retry controlado na Meta API.
 
 ### Pendente para produção
 
-- Concluir Q1 — segurança, testes, CI/CD e validação.
+- Concluir Q2 — persistência local.
 - Informar o `act_...` real da conta Meta central.
 - Configurar `META_ACCESS_TOKEN`.
 - Configurar Service Account Google Sheets.
@@ -101,11 +121,44 @@ Validar sintaxe:
 npm run check
 ```
 
+Rodar testes:
+
+```bash
+npm test
+```
+
 Rodar dashboard demo:
 
 ```bash
 npm start
 ```
+
+---
+
+## Segurança operacional HTTP
+
+POSTs sensíveis exigem token operacional:
+
+```env
+OPERATIONAL_API_TOKEN=troque-este-token
+```
+
+Uso:
+
+```bash
+curl -X POST http://localhost:3000/api/tasks/run \
+  -H "Authorization: Bearer $OPERATIONAL_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"taskKey":"full_cycle","real":false}'
+```
+
+Em desenvolvimento, é possível liberar temporariamente sem token com:
+
+```env
+ALLOW_UNAUTHENTICATED_DEV_TASKS=true
+```
+
+Não use isso em produção.
 
 ---
 
@@ -163,7 +216,7 @@ Execução real controlada:
 npm run dental:fill -- --state SP --since 2026-05-01 --until 2026-05-11
 ```
 
-A execução real exige Q1 concluída, credenciais Meta Ads e Google Sheets configuradas no `.env`.
+A execução real exige Q1/Q2 concluídas, credenciais Meta Ads e Google Sheets configuradas no `.env`.
 
 ---
 
@@ -237,6 +290,7 @@ src/
     modules.js
     metrics.js
     analyzer.js
+    __tests__/
   jobs/
     dentalSheetFill.js
     fillSheetOnly.js
@@ -244,16 +298,23 @@ src/
     analyzeCampaigns.js
     buildDashboard.js
     checkAlerts.js
+  security/
+    httpSecurity.js
+    __tests__/
   services/
     metaAds.js
     googleSheets.js
     metaActions.js
     notificationCenter.js
+    __tests__/
   utils/
     cli.js
     date.js
     logger.js
     sheetsColumns.js
+.github/
+  workflows/
+    ci.yml
 ```
 
 ---
@@ -273,11 +334,11 @@ Um bloco só é considerado completo quando código e documentação estão coer
 
 ## Roadmap atualizado
 
-1. **Q1 Fundação de Qualidade** — prioridade máxima antes de produção.
+1. **Q1 Fundação de Qualidade** — segurança e testes implementados parcialmente; persistência fica em Q2.
 2. **Q2 Persistência Local** — SQLite para notificações, execuções e histórico mínimo.
 3. **M1 Registry** — funcional via JSON/CLI.
 4. **M2 Dental Sheet literal** — funcional via JSON/CLI e dry-run.
-5. **M3 Métricas detalhadas** — bloqueado por Q1/Q2.
-6. **M4 WhatsApp API** — bloqueado por Q1/Q2.
+5. **M3 Métricas detalhadas** — bloqueado por Q2.
+6. **M4 WhatsApp API** — bloqueado por Q2.
 7. **M5 Painel Admin/Cliente** — cadastro visual, usuários, permissões e execução manual.
 8. **M6 Módulos Admin avançados** — upload de criativos, criação de campanhas e pausa com aprovação.
