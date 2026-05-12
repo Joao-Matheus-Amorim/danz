@@ -11,6 +11,7 @@ Antes de conectar Meta Ads, Google Sheets e WhatsApp em produção, o projeto de
 1. **Q1 — Fundação de Qualidade, Segurança e Testes**.
 2. **Q2 — Persistência Local e Histórico Operacional**.
 3. **Fases Operacionais M2** para controlar período, aba, campos e execução real.
+4. **Grupo 4 — Segment Adapters** para desacoplar regras de nicho antes do dashboard e WhatsApp.
 
 Nenhuma integração real deve ser considerada produção enquanto os critérios de segurança, testes, CI/CD, persistência mínima e controle operacional não forem validados.
 
@@ -26,6 +27,7 @@ Nenhuma integração real deve ser considerada produção enquanto os critérios
 | OP2 | Campos e entrega operacional | Implementado inicialmente | Controlar campos com `--fields` e intenção com `--delivery` |
 | M1 | Registry de empresas e clínicas | Em construção funcional | Cadastrar/importar empresas, estados, clínicas, módulos e escopos |
 | M2 | Planilha Dental literal | Em construção funcional | Preencher Leads e Valor na planilha real do cliente |
+| G4 | Segment Adapters | Implementação inicial adicionada | Isolar regras por segmento e preparar multi-cliente sem duplicar jobs |
 | M3 | Métricas detalhadas | Próximo após validação operacional | Criar abas auxiliares de campanhas, conjuntos, criativos e logs |
 | M4 | WhatsApp API | Após validação operacional | Enviar mensagens e alertas conforme módulos habilitados |
 | M5 | Painel Admin e Cliente | Pendente | Criar interface para gestão e contas somente leitura |
@@ -185,12 +187,36 @@ Implementado parcialmente e funcional via CLI/dry-run.
 
 ### Próximos itens do M2
 
-- Diagnóstico agrupado da conta Meta central pendente.
 - Substituir `act_PREENCHER_CONTA_CENTRAL` pelo ID real da conta central.
 - Validar `META_ACCESS_TOKEN` real em staging.
 - Validar Google Service Account real em staging.
 - Rodar dry-run com uma data única.
 - Rodar execução real controlada em uma ou duas clínicas.
+
+---
+
+## G4 — Segment Adapters
+
+### Status
+
+Implementação inicial adicionada.
+
+### Entregue
+
+- `src/segments/index.js` com resolver `getSegmentAdapter`.
+- Adapter `odontologia` em `src/segments/odontologia`.
+- Fallback `generic` em `src/segments/generic`.
+- Matcher de campanhas extraído para `campaignMatcher.js`.
+- Parser de campos e montagem de updates extraídos para `fields.js`.
+- `dentalSheetFill.js` agora delega regras de segmento para adapters.
+- Exports antigos do Dental Fill preservados para compatibilidade.
+- Testes unitários para resolução de adapter, matching, filtro e updates.
+
+### Próximos itens G4
+
+- Criar primeiro adapter não odontológico.
+- Evoluir `dentalSheetFill.js` para um job genérico quando houver segundo segmento real.
+- Definir contrato de campos por segmento no YAML.
 
 ---
 
