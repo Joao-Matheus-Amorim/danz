@@ -1,40 +1,55 @@
-let selectedCampaignName = null;
+let selectedCampaignId = null;
 let lastAnalysisData = null;
 
 function analysisText(value) {
   return String(value || '').toLowerCase().trim();
 }
 
+function entityId(entity) {
+  return entity?.id || entity?.campaignId || entity?.adsetId || entity?.name || '';
+}
+
+function sameCampaign(adsetOrCreative, campaign) {
+  if (adsetOrCreative.campaignId && campaign.id) return adsetOrCreative.campaignId === campaign.id;
+  return analysisText(adsetOrCreative.campaign || adsetOrCreative.campaignName) === analysisText(campaign.name);
+}
+
+function sameAdset(creative, adset) {
+  if (creative.adsetId && adset.id) return creative.adsetId === adset.id;
+  return analysisText(creative.adset || creative.adsetName) === analysisText(adset.name);
+}
+
 function renderMetric(label, value) {
   return `<div class="analysis-metric"><span>${escapeHtml(label)}</span><b>${escapeHtml(value)}</b></div>`;
 }
 
-function adsetsForCampaign(data, campaignName) {
-  return (data.adsets || []).filter((adset) => analysisText(adset.campaign) === analysisText(campaignName));
+function adsetsForCampaign(data, campaign) {
+  return (data.adsets || []).filter((adset) => sameCampaign(adset, campaign));
 }
 
-function creativesForAdset(data, adsetName) {
-  return (data.creatives || []).filter((creative) => analysisText(creative.adset) === analysisText(adsetName));
+function creativesForAdset(data, adset) {
+  return (data.creatives || []).filter((creative) => sameAdset(creative, adset));
 }
 
-function creativesForCampaign(data, campaignName) {
-  return (data.creatives || []).filter((creative) => analysisText(creative.campaign) === analysisText(campaignName));
+function creativesForCampaign(data, campaign) {
+  return (data.creatives || []).filter((creative) => sameCampaign(creative, campaign));
 }
 
 function renderCampaignTree(data) {
   lastAnalysisData = data;
   const campaigns = data.campaigns || [];
-  if (!selectedCampaignName && campaigns[0]) selectedCampaignName = campaigns[0].name;
-  if (!campaigns.some((campaign) => campaign.name === selectedCampaignName)) selectedCampaignName = campaigns[0]?.name || null;
+  if (!selectedCampaignId && campaigns[0]) selectedCampaignId = entityId(campaigns[0]);
+  if (!campaigns.some((campaign) => entityId(campaign) === selectedCampaignId)) selectedCampaignId = entityId(campaigns[0]) || null;
 
   if (campaignTreeCount) campaignTreeCount.textContent = String(campaigns.length);
   if (campaignTreeList) {
     campaignTreeList.innerHTML = campaigns.length ? campaigns.map((campaign) => {
-      const adsets = adsetsForCampaign(data, campaign.name);
-      const creatives = creativesForCampaign(data, campaign.name);
-      const active = campaign.name === selectedCampaignName ? 'active' : '';
+      const adsets = adsetsForCampaign(data, campaign);
+      const creatives = creativesForCampaign(data, campaign);
+      const id = entityId(campaign);
+      const active = id === selectedCampaignId ? 'active' : '';
       return `
-        <button class="analysis-item ${active}" onclick="selectCampaign('${encodeURIComponent(campaign.name)}')">
+        <button class="analysis-item ${active}" onclick="selectCampaign('${encodeURIComponent(id)}')">
           <strong>${escapeHtml(campaign.name)}</strong>
           <small>${escapeHtml(campaign.client || data.name || 'Cliente')} · ${escapeHtml(campaign.objective || 'objetivo não informado')}</small>
           <div class="analysis-metrics">
@@ -43,36 +58,36 @@ function renderCampaignTree(data) {
             ${renderMetric('CPL', money(campaign.cpl))}
             ${renderMetric('Conjuntos', adsets.length)}
           </div>
-          <small>${creatives.length} criativo(s) vinculados · ${escapeHtml(campaign.status || 'status')}</small>
+          <small>${creatives.length} criativo(s) vinculados · ID ${escapeHtml(campaign.id || '-')}</small>
         </button>
       `;
     }).join('') : '<div class="analysis-empty">Nenhuma campanha encontrada.</div>';
   }
 
-  renderCampaignDetail(data, selectedCampaignName);
+  renderCampaignDetail(data, selectedCampaignId);
 }
 
-function selectCampaign(encodedName) {
-  selectedCampaignName = decodeURIComponent(encodedName);
+function selectCampaign(encodedId) {
+  selectedCampaignId = decodeURIComponent(encodedId);
   if (lastAnalysisData) renderCampaignTree(lastAnalysisData);
 }
 
-function renderCampaignDetail(data, campaignName) {
+function renderCampaignDetail(data, campaignId) {
   if (!campaignTreeDetail) return;
-  const campaign = (data.campaigns || []).find((item) => item.name === campaignName);
+  const campaign = (data.campaigns || []).find((item) => entityId(item) === campaignId);
   if (!campaign) {
     campaignTreeDetail.innerHTML = '<div class="analysis-empty">Selecione uma campanha para ver conjuntos e criativos.</div>';
     return;
   }
 
-  const adsets = adsetsForCampaign(data, campaign.name);
-  const looseCreatives = creativesForCampaign(data, campaign.name).filter((creative) => !adsets.some((adset) => analysisText(adset.name) === analysisText(creative.adset)));
+  const adsets = adsetsForCampaign(data, campaign);
+  const looseCreatives = creativesForCampaign(data, campaign).filter((creative) => !adsets.some((adset) => sameAdset(creative, adset)));
 
   campaignTreeDetail.innerHTML = `
     <div class="analysis-headline">
       <div>
         <h3>${escapeHtml(campaign.name)}</h3>
-        <p>${escapeHtml(campaign.client || data.name || 'Cliente')} · ${escapeHtml(campaign.objective || 'objetivo não informado')} · ${escapeHtml(campaign.status || 'status')}</p>
+        <p>${escapeHtml(campaign.client || data.name || 'Cliente')} · ${escapeHtml(campaign.objective || 'objetivo não informado')} · ${escapeHtml(campaign.status || 'status')} · ID ${escapeHtml(campaign.id || '-')}</p>
       </div>
       <span class="pill">${adsets.length} conjunto(s)</span>
     </div>
@@ -90,13 +105,13 @@ function renderCampaignDetail(data, campaignName) {
 }
 
 function renderAdsetCard(data, adset) {
-  const creatives = creativesForAdset(data, adset.name);
+  const creatives = creativesForAdset(data, adset);
   return `
     <div class="adset-card">
       <div class="analysis-headline">
         <div>
           <h4>${escapeHtml(adset.name)}</h4>
-          <p>${escapeHtml(adset.status || 'status')} · campanha: ${escapeHtml(adset.campaign)}</p>
+          <p>${escapeHtml(adset.status || 'status')} · campanha: ${escapeHtml(adset.campaignName || adset.campaign || '-')} · ID ${escapeHtml(adset.id || '-')}</p>
         </div>
         <span class="pill">${creatives.length} criativo(s)</span>
       </div>
@@ -119,7 +134,7 @@ function renderLooseCreatives(creatives) {
       <div class="analysis-headline">
         <div>
           <h4>Criativos sem conjunto encontrado</h4>
-          <p>Esses criativos estão ligados à campanha, mas o conjunto não apareceu na base atual.</p>
+          <p>Esses criativos estão ligados à campanha por ID/nome, mas o conjunto não apareceu na base atual.</p>
         </div>
         <span class="pill">${creatives.length} criativo(s)</span>
       </div>
@@ -132,7 +147,7 @@ function renderCreativeMini(creative) {
   return `
     <div class="creative-mini">
       <strong>${escapeHtml(creative.name)}</strong>
-      <p>${escapeHtml(creative.status || 'status')} · ${escapeHtml(creative.recommendation || 'sem recomendação')}</p>
+      <p>${escapeHtml(creative.status || 'status')} · ${escapeHtml(creative.recommendation || 'sem recomendação')} · ID ${escapeHtml(creative.id || '-')}</p>
       <div class="analysis-metrics">
         ${renderMetric('Gasto', money(creative.spend))}
         ${renderMetric('Leads', num(creative.leads))}
