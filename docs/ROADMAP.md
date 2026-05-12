@@ -10,8 +10,9 @@ Antes de conectar Meta Ads, Google Sheets e WhatsApp em produção, o projeto de
 
 1. **Q1 — Fundação de Qualidade, Segurança e Testes**.
 2. **Q2 — Persistência Local e Histórico Operacional**.
+3. **Fases Operacionais M2** para controlar período, aba, campos e execução real.
 
-Nenhuma integração real deve ser considerada produção enquanto os critérios de segurança, testes, CI/CD e persistência mínima não forem validados.
+Nenhuma integração real deve ser considerada produção enquanto os critérios de segurança, testes, CI/CD, persistência mínima e controle operacional não forem validados.
 
 ---
 
@@ -21,10 +22,12 @@ Nenhuma integração real deve ser considerada produção enquanto os critérios
 |---|---|---|---|
 | Q1 | Fundação de Qualidade, Segurança e Testes | Implementado parcialmente e validado localmente | Segurança, testes, CI/CD, validação e resiliência antes das APIs reais |
 | Q2 | Persistência Local | Implementação inicial adicionada | Persistir notificações, execuções e resultados por unidade em SQLite |
+| OP1 | Resolução de data e aba | Implementado inicialmente | Escolher período e aba correta por estado/mês/data |
+| OP2 | Campos e entrega operacional | Implementado inicialmente | Controlar campos com `--fields` e intenção com `--delivery` |
 | M1 | Registry de empresas e clínicas | Em construção funcional | Cadastrar/importar empresas, estados, clínicas, módulos e escopos |
 | M2 | Planilha Dental literal | Em construção funcional | Preencher Leads e Valor na planilha real do cliente |
-| M3 | Métricas detalhadas | Próximo após validação Q2 | Criar abas auxiliares de campanhas, conjuntos, criativos e logs |
-| M4 | WhatsApp API | Após validação Q2 | Enviar mensagens e alertas conforme módulos habilitados |
+| M3 | Métricas detalhadas | Próximo após validação operacional | Criar abas auxiliares de campanhas, conjuntos, criativos e logs |
+| M4 | WhatsApp API | Após validação operacional | Enviar mensagens e alertas conforme módulos habilitados |
 | M5 | Painel Admin e Cliente | Pendente | Criar interface para gestão e contas somente leitura |
 | M6 | Módulos Admin avançados | Pendente | Subir criativos, criar campanhas e pausar anúncios com aprovação |
 
@@ -54,7 +57,7 @@ Implementado parcialmente e validado localmente.
 
 ### Próximo refinamento Q1
 
-- Confirmar CI remoto após Q2.
+- Confirmar CI remoto após OP1/OP2.
 - Melhorar logging estruturado em jobs legados.
 
 ---
@@ -65,38 +68,72 @@ Implementado parcialmente e validado localmente.
 
 Implementação inicial adicionada.
 
-### Objetivo
-
-Eliminar dependência exclusiva de memória para notificações, alertas e histórico de execuções.
-
 ### Entregue
 
 - Dependência `better-sqlite3` adicionada.
 - Fundação SQLite em `src/database/db.js`.
 - Repositórios em `src/database/repositories.js`.
-- Tabelas criadas automaticamente:
-  - `notifications`;
-  - `whatsapp_replies`;
-  - `job_runs`;
-  - `job_run_steps`;
-  - `unit_run_results`.
+- Tabelas: `notifications`, `whatsapp_replies`, `job_runs`, `job_run_steps`, `unit_run_results`.
 - `notificationCenter.js` persiste notificações e respostas quando SQLite está disponível.
 - `taskRunner.js` persiste execuções e steps quando SQLite está disponível.
 - `dentalSheetFill.js` persiste resultados por clínica/unidade.
 - `.gitignore` protege `/data/local/` e arquivos `.db`.
 - Testes de repositório SQLite adicionados.
 
-### Decisão técnica
-
-A persistência local usa SQLite como primeira camada, com fallback seguro se o ambiente não suportar `better-sqlite3`.
-
 ### Próximos itens Q2
 
-- Validar `npm install`, `npm run check` e `npm test` localmente após dependência nativa.
 - Confirmar deploy/CI com `better-sqlite3`.
 - Criar endpoint administrativo para consultar `unit_run_results`.
 - Criar limpeza/rotação de histórico antigo.
 - Avaliar banco cloud definitivo para produção em Vercel, como Supabase/Postgres.
+
+---
+
+## OP1 — Resolução de data e aba
+
+### Status
+
+Implementado inicialmente.
+
+### Entregue
+
+- `src/domain/dateRangeResolver.js`.
+- `src/domain/sheetResolver.js`.
+- `dental:fill` aceita:
+  - `--day YYYY-MM-DD`;
+  - `--today`;
+  - `--pending-month`;
+  - `--month-to-date`;
+  - `--since YYYY-MM-DD --until YYYY-MM-DD`.
+- O sistema resolve aba por estado, mês e ano usando o `sheetCatalog` da empresa.
+- Testes para resolução de datas.
+- Testes para resolução de abas.
+
+### Próximos itens OP1
+
+- Validar em CLI local com abril e maio.
+- Implementar erro agrupado quando intervalo cruza meses/abas diferentes, se necessário.
+
+---
+
+## OP2 — Campos e entrega operacional
+
+### Status
+
+Implementado inicialmente.
+
+### Entregue
+
+- `dental:fill` aceita `--fields`.
+- Campos permitidos: `leads`, `value`, `cpl`.
+- Padrão seguro: `leads,value`.
+- `cpl` só é preenchido quando explicitamente solicitado.
+- `dental:fill` aceita `--delivery`, com padrão `none`.
+
+### Próximos itens OP2
+
+- Implementar comportamento efetivo para `delivery=log`, `delivery=notify` e `delivery=approval` nas próximas fases.
+- Validar que `--fields cpl` não seja usado acidentalmente em produção sem aprovação.
 
 ---
 
@@ -142,9 +179,13 @@ Implementado parcialmente e funcional via CLI/dry-run.
 - Suporte a conta Meta Ads central compartilhada.
 - Filtro de campanhas por clínica via `campaignMatch`.
 - Persistência de resultado por unidade em `unit_run_results`.
+- Resolução de aba por data/estado.
+- Modos operacionais de período.
+- Seleção de campos por `--fields`.
 
 ### Próximos itens do M2
 
+- Diagnóstico agrupado da conta Meta central pendente.
 - Substituir `act_PREENCHER_CONTA_CENTRAL` pelo ID real da conta central.
 - Validar `META_ACCESS_TOKEN` real em staging.
 - Validar Google Service Account real em staging.
@@ -157,7 +198,7 @@ Implementado parcialmente e funcional via CLI/dry-run.
 
 ### Status
 
-Próximo após validação Q2.
+Próximo após validação operacional.
 
 ### Objetivo
 
@@ -178,20 +219,11 @@ Adicionar abas auxiliares sem alterar a planilha literal do cliente.
 
 ### Status
 
-Após validação Q2.
+Após validação operacional.
 
 ### Objetivo
 
 Enviar mensagens e alertas pelo WhatsApp conforme módulos habilitados.
-
-### Mensagens iniciais
-
-- Planilha atualizada.
-- Erro de execução por clínica.
-- Resumo diário.
-- Resumo semanal.
-- Alerta de CPL alto.
-- Alerta de gasto sem lead.
 
 ---
 
