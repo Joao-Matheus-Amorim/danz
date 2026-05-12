@@ -120,6 +120,74 @@ function buildFieldUpdates({ unit, sheetName, row, total, selectedFields }) {
   return updates;
 }
 
+function sharedAccountKey(unit) {
+  return [unit.companyId || 'sem_empresa', unit.state || 'sem_estado', unit.sharedAdAccountId || unit.adAccountId || 'sem_conta'].join('|');
+}
+
+function groupedSharedAccountDiagnostics(units = []) {
+  const groups = new Map();
+
+  for (const unit of units) {
+    if (unit.meta?.mode !== 'shared_ad_account') continue;
+    const adAccountId = unit.sharedAdAccountId || unit.adAccountId;
+    const error = validateAdAccount(adAccountId);
+    if (!error) continue;
+
+    const key = sharedAccountKey(unit);
+    const group = groups.get(key) || {
+      type: 'shared_ad_account_invalid',
+      companyId: unit.companyId,
+      companyName: unit.companyName,
+      state: unit.state,
+      adAccountId,
+      reason: error,
+      units: [],
+    };
+    group.units.push(unit);
+    groups.set(key, group);
+  }
+
+  return [...groups.values()].map((group) => ({
+    ...group,
+    unitCount: group.units.length,
+    message: `${group.companyName || group.companyId} / ${group.state}: conta Meta central pendente (${group.adAccountId}). ${group.units.length} clínicas dependem dessa conta.`,
+  }));
+}
+
+function buildSkippedResultForBlockedUnit({ unit, diagnostic, since, until, dryRun, scope, fields, delivery, jobRunId }) {
+  const now = new Date().toISOString();
+  return {
+    jobRunId,
+    companyId: unit.companyId,
+    unitKey: unit.key,
+    unitName: unit.name,
+    state: unit.state,
+    city: unit.city,
+    sheetName: null,
+    metaMode: unit.meta?.mode || 'single_ad_account',
+    status: 'skipped',
+    cells: 0,
+    matchedRows: 0,
+    error: diagnostic.reason,
+    groupedSkip: true,
+    startedAt: now,
+    finishedAt: now,
+    details: {
+      since,
+      until,
+      dryRun,
+      scope,
+      fields,
+      delivery,
+      diagnostic: {
+        type: diagnostic.type,
+        adAccountId: diagnostic.adAccountId,
+        unitCount: diagnostic.unitCount,
+      },
+    },
+  };
+}
+
 async function updateCells({ sheetsClient, spreadsheetId, updates, dryRun }) {
   if (dryRun) {
     logger.info(`[DRY RUN] Atualizaria ${updates.length} células em ${spreadsheetId}`);
@@ -175,10 +243,33 @@ async function fillDentalSheet({
   const selectedFields = parseFields(fields);
   const updatesBySpreadsheet = new Map();
   const results = [];
+  const diagnostics = groupedSharedAccountDiagnostics(units);
+  const blockedUnitKeys = new Set();
 
   logger.info(`Dental Sheet Fill | unidades: ${units.length} | período: ${since} até ${until} | campos=${selectedFields.join(',')} | delivery=${delivery}`);
 
+  for (const diagnostic of diagnostics) {
+    for (const unit of diagnostic.units) {
+      blockedUnitKeys.add(unit.groupKey || unit.key);
+      const result = buildSkippedResultForBlockedUnit({
+        unit,
+        diagnostic,
+        since,
+        until,
+        dryRun,
+        scope,
+        fields: selectedFields,
+        delivery,
+        jobRunId,
+      });
+      results.push(result);
+      persistUnitResult(result);
+    }
+  }
+
   for (const unit of units) {
+    if (blockedUnitKeys.has(unit.groupKey || unit.key)) continue;
+
     const result = {
       jobRunId,
       companyId: unit.companyId,
@@ -192,6 +283,7 @@ async function fillDentalSheet({
       cells: 0,
       matchedRows: 0,
       error: null,
+      groupedSkip: false,
       startedAt: new Date().toISOString(),
       finishedAt: null,
       details: { since, until, dryRun, scope, fields: selectedFields, delivery },
@@ -251,6 +343,10 @@ async function fillDentalSheet({
     dryRun,
     fields: selectedFields,
     delivery,
+    diagnostics: diagnostics.map(({ units: diagnosticUnits, ...diagnostic }) => ({
+      ...diagnostic,
+      unitKeys: diagnosticUnits.map((unit) => unit.key),
+    })),
     totalUnits: units.length,
     success: results.filter((item) => item.status === 'success').length,
     skipped: results.filter((item) => item.status === 'skipped').length,
@@ -269,4 +365,5 @@ module.exports = {
   filterRowsForUnit,
   parseFields,
   buildFieldUpdates,
+  groupedSharedAccountDiagnostics,
 };
