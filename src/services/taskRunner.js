@@ -1,5 +1,7 @@
 const { dashboardData } = require('../web/mockData');
 const { notifyWhatsapp, createNotification } = require('./notificationCenter');
+const { saveJobRun, saveJobRunStep, listPersistedJobRuns } = require('../database/repositories');
+const { logger } = require('../utils/logger');
 
 const taskRuns = [];
 
@@ -60,11 +62,21 @@ const tasks = [
   },
 ];
 
+function persistRun(run) {
+  try { saveJobRun(run); } catch (error) { logger.warn(`Falha ao persistir job run ${run.id}: ${error.message}`); }
+}
+
+function persistStep(runId, step) {
+  try { saveJobRunStep(runId, step); } catch (error) { logger.warn(`Falha ao persistir step ${runId}: ${error.message}`); }
+}
+
 function listTasks() {
   return tasks;
 }
 
 function listTaskRuns({ limit = 50 } = {}) {
+  const persisted = listPersistedJobRuns({ limit });
+  if (persisted) return persisted;
   return taskRuns.slice(0, limit);
 }
 
@@ -95,9 +107,12 @@ async function runTask(taskKey = 'full_cycle', options = {}) {
   };
 
   taskRuns.unshift(run);
+  persistRun(run);
 
   const addStep = (key, label, status = 'done', details = {}) => {
-    run.steps.push({ key, label, status, at: new Date().toISOString(), details });
+    const step = { key, label, status, at: new Date().toISOString(), details };
+    run.steps.push(step);
+    persistStep(run.id, step);
   };
 
   try {
@@ -152,6 +167,7 @@ async function runTask(taskKey = 'full_cycle', options = {}) {
         : 'Execução mock concluída. Este é o fluxo que rodará sozinho quando as APIs forem conectadas.',
       summary,
     };
+    persistRun(run);
 
     createNotification({
       client: 'Sistema',
@@ -169,6 +185,7 @@ async function runTask(taskKey = 'full_cycle', options = {}) {
     run.status = 'error';
     run.finishedAt = new Date().toISOString();
     run.result = { error: error.message };
+    persistRun(run);
     return run;
   }
 }
