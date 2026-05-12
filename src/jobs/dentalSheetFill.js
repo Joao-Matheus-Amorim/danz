@@ -4,8 +4,7 @@ const { filterUnits, loadUnits, validateAdAccount } = require('../config/clientR
 const { logger } = require('../utils/logger');
 const { saveUnitRunResult } = require('../database/repositories');
 const { resolveSheetNameForUnit } = require('../domain/sheetResolver');
-
-const ALLOWED_FIELDS = new Set(['leads', 'value', 'cpl']);
+const { getSegmentAdapter, odontologiaAdapter } = require('../segments');
 
 function dateRangeDays(since, until) {
   const days = [];
@@ -25,56 +24,21 @@ function dayToRow(date, rowOffset = 2) {
   return day + Number(rowOffset);
 }
 
-function sheetRef(sheetName, cell) {
-  return sheetName ? `'${sheetName}'!${cell}` : cell;
-}
-
 function numberValue(value) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
-function normalizeText(value) {
-  return String(value || '')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .trim();
-}
-
-function parseFields(fields = 'leads,value') {
-  const parsed = String(fields || 'leads,value')
-    .split(',')
-    .map((field) => field.trim())
-    .filter(Boolean);
-
-  const invalid = parsed.filter((field) => !ALLOWED_FIELDS.has(field));
-  if (invalid.length) throw new Error(`Campos inválidos: ${invalid.join(', ')}. Use: leads,value,cpl.`);
-  return parsed.length ? parsed : ['leads', 'value'];
+function parseFields(fields = 'leads,value', segment = 'odontologia') {
+  return getSegmentAdapter(segment).parseFields(fields);
 }
 
 function metricMatchesUnit(row, unit) {
-  const match = unit.campaignMatch || {};
-  const target = normalizeText(row.campanha || row.campaign_name || row.campaign_id || '');
-
-  if (Array.isArray(match.ids) && match.ids.length > 0) {
-    return match.ids.includes(row.campaign_id);
-  }
-
-  if (Array.isArray(match.exact) && match.exact.length > 0) {
-    return match.exact.some((item) => target === normalizeText(item));
-  }
-
-  if (Array.isArray(match.contains) && match.contains.length > 0) {
-    return match.contains.some((item) => target.includes(normalizeText(item)));
-  }
-
-  return false;
+  return getSegmentAdapter(unit.segment).matchMetricToUnit(row, unit);
 }
 
 function filterRowsForUnit(rows = [], unit) {
-  if (unit.meta?.mode !== 'shared_ad_account') return rows;
-  return rows.filter((row) => metricMatchesUnit(row, unit));
+  return getSegmentAdapter(unit.segment).filterRowsForUnit(rows, unit);
 }
 
 function totalsFromRows(rows = []) {
@@ -87,11 +51,6 @@ function totalsFromRows(rows = []) {
   );
 }
 
-function valueForEmptyMode(value, emptyMode) {
-  if (emptyMode === 'blank' && Number(value) === 0) return '';
-  return value;
-}
-
 function persistUnitResult(result) {
   try {
     saveUnitRunResult(result);
@@ -101,23 +60,7 @@ function persistUnitResult(result) {
 }
 
 function buildFieldUpdates({ unit, sheetName, row, total, selectedFields }) {
-  const updates = [];
-  const valuesByField = {
-    leads: total.leads,
-    value: total.value,
-    cpl: total.leads > 0 ? total.value / total.leads : '',
-  };
-
-  for (const field of selectedFields) {
-    const column = unit.columns[field];
-    if (!column) continue;
-    updates.push({
-      range: sheetRef(sheetName, `${column}${row}`),
-      values: [[valueForEmptyMode(valuesByField[field], unit.emptyMode)]],
-    });
-  }
-
-  return updates;
+  return getSegmentAdapter(unit.segment).buildFieldUpdates({ unit, sheetName, row, total, selectedFields });
 }
 
 function sharedAccountKey(unit) {
@@ -236,11 +179,12 @@ async function fillDentalSheet({
   delivery = 'none',
   sheetName = null,
 } = {}) {
-  const units = filterUnits(loadUnits(), { ...scope, module: scope.module || 'fillDentalSheet', enabled: true });
+  const adapter = odontologiaAdapter;
+  const units = filterUnits(loadUnits(), { ...scope, module: scope.module || adapter.defaultModule, enabled: true });
   const meta = new MetaAdsClient({ dryRun });
   const sheetsClient = new GoogleSheetsClient();
   const days = dateRangeDays(since, until);
-  const selectedFields = parseFields(fields);
+  const selectedFields = adapter.parseFields(fields);
   const updatesBySpreadsheet = new Map();
   const results = [];
   const diagnostics = groupedSharedAccountDiagnostics(units);
@@ -301,6 +245,7 @@ async function fillDentalSheet({
         continue;
       }
 
+      const unitAdapter = getSegmentAdapter(unit.segment);
       for (const day of days) {
         const resolvedSheetName = sheetName || resolveSheetNameForUnit(unit, day, { sheetName });
         result.sheetName = result.sheetName || resolvedSheetName;
@@ -309,7 +254,7 @@ async function fillDentalSheet({
         const total = totalsFromRows(rows);
         const row = dayToRow(day, unit.rowOffset);
         const spreadsheetUpdates = updatesBySpreadsheet.get(unit.spreadsheetId) || [];
-        const fieldUpdates = buildFieldUpdates({ unit, sheetName: resolvedSheetName, row, total, selectedFields });
+        const fieldUpdates = unitAdapter.buildFieldUpdates({ unit, sheetName: resolvedSheetName, row, total, selectedFields });
 
         spreadsheetUpdates.push(...fieldUpdates);
         updatesBySpreadsheet.set(unit.spreadsheetId, spreadsheetUpdates);
