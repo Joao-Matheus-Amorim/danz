@@ -2,6 +2,8 @@ const { deriveUnitColumns } = require('../utils/sheetsColumns');
 const { unknownModules } = require('../domain/modules');
 const { loadAllClients } = require('./clientLoader');
 
+const PENDING_AD_ACCOUNT_ERROR = 'adAccountId pendente';
+
 function normalizeUnit(group, unit, index) {
   const columns = unit.columns || deriveUnitColumns(group.columnLayout, index);
   const meta = { ...(group.meta || {}), ...(unit.meta || {}) };
@@ -65,7 +67,7 @@ function filterUnits(units, scope = {}) {
 function validateAdAccount(adAccountId) {
   const value = String(adAccountId || '').trim();
   if (!value) return 'adAccountId vazio';
-  if (value.includes('PREENCHER')) return 'adAccountId pendente';
+  if (value.includes('PREENCHER')) return PENDING_AD_ACCOUNT_ERROR;
   if (!/^act_\d{6,}$/.test(value)) return 'adAccountId deve seguir formato act_123456';
   return null;
 }
@@ -108,6 +110,37 @@ function validateRegistry(scope = {}) {
   };
 }
 
+function summarizeRegistryValidation(results = []) {
+  const pendingAdAccountByState = new Map();
+  const detailedInvalid = [];
+
+  for (const result of results.filter((item) => !item.ok)) {
+    const errors = result.errors || [];
+    const hasPendingAdAccount = errors.includes(PENDING_AD_ACCOUNT_ERROR);
+    const remainingErrors = errors.filter((error) => error !== PENDING_AD_ACCOUNT_ERROR);
+
+    if (hasPendingAdAccount) {
+      const state = result.unit?.state || 'UF não informada';
+      const current = pendingAdAccountByState.get(state) || { state, count: 0, units: [] };
+      current.count += 1;
+      current.units.push(result.unit?.name || result.unit?.key || 'unidade sem nome');
+      pendingAdAccountByState.set(state, current);
+    }
+
+    if (remainingErrors.length) {
+      detailedInvalid.push({
+        ...result,
+        errors: remainingErrors,
+      });
+    }
+  }
+
+  return {
+    groupedPendingAdAccounts: [...pendingAdAccountByState.values()].sort((a, b) => a.state.localeCompare(b.state)),
+    detailedInvalid,
+  };
+}
+
 module.exports = {
   loadClientGroups,
   loadUnits,
@@ -115,4 +148,6 @@ module.exports = {
   validateUnit,
   validateRegistry,
   validateAdAccount,
+  summarizeRegistryValidation,
+  PENDING_AD_ACCOUNT_ERROR,
 };

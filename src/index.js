@@ -18,7 +18,7 @@ const { analyzeCampaigns } = require('./jobs/analyzeCampaigns');
 const { buildDashboard } = require('./jobs/buildDashboard');
 const { checkAlerts } = require('./jobs/checkAlerts');
 const { fillSheetOnly } = require('./jobs/fillSheetOnly');
-const { loadUnits, filterUnits, validateRegistry } = require('./config/clientRegistry');
+const { loadUnits, filterUnits, validateRegistry, summarizeRegistryValidation } = require('./config/clientRegistry');
 const { fillDentalSheet } = require('./jobs/dentalSheetFill');
 
 async function validate(clients, dryRun = false) {
@@ -87,9 +87,14 @@ function printRegistryList(args) {
 function printRegistryValidation(args) {
   const scope = cleanScope(args.scope);
   const report = validateRegistry(scope);
+  const summary = summarizeRegistryValidation(report.results);
   logger.info(`Registry validate | total=${report.total} válidas=${report.valid} inválidas=${report.invalid}`);
 
-  for (const item of report.results.filter((result) => !result.ok)) {
+  for (const group of summary.groupedPendingAdAccounts) {
+    logger.warn(`adAccountId pendente (${group.state}) — ${group.count} unidade(s). Mantido como fallback até preencher act real.`);
+  }
+
+  for (const item of summary.detailedInvalid) {
     logger.warn(`${item.unit.name} (${item.unit.state}) — ${item.errors.join('; ')}`);
   }
 }
