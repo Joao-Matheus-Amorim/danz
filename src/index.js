@@ -82,6 +82,26 @@ function printRegistryValidation(args) {
   }
 }
 
+function printDentalFillResult(result) {
+  if (Array.isArray(result.diagnostics) && result.diagnostics.length > 0) {
+    for (const diagnostic of result.diagnostics) {
+      logger.warn(diagnostic.message);
+    }
+  }
+
+  logger.info(`Dental fill finalizado | unidades=${result.totalUnits} sucesso=${result.success} puladas=${result.skipped} erros=${result.errors}`);
+
+  const detailedWarnings = result.results.filter((entry) => entry.status !== 'success' && entry.groupedSkip !== true);
+  for (const item of detailedWarnings) {
+    logger.warn(`${item.unitName} (${item.state}) — ${item.status}: ${item.error}`);
+  }
+
+  const groupedSkipped = result.results.filter((entry) => entry.groupedSkip === true).length;
+  if (groupedSkipped > 0) {
+    logger.info(`Avisos agrupados: ${groupedSkipped} unidades puladas por diagnóstico central já exibido.`);
+  }
+}
+
 async function main() {
   const args = parseArgs();
   const defaultRange = currentMonthRange();
@@ -121,10 +141,7 @@ async function main() {
       delivery: args.delivery,
       sheetName: args.sheetName,
     });
-    logger.info(`Dental fill finalizado | unidades=${result.totalUnits} sucesso=${result.success} puladas=${result.skipped} erros=${result.errors}`);
-    for (const item of result.results.filter((entry) => entry.status !== 'success')) {
-      logger.warn(`${item.unitName} (${item.state}) — ${item.status}: ${item.error}`);
-    }
+    printDentalFillResult(result);
     return;
   }
 
