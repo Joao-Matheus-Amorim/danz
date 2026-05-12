@@ -4,6 +4,30 @@ Plataforma de automação operacional para gestão de tráfego pago, com foco in
 
 ---
 
+## Gate atual de qualidade
+
+Antes de conectar Meta Ads, Google Sheets e WhatsApp em produção, o projeto deve concluir a **Q1 — Fundação de Qualidade, Segurança e Testes**.
+
+Issue oficial:
+
+```text
+#1 — Sprint 1: Fundação de Qualidade, Segurança e Testes antes das integrações reais
+```
+
+Bloqueadores atuais para produção:
+
+- token Meta ainda precisa migrar para `Authorization: Bearer`;
+- testes unitários ainda precisam ser adicionados;
+- CI/CD ainda precisa rodar `npm run check` e `npm test`;
+- endpoints operacionais precisam de proteção/rate limit;
+- notificações e execuções ainda precisam de persistência;
+- payloads POST precisam de validação formal;
+- retry para falhas transitórias da Meta API precisa ser implementado.
+
+Enquanto Q1 não estiver concluída, integrações reais devem ser tratadas como **staging/controladas**, não produção.
+
+---
+
 ## Decisão arquitetural atual
 
 A planilha **Dental Leads** é o contrato principal da automação.
@@ -50,11 +74,12 @@ Uma clínica não precisa ter uma conta de anúncio própria. Ela pode ser uma u
 
 ### Pendente para produção
 
+- Concluir Q1 — segurança, testes, CI/CD e validação.
 - Informar o `act_...` real da conta Meta central.
 - Configurar `META_ACCESS_TOKEN`.
 - Configurar Service Account Google Sheets.
-- Validar leitura real do Meta Ads.
-- Validar escrita real na planilha.
+- Validar leitura real do Meta Ads em staging.
+- Validar escrita real na planilha em staging.
 - Criar logs persistentes.
 - Criar WhatsApp API real.
 - Criar login, painel Admin e contas somente leitura.
@@ -132,13 +157,13 @@ npm run dental:fill:dry -- --state SP --since 2026-05-01 --until 2026-05-11
 npm run dental:fill:dry -- --state BA --since 2026-05-01 --until 2026-05-11
 ```
 
-Execução real:
+Execução real controlada:
 
 ```bash
 npm run dental:fill -- --state SP --since 2026-05-01 --until 2026-05-11
 ```
 
-A execução real exige credenciais Meta Ads e Google Sheets configuradas no `.env`.
+A execução real exige Q1 concluída, credenciais Meta Ads e Google Sheets configuradas no `.env`.
 
 ---
 
@@ -197,6 +222,8 @@ docs/
   PMBOK_PROJECT_MANAGEMENT_PLAN.md
   FUNCTIONAL_REQUIREMENTS.md
   SYSTEM_ARCHITECTURE_UML.md
+  ROADMAP.md
+  DENTAL_SHARED_META_UML.md
   M1_CLIENT_REGISTRY_MODULE.md
   M2_DENTAL_SHEET_AUTOMATION_SPEC.md
 
@@ -237,7 +264,8 @@ A partir deste marco, cada bloco completo de construção deve atualizar:
 
 1. `README.md` — estado operacional e comandos atuais;
 2. documento funcional/técnico correspondente em `docs/`;
-3. `docs/SYSTEM_ARCHITECTURE_UML.md` — quando houver mudança arquitetural, fluxo ou entidade.
+3. `docs/SYSTEM_ARCHITECTURE_UML.md` ou UML específico — quando houver mudança arquitetural, fluxo ou entidade;
+4. `docs/ROADMAP.md`.
 
 Um bloco só é considerado completo quando código e documentação estão coerentes.
 
@@ -245,9 +273,11 @@ Um bloco só é considerado completo quando código e documentação estão coer
 
 ## Roadmap atualizado
 
-1. **M1 Registry** — funcional via JSON/CLI.
-2. **M2 Dental Sheet literal** — funcional via JSON/CLI e dry-run.
-3. **M3 Métricas detalhadas** — criar abas auxiliares Campanhas, Conjuntos, Criativos, Alertas e Log Execuções.
-4. **M4 WhatsApp API** — enviar resumo e alertas conforme módulo habilitado.
-5. **M5 Painel Admin/Cliente** — cadastro visual, usuários, permissões e execução manual.
-6. **M6 Módulos Admin avançados** — upload de criativos, criação de campanhas e pausa com aprovação.
+1. **Q1 Fundação de Qualidade** — prioridade máxima antes de produção.
+2. **Q2 Persistência Local** — SQLite para notificações, execuções e histórico mínimo.
+3. **M1 Registry** — funcional via JSON/CLI.
+4. **M2 Dental Sheet literal** — funcional via JSON/CLI e dry-run.
+5. **M3 Métricas detalhadas** — bloqueado por Q1/Q2.
+6. **M4 WhatsApp API** — bloqueado por Q1/Q2.
+7. **M5 Painel Admin/Cliente** — cadastro visual, usuários, permissões e execução manual.
+8. **M6 Módulos Admin avançados** — upload de criativos, criação de campanhas e pausa com aprovação.
