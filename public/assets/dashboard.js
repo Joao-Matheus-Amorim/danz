@@ -121,18 +121,8 @@ async function loadClient(client) {
     ].join('');
   }
 
-  if (campaignRows) {
-    campaignRows.innerHTML = (data.campaigns || []).map((campaign) => `
-      <tr>
-        <td>${campaign.client ? `<small>${campaign.client}</small><br>` : ''}<strong>${campaign.name}</strong></td>
-        <td>${money(campaign.spend)}</td>
-        <td>${num(campaign.leads)}</td>
-        <td>${money(campaign.cpl)}</td>
-        <td>${pct(campaign.ctr)}</td>
-        <td>${num(campaign.roi)}x</td>
-        <td>${campaign.status}</td>
-      </tr>
-    `).join('');
+  if (window.renderCampaignTree) {
+    window.renderCampaignTree(data);
   }
 
   if (creativeRows) {

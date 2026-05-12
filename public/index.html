@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="/assets/pages.css" />
   <link rel="stylesheet" href="/assets/control.css" />
   <link rel="stylesheet" href="/assets/history.css" />
+  <link rel="stylesheet" href="/assets/analysis.css" />
   <link rel="stylesheet" href="/assets/fix.css" />
 </head>
 <body>
@@ -70,16 +71,19 @@
           <div>
             <div class="page-kicker">Meta Ads</div>
             <h1 class="page-title">Campanhas</h1>
-            <p class="page-desc">Tabela objetiva com campanhas por cliente, gasto, leads, CPL, CTR, ROI e status operacional.</p>
+            <p class="page-desc">Análise em árvore: selecione uma campanha, veja os conjuntos vinculados e os criativos dentro de cada conjunto.</p>
           </div>
-          <span class="pill">Meta Ads table</span>
+          <span class="pill">Campanha → Conjunto → Criativo</span>
         </div>
-        <div class="glass card tilt">
-          <div class="table-wrap">
-            <table class="table">
-              <thead><tr><th>Campanha</th><th>Gasto</th><th>Leads</th><th>CPL</th><th>CTR</th><th>ROI</th><th>Status</th></tr></thead>
-              <tbody id="campaignRows"></tbody>
-            </table>
+        <div class="analysis-layout">
+          <div class="glass card tilt">
+            <h2 class="section-title">Campanhas <span class="pill" id="campaignTreeCount">0</span></h2>
+            <div class="analysis-list" id="campaignTreeList"></div>
+          </div>
+          <div class="glass card tilt">
+            <div class="analysis-detail" id="campaignTreeDetail">
+              <div class="analysis-empty">Selecione uma campanha para ver conjuntos e criativos.</div>
+            </div>
           </div>
         </div>
       </section>
@@ -213,5 +217,6 @@
   </div>
 
   <script src="/assets/dashboard.js"></script>
+  <script src="/assets/analysis.js"></script>
 </body>
 </html>
