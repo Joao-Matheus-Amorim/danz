@@ -4,16 +4,98 @@ Este roadmap deve ser atualizado a cada bloco de construção completo.
 
 ---
 
+## Regra de prioridade atual
+
+Antes de conectar Meta Ads, Google Sheets e WhatsApp em produção, o projeto deve concluir a **Sprint Q1 — Fundação de Qualidade, Segurança e Testes**.
+
+Issue oficial de controle:
+
+```text
+#1 — Sprint 1: Fundação de Qualidade, Segurança e Testes antes das integrações reais
+```
+
+Nenhuma integração real deve ser considerada pronta para produção enquanto os critérios de segurança, testes, CI/CD e persistência mínima não forem atendidos.
+
+---
+
 ## Estado atual do roadmap
 
 | Marco | Nome | Status | Objetivo |
 |---|---|---|---|
+| Q1 | Fundação de Qualidade, Segurança e Testes | Prioridade máxima | Corrigir segurança, testes, CI/CD, validação e resiliência antes das APIs reais |
+| Q2 | Persistência Local | Próximo | Persistir notificações, execuções e histórico mínimo em SQLite |
 | M1 | Registry de empresas e clínicas | Em construção funcional | Cadastrar/importar empresas, estados, clínicas, módulos e escopos |
 | M2 | Planilha Dental literal | Em construção funcional | Preencher Leads e Valor na planilha real do cliente |
-| M3 | Métricas detalhadas | Pendente | Criar abas auxiliares de campanhas, conjuntos, criativos e logs |
-| M4 | WhatsApp API | Pendente | Enviar mensagens e alertas conforme módulos habilitados |
+| M3 | Métricas detalhadas | Bloqueado por Q1/Q2 | Criar abas auxiliares de campanhas, conjuntos, criativos e logs |
+| M4 | WhatsApp API | Bloqueado por Q1/Q2 | Enviar mensagens e alertas conforme módulos habilitados |
 | M5 | Painel Admin e Cliente | Pendente | Criar interface para gestão e contas somente leitura |
 | M6 | Módulos Admin avançados | Pendente | Subir criativos, criar campanhas e pausar anúncios com aprovação |
+
+---
+
+## Q1 — Fundação de Qualidade, Segurança e Testes
+
+### Status
+
+Prioridade máxima antes das integrações reais.
+
+### Objetivo
+
+Resolver os gaps críticos que impedem uso seguro em produção:
+
+- token Meta exposto em query string;
+- ausência de testes;
+- ausência de rate limiting;
+- ausência de headers de segurança;
+- endpoints operacionais sem proteção;
+- ausência de CI;
+- validação de input insuficiente;
+- retry/error handling insuficiente.
+
+### Entregas obrigatórias
+
+- Corrigir `MetaAdsClient` para usar `Authorization: Bearer <token>`.
+- Adicionar testes unitários para `metrics.js`.
+- Adicionar testes unitários para `analyzer.js`.
+- Criar script `npm test`.
+- Criar GitHub Actions com `npm run check` e `npm test`.
+- Adicionar headers de segurança no servidor HTTP.
+- Adicionar rate limiting básico para endpoints operacionais.
+- Proteger `/api/tasks/run` e endpoints POST sensíveis.
+- Validar payloads de entrada.
+- Padronizar logging.
+- Adicionar retry controlado para falhas transitórias da Meta API.
+
+### Critérios de aceite
+
+- `npm test` existe e passa.
+- `npm run check` passa.
+- CI roda automaticamente em PRs.
+- Meta token não aparece em query string.
+- Endpoints operacionais têm proteção mínima.
+- Erros transitórios têm retry controlado.
+- README e documentos refletem a prioridade Q1.
+
+---
+
+## Q2 — Persistência Local
+
+### Status
+
+Próximo marco após Q1.
+
+### Objetivo
+
+Eliminar dependência exclusiva de memória para notificações, alertas e histórico de execuções.
+
+### Entregas previstas
+
+- Adicionar SQLite local.
+- Criar tabelas para notificações.
+- Criar tabelas para execuções de jobs.
+- Criar tabelas para resultados por unidade/clínica.
+- Migrar `notificationCenter.js` para persistir notificações.
+- Persistir resultados do `dentalSheetFill`.
 
 ---
 
@@ -34,7 +116,7 @@ Implementado parcialmente e funcional via CLI.
 - Validação de registry.
 - Derivação automática de colunas da planilha.
 
-### Ajuste profissional aplicado neste bloco
+### Ajuste profissional aplicado
 
 O M1 foi refinado para suportar uma conta Meta Ads central compartilhada por empresa/estado, em vez de exigir uma conta por clínica.
 
@@ -80,15 +162,19 @@ Conta Meta central
 ### Próximos itens do M2
 
 - Substituir `act_PREENCHER_CONTA_CENTRAL` pelo ID real da conta central.
-- Validar `META_ACCESS_TOKEN` real.
-- Validar Google Service Account real.
+- Validar `META_ACCESS_TOKEN` real apenas depois de Q1.
+- Validar Google Service Account real apenas depois de Q1.
 - Rodar dry-run com uma data única.
-- Rodar execução real controlada em uma ou duas clínicas.
+- Rodar execução real controlada em uma ou duas clínicas depois de Q1/Q2.
 - Criar log persistente por execução.
 
 ---
 
 ## M3 — Métricas detalhadas
+
+### Status
+
+Bloqueado por Q1/Q2.
 
 ### Objetivo
 
@@ -103,15 +189,13 @@ Adicionar abas auxiliares sem alterar a planilha literal do cliente.
 - `Log Execuções`
 - `Config`
 
-### Regras
-
-- A planilha literal continua sendo a visão principal do cliente.
-- As abas auxiliares servem para auditoria, análise e evolução.
-- M3 deve reutilizar o registry do M1 e a coleta Meta do M2.
-
 ---
 
 ## M4 — WhatsApp API
+
+### Status
+
+Bloqueado por Q1/Q2.
 
 ### Objetivo
 
