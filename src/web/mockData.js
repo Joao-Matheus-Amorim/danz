@@ -97,16 +97,59 @@ const dashboardData = {
   },
 };
 
+function sameName(a, b) {
+  return String(a || '').trim().toLowerCase() === String(b || '').trim().toLowerCase();
+}
+
+function normalizeClientData(client) {
+  const campaigns = (client.campaigns || []).map((campaign) => ({
+    ...campaign,
+    campaignId: campaign.id,
+    campaignName: campaign.name,
+  }));
+
+  const adsets = (client.adsets || []).map((adset) => {
+    const campaign = campaigns.find((item) => item.id === adset.campaignId || sameName(item.name, adset.campaign));
+    return {
+      ...adset,
+      campaignId: adset.campaignId || campaign?.id || null,
+      campaignName: adset.campaignName || campaign?.name || adset.campaign || null,
+      campaign: adset.campaign || campaign?.name || adset.campaignName || null,
+    };
+  });
+
+  const creatives = (client.creatives || []).map((creative) => {
+    const campaign = campaigns.find((item) => item.id === creative.campaignId || sameName(item.name, creative.campaign));
+    const adset = adsets.find((item) => item.id === creative.adsetId || sameName(item.name, creative.adset));
+    return {
+      ...creative,
+      campaignId: creative.campaignId || campaign?.id || adset?.campaignId || null,
+      campaignName: creative.campaignName || campaign?.name || creative.campaign || adset?.campaignName || null,
+      campaign: creative.campaign || campaign?.name || adset?.campaignName || null,
+      adsetId: creative.adsetId || adset?.id || null,
+      adsetName: creative.adsetName || adset?.name || creative.adset || null,
+      adset: creative.adset || adset?.name || creative.adsetName || null,
+    };
+  });
+
+  return {
+    ...client,
+    campaigns,
+    adsets,
+    creatives,
+  };
+}
+
 function listClients() {
   return Object.values(dashboardData).map(({ key, name, mode, summary }) => ({ key, name, mode, summary }));
 }
 
 function getClient(key = 'dental') {
-  return dashboardData[key] || dashboardData.dental;
+  return normalizeClientData(dashboardData[key] || dashboardData.dental);
 }
 
 function consolidated() {
-  const clients = Object.values(dashboardData);
+  const clients = Object.values(dashboardData).map(normalizeClientData);
   const summary = clients.reduce((acc, client) => {
     acc.spend += client.summary.spend;
     acc.leads += client.summary.leads;
@@ -122,11 +165,11 @@ function consolidated() {
     key: 'all',
     name: 'Visão consolidada',
     summary,
-    campaigns: clients.flatMap((client) => client.campaigns.map((item) => ({ ...item, client: client.name }))),
-    adsets: clients.flatMap((client) => client.adsets.map((item) => ({ ...item, client: client.name }))),
-    creatives: clients.flatMap((client) => client.creatives.map((item) => ({ ...item, client: client.name }))),
-    alerts: clients.flatMap((client) => client.alerts.map((item) => ({ ...item, client: client.name }))),
+    campaigns: clients.flatMap((client) => client.campaigns.map((item) => ({ ...item, client: client.name, clientKey: client.key }))),
+    adsets: clients.flatMap((client) => client.adsets.map((item) => ({ ...item, client: client.name, clientKey: client.key }))),
+    creatives: clients.flatMap((client) => client.creatives.map((item) => ({ ...item, client: client.name, clientKey: client.key }))),
+    alerts: clients.flatMap((client) => client.alerts.map((item) => ({ ...item, client: client.name, clientKey: client.key }))),
   };
 }
 
-module.exports = { dashboardData, listClients, getClient, consolidated };
+module.exports = { dashboardData, listClients, getClient, consolidated, normalizeClientData };
