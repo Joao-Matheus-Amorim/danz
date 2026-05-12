@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="/assets/tech.css" />
   <link rel="stylesheet" href="/assets/pages.css" />
   <link rel="stylesheet" href="/assets/control.css" />
+  <link rel="stylesheet" href="/assets/history.css" />
   <link rel="stylesheet" href="/assets/fix.css" />
 </head>
 <body>
@@ -145,6 +146,61 @@
           <div class="glass card tilt">
             <h2 class="section-title">Notificações <span class="pill" id="notificationCount">0 notificações</span></h2>
             <div id="notifications"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="page-historico">
+        <div class="page-head">
+          <div>
+            <div class="page-kicker">Histórico real</div>
+            <h1 class="page-title">Histórico Operacional</h1>
+            <p class="page-desc">Leitura direta dos endpoints protegidos: aprovações pendentes, notificações internas, execuções e resultados por unidade.</p>
+            <div class="history-token">
+              <input id="operationalTokenInput" type="password" placeholder="Token operacional local, ex: dev-local-123" autocomplete="off" />
+              <button class="action" onclick="saveOperationalToken()"><strong>Salvar token</strong><br><small>localStorage</small></button>
+              <button class="action" onclick="loadHistory()"><strong>Atualizar</strong><br><small>buscar histórico</small></button>
+            </div>
+            <div class="history-status" id="historyStatus">Informe o token operacional para carregar os dados protegidos.</div>
+          </div>
+          <span class="pill">/api/history</span>
+        </div>
+
+        <div class="history-grid">
+          <div class="glass card tilt">
+            <h2 class="section-title">Aprovações pendentes <span class="pill" id="approvalCount">0</span></h2>
+            <div class="history-list" id="historyApprovals"></div>
+          </div>
+          <div class="glass card tilt">
+            <h2 class="section-title">Notificações internas <span class="pill" id="historyNotificationCount">0</span></h2>
+            <div class="history-list" id="historyNotifications"></div>
+          </div>
+          <div class="glass card tilt history-wide">
+            <div class="history-toolbar">
+              <select id="historyStateFilter" onchange="loadHistoryUnitResults()">
+                <option value="SP">SP</option>
+                <option value="BA">BA</option>
+                <option value="">Todos os estados</option>
+              </select>
+              <select id="historyStatusFilter" onchange="loadHistoryUnitResults()">
+                <option value="">Todos os status</option>
+                <option value="skipped">Puladas</option>
+                <option value="success">Sucesso</option>
+                <option value="error">Erro</option>
+              </select>
+              <button class="action" onclick="loadHistoryUnitResults()"><strong>Filtrar unidades</strong><br><small>atualizar tabela</small></button>
+            </div>
+            <h2 class="section-title">Resultados por unidade <span class="pill" id="unitResultCount">0</span></h2>
+            <div class="table-wrap">
+              <table class="history-table">
+                <thead><tr><th>Unidade</th><th>Estado</th><th>Status</th><th>Células</th><th>Linhas</th><th>Erro</th><th>Quando</th></tr></thead>
+                <tbody id="historyUnitRows"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="glass card tilt history-wide">
+            <h2 class="section-title">Job runs <span class="pill" id="historyJobRunCount">0</span></h2>
+            <div id="historyJobRuns"></div>
           </div>
         </div>
       </section>
