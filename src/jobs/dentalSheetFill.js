@@ -2,6 +2,7 @@ const { MetaAdsClient } = require('../services/metaAds');
 const { GoogleSheetsClient } = require('../services/googleSheets');
 const { filterUnits, loadUnits, validateAdAccount } = require('../config/clientRegistry');
 const { logger } = require('../utils/logger');
+const { saveUnitRunResult } = require('../database/repositories');
 
 function dateRangeDays(since, until) {
   const days = [];
@@ -77,6 +78,14 @@ function valueForEmptyMode(value, emptyMode) {
   return value;
 }
 
+function persistUnitResult(result) {
+  try {
+    saveUnitRunResult(result);
+  } catch (error) {
+    logger.warn(`Falha ao persistir resultado da unidade ${result.unitKey}: ${error.message}`);
+  }
+}
+
 async function updateCells({ sheetsClient, spreadsheetId, updates, dryRun }) {
   if (dryRun) {
     logger.info(`[DRY RUN] Atualizaria ${updates.length} células em ${spreadsheetId}`);
@@ -115,7 +124,7 @@ async function getRowsForDay({ meta, unit, day }) {
   return filterRowsForUnit(rows, unit);
 }
 
-async function fillDentalSheet({ scope = {}, since, until, dryRun = false } = {}) {
+async function fillDentalSheet({ scope = {}, since, until, dryRun = false, jobRunId = null } = {}) {
   const units = filterUnits(loadUnits(), { ...scope, module: scope.module || 'fillDentalSheet', enabled: true });
   const meta = new MetaAdsClient({ dryRun });
   const sheetsClient = new GoogleSheetsClient();
@@ -127,15 +136,21 @@ async function fillDentalSheet({ scope = {}, since, until, dryRun = false } = {}
 
   for (const unit of units) {
     const result = {
+      jobRunId,
+      companyId: unit.companyId,
       unitKey: unit.key,
       unitName: unit.name,
       state: unit.state,
+      city: unit.city,
       sheetName: unit.sheetName,
       metaMode: unit.meta?.mode || 'single_ad_account',
       status: 'pending',
       cells: 0,
       matchedRows: 0,
       error: null,
+      startedAt: new Date().toISOString(),
+      finishedAt: null,
+      details: { since, until, dryRun, scope },
     };
 
     try {
@@ -143,7 +158,9 @@ async function fillDentalSheet({ scope = {}, since, until, dryRun = false } = {}
       if (adAccountError) {
         result.status = 'skipped';
         result.error = adAccountError;
+        result.finishedAt = new Date().toISOString();
         results.push(result);
+        persistUnitResult(result);
         logger.warn(`Pulando ${unit.name}: ${adAccountError}`);
         continue;
       }
@@ -171,13 +188,16 @@ async function fillDentalSheet({ scope = {}, since, until, dryRun = false } = {}
       }
 
       result.status = 'success';
+      result.finishedAt = new Date().toISOString();
     } catch (error) {
       result.status = 'error';
       result.error = error.message;
+      result.finishedAt = new Date().toISOString();
       logger.error(`Erro em ${unit.name}: ${error.message}`);
     }
 
     results.push(result);
+    persistUnitResult(result);
   }
 
   const sheetResults = [];
