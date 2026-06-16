@@ -27,9 +27,18 @@ export function DriveExplorer({ files }: { files: DriveFile[] }) {
   const [section, setSection] = React.useState<string>("meu-drive");
   const [query, setQuery] = React.useState("");
 
+  const matchesSection = (f: DriveFile): boolean => {
+    // A lixeira é exclusiva: arquivos descartados não aparecem em outras seções.
+    if (section === "lixeira") return Boolean(f.trashed);
+    if (f.trashed) return false;
+    if (section === "estrela") return Boolean(f.starred);
+    // Demais seções filtram pela origem real do arquivo.
+    return f.source === section;
+  };
+
   const visible = files.filter(
     (f) =>
-      (section === "meu-drive" || f.source === section || section === "estrela" || section === "lixeira") &&
+      matchesSection(f) &&
       f.name.toLowerCase().includes(query.toLowerCase())
   );
 

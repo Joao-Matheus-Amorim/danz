@@ -160,10 +160,11 @@ export const briefingItems: BriefingItem[] = [
 /* ------------------------------------------------------------------ */
 
 export const driveFolders: DriveFile[] = [
-  { id: "dr_1", name: "DL DISTRIBUIDORA", kind: "folder", fileType: "Pasta", owner: "Danyel", modifiedAt: "2026-06-10", source: "meu-drive" },
+  { id: "dr_1", name: "DL DISTRIBUIDORA", kind: "folder", fileType: "Pasta", owner: "Danyel", modifiedAt: "2026-06-10", source: "meu-drive", starred: true },
   { id: "dr_2", name: "Meet Recordings", kind: "folder", fileType: "Pasta", owner: "Danyel", modifiedAt: "2026-06-14", source: "meu-drive" },
-  { id: "dr_3", name: "Criativos Junho", kind: "folder", fileType: "Pasta", owner: "Ana Lima", modifiedAt: "2026-06-15", source: "compartilhados" },
+  { id: "dr_3", name: "Criativos Junho", kind: "folder", fileType: "Pasta", owner: "Ana Lima", modifiedAt: "2026-06-15", source: "compartilhados", starred: true },
   { id: "dr_4", name: "Contrato_PLAST_RIO.pdf", kind: "file", fileType: "PDF", owner: "Danyel", modifiedAt: "2026-06-09", source: "recentes" },
+  { id: "dr_5", name: "Rascunho_Antigo.docx", kind: "file", fileType: "Documento", owner: "Danyel", modifiedAt: "2026-05-20", source: "meu-drive", trashed: true },
 ];
 
 export const documents: DocumentItem[] = [

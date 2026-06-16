@@ -185,6 +185,10 @@ export interface DriveFile {
   owner: string;
   modifiedAt: string; // ISO 8601
   source: DriveSource;
+  /** Marcado com estrela (seção "Com estrela"). */
+  starred?: boolean;
+  /** Movido para a lixeira (seção "Lixeira"). */
+  trashed?: boolean;
 }
 
 export interface DocumentItem {
