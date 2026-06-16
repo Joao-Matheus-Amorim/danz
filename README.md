@@ -1,132 +1,175 @@
-# Tráfego Automator
+# Tráfego Automator — Danz
 
-Plataforma de automação operacional para gestão de tráfego pago, com foco inicial no caso **Dental Leads**: empresa odontológica com clínicas em múltiplos estados, uma conta Meta Ads central e uma planilha literal que precisa ser preenchida diariamente para prestação do serviço.
+Plataforma operacional para gestão de tráfego pago, automação de planilhas, análise de campanhas, histórico auditável e futuras notificações por WhatsApp.
 
----
-
-## Gate atual de qualidade
-
-Antes de conectar Meta Ads, Google Sheets e WhatsApp em produção, o projeto deve concluir Q1 e Q2.
-
-- **Q1 — Fundação de Qualidade, Segurança e Testes**: implementado parcialmente e validado localmente.
-- **Q2 — Persistência Local**: implementação inicial adicionada com SQLite local e fallback seguro.
-- **Fases Operacionais 1 e 2**: resolução de período e aba por data/estado implementadas inicialmente.
-- **Data operacional do cliente**: o período padrão usa o fuso configurado da empresa, não o fuso do servidor.
-
-Enquanto Q1/Q2 não forem validados também em CI/deploy, integrações reais devem ser tratadas como **staging/controladas**, não produção.
+O foco inicial é o caso **Dental Leads**: clínicas odontológicas em múltiplos estados, uma conta Meta Ads central compartilhada, campanhas representando unidades/clínicas e uma planilha literal que precisa ser preenchida com segurança.
 
 ---
 
-## Q1 implementado
+## Estado real do projeto
 
-- Token Meta migrado para header `Authorization: Bearer <token>`.
-- Retry controlado para Meta API em 408, 429, 5xx e timeouts.
-- Jest adicionado com `npm test`.
-- Testes unitários para `metrics.js` e `analyzer.js`.
-- Testes para segurança do `MetaAdsClient` e HTTP.
-- GitHub Actions CI com `npm run check` e `npm test`.
-- Headers de segurança, rate limit e token operacional para POSTs sensíveis.
+O projeto hoje **não é mais um script solto**. Ele já possui base de produto:
 
----
-
-## Q2 implementado inicialmente
-
-- SQLite local com `better-sqlite3`.
-- Fundação em `src/database/db.js`.
-- Repositórios em `src/database/repositories.js`.
-- Tabelas: `notifications`, `whatsapp_replies`, `job_runs`, `job_run_steps`, `unit_run_results`.
-- Notificações, task runs e resultados do Dental Fill persistem quando SQLite está disponível.
-- Banco local ignorado pelo Git em `/data/local/` e arquivos `*.db`, `*.db-wal`, `*.db-shm`.
-
-### Configuração SQLite
-
-```env
-SQLITE_PATH=E:/danz/data/local/app.db
-SQLITE_ENABLED=true
-```
-
-Se o ambiente não suportar `better-sqlite3`, o sistema não deve quebrar: ele registra aviso e usa fallback em memória.
+- registry multi-cliente via JSON/YAML;
+- validação agrupada de pendências do registry;
+- adapters por segmento;
+- preenchimento Dental em dry-run e modo controlado;
+- delivery operacional `none`, `log`, `notify`, `approval`;
+- persistência local SQLite;
+- histórico operacional por API;
+- painel web com dashboard, automação, WhatsApp mock, histórico e análise de campanhas;
+- árvore visual `Campanhas -> Conjuntos -> Criativos`;
+- normalização por IDs para preparar dados reais do Meta Ads;
+- testes automatizados e `npm run check` cobrindo backend e JS do painel.
 
 ---
 
-## Data operacional do cliente
+## Status dos grupos concluídos
 
-Cada empresa pode ter fuso e modo padrão de data:
+| Grupo | Status | Resultado |
+|---|---:|---|
+| Grupo 1 | OK | YAML/registry funcional e validado |
+| Grupo 1.5 | OK | `registry:validate` agrupando `adAccountId pendente` por estado |
+| Grupo 4 | OK | Segment adapters criados, com `odontologia` e fallback `generic` |
+| Grupo 5 | OK | Delivery operacional `none/log/notify/approval` |
+| Grupo 6 | OK | Endpoints de histórico operacional |
+| Grupo 6.1 | OK | Teste HTTP real dos endpoints locais com token |
+| Grupo 7.1 | OK | Painel visual lendo histórico real protegido por token |
+| Grupo 8 | OK | Aba Campanhas em árvore: campanha -> conjunto -> criativo |
+| Grupo 8.1 | OK | Normalização por IDs para preparar Meta Ads real |
 
-```json
-{
-  "timeZone": "America/Sao_Paulo",
-  "defaultDateMode": "month-to-date"
-}
-```
+---
 
-Isso significa que, se o operador não passar data, o sistema usa a data real do cliente naquele fuso e busca o mês inteiro até essa data.
+## O que ainda não é produção real
 
-Exemplo: se a data real do cliente for `2026-05-12`, o padrão é:
+Ainda não estamos em operação real porque faltam credenciais e validações controladas:
+
+- `META_ACCESS_TOKEN` real;
+- `act_...` real da conta Meta central;
+- `GOOGLE_SERVICE_ACCOUNT_EMAIL` real;
+- `GOOGLE_PRIVATE_KEY` real;
+- planilha compartilhada com a service account;
+- `OPERATIONAL_API_TOKEN` definido no ambiente;
+- validação dry-run com dados reais da Meta;
+- primeira escrita real em Google Sheets com escopo mínimo;
+- deploy com variáveis configuradas;
+- decisão sobre banco definitivo de produção, já que SQLite local é ótimo para desenvolvimento, mas não é banco cloud definitivo para SaaS.
+
+---
+
+## Fluxo operacional atual
 
 ```text
-2026-05-01 até 2026-05-12
-```
-
-O operador ainda pode personalizar quando quiser:
-
-```bash
-npm run dental:fill:dry -- --state SP --day 2026-05-10
-npm run dental:fill:dry -- --state SP --since 2026-05-01 --until 2026-05-06
-npm run dental:fill:dry -- --state SP --pending-month
-npm run dental:fill:dry -- --state SP --month-to-date
-npm run dental:fill:dry -- --state SP --time-zone America/Sao_Paulo
+Registry de empresas/unidades
+  -> Segment Adapter
+    -> Meta Ads Client / dry-run
+      -> Matching por campanha/unidade
+        -> Sheet Resolver por estado/mês/data
+          -> Dental Fill
+            -> Delivery Manager
+              -> SQLite / Histórico
+                -> Painel Web
 ```
 
 ---
 
-## Decisão arquitetural atual
+## Campanhas, conjuntos e criativos
 
-A planilha **Dental Leads** é o contrato principal da automação.
+O painel já representa a estrutura correta:
 
 ```text
-Dental Leads
-  -> uma conta Meta Ads central
-  -> campanhas representam clínicas/unidades
-  -> cada clínica é identificada por filtro de campanha
-  -> Leads e Valor são escritos na coluna correta da planilha
+Campanha
+  -> Conjunto
+    -> Criativo
 ```
 
-A planilha possui múltiplas abas por estado/mês. O sistema deve resolver a aba correta pela data e pelo estado.
+Para o mock e para o futuro Meta real, o vínculo profissional é por ID:
+
+```text
+campaign.id
+  -> adset.campaignId
+    -> creative.adsetId
+```
+
+Os nomes continuam sendo exibidos na interface:
+
+```text
+campaignName
+adsetName
+adName/name
+```
+
+Essa decisão prepara o projeto para a API real do Meta Ads, onde nomes são dados de exibição e IDs são os vínculos confiáveis.
 
 ---
 
-## Comandos principais
+## Como validar localmente
 
 ```bash
 npm install
 npm run check
 npm test
-npm start
+npm run registry:validate
+npm run dental:fill:dry -- --state SP --day 2026-05-10 --delivery approval
+```
+
+Resultado esperado hoje:
+
+```text
+check passa
+test passa
+registry:validate mostra BA e SP agrupados por adAccountId pendente
+dental:fill:dry roda em dry-run e pula unidades porque a conta Meta central ainda está pendente
 ```
 
 ---
 
-## Segurança operacional HTTP
-
-POSTs sensíveis exigem token operacional:
-
-```env
-OPERATIONAL_API_TOKEN=troque-este-token
-```
-
-Uso:
+## Rodar o painel local
 
 ```bash
-curl -X POST http://localhost:3000/api/tasks/run \
-  -H "Authorization: Bearer $OPERATIONAL_API_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"taskKey":"full_cycle","real":false}'
+npm run web
+```
+
+Acesse:
+
+```text
+http://localhost:3000
+```
+
+Aba principal de produto hoje:
+
+- Dashboard;
+- Campanhas;
+- Criativos;
+- Automação;
+- WhatsApp;
+- Histórico.
+
+---
+
+## Testar endpoints protegidos em dev
+
+Defina um token local:
+
+```powershell
+$env:OPERATIONAL_API_TOKEN="dev-local-123"
+npm run web
+```
+
+Em outro terminal:
+
+```powershell
+$token="dev-local-123"
+curl.exe "http://localhost:3000/api/history/notifications?limit=10" -H "Authorization: Bearer $token"
+curl.exe "http://localhost:3000/api/history/job-runs?limit=10" -H "Authorization: Bearer $token"
+curl.exe "http://localhost:3000/api/history/unit-results?state=SP&limit=10" -H "Authorization: Bearer $token"
 ```
 
 ---
 
-## M1 — Registry de empresas e clínicas
+## Operação Dental atual
+
+### Registry
 
 ```bash
 npm run registry:list
@@ -135,137 +178,73 @@ npm run registry:list -- --state BA
 npm run registry:validate
 ```
 
----
+Hoje o `registry:validate` deve acusar apenas pendência agrupada de `adAccountId`, porque a conta real ainda não foi configurada.
 
-## M2 — Preenchimento literal Dental
-
-### Modos de período
+### Dental Fill dry-run
 
 ```bash
-npm run dental:fill:dry -- --state SP --day 2026-05-10
-npm run dental:fill:dry -- --state SP --today
-npm run dental:fill:dry -- --state SP --pending-month
-npm run dental:fill:dry -- --state SP --month-to-date
-npm run dental:fill:dry -- --state SP --since 2026-05-01 --until 2026-05-11
-```
-
-### Campos personalizáveis
-
-Padrão seguro:
-
-```bash
---fields leads,value
-```
-
-Exemplos:
-
-```bash
-npm run dental:fill:dry -- --state SP --day 2026-05-10 --fields leads
-npm run dental:fill:dry -- --state SP --day 2026-05-10 --fields leads,value
-npm run dental:fill:dry -- --state SP --day 2026-05-10 --fields leads,value,cpl
-```
-
-O campo `cpl` só deve ser preenchido se for explicitamente solicitado, para preservar fórmulas da planilha.
-
-### Modo de entrega
-
-```bash
---delivery none
---delivery log
---delivery notify
---delivery approval
-```
-
-Por enquanto, o padrão operacional é:
-
-```bash
---delivery none
+npm run dental:fill:dry -- --state SP --day 2026-05-10 --delivery none
+npm run dental:fill:dry -- --state SP --day 2026-05-10 --delivery log
+npm run dental:fill:dry -- --state SP --day 2026-05-10 --delivery notify
+npm run dental:fill:dry -- --state SP --day 2026-05-10 --delivery approval
 ```
 
 ---
 
-## Conta Meta central compartilhada
+## Caminho para operar real
 
-Nos arquivos Dental, o estado usa uma conta central:
+Ordem segura:
 
-```json
-{
-  "meta": {
-    "mode": "shared_ad_account",
-    "adAccountId": "act_PREENCHER_CONTA_CENTRAL",
-    "insightLevel": "campaign",
-    "unitMatchField": "campaign_name"
-  }
-}
-```
-
-Cada clínica define como encontrar suas campanhas:
-
-```json
-{
-  "key": "pimentas",
-  "name": "Pimentas",
-  "campaignMatch": {
-    "contains": ["Pimentas"]
-  }
-}
-```
+1. Configurar `OPERATIONAL_API_TOKEN`.
+2. Configurar `META_ACCESS_TOKEN`.
+3. Trocar `act_PREENCHER_CONTA_CENTRAL` pelo `act_...` real da conta Meta central.
+4. Configurar service account Google:
+   - `GOOGLE_SERVICE_ACCOUNT_EMAIL`;
+   - `GOOGLE_PRIVATE_KEY`.
+5. Compartilhar a planilha com a service account.
+6. Rodar `npm run registry:validate`.
+7. Rodar `dental:fill:dry` para um único dia e um único estado.
+8. Confirmar se aparecem métricas reais e `matchedRows > 0`.
+9. Rodar real com `--delivery approval` ou `--delivery none` em escopo pequeno.
+10. Conferir a planilha manualmente.
+11. Só depois ampliar para intervalo maior ou rotina automática.
 
 ---
 
-## Estrutura atual
+## Próximos cortes recomendados
 
-```text
-data/
-  companies/
-    dental-leads.json
-  clients/
-    servicos/
-      odontologia/
-        sp/dental-leads-sp.json
-        ba/dental-leads-ba.json
-  local/
+1. **Grupo 8.2 — Laboratório Criativo**  
+   Transformar a aba Criativos em análise por categoria: vencedores, atenção, queimando verba e testes sugeridos.
 
-docs/
-  ROADMAP.md
-  OPERATIONAL_IMPLEMENTATION_PHASES.md
-  DENTAL_SHARED_META_UML.md
-  M1_CLIENT_REGISTRY_MODULE.md
-  M2_DENTAL_SHEET_AUTOMATION_SPEC.md
+2. **Grupo 9 — Integração Meta real em staging**  
+   Validar token, conta central e insights reais sem escrever planilha.
 
-src/
-  config/
-  database/
-  domain/
-    dateRangeResolver.js
-    sheetResolver.js
-  jobs/
-  security/
-  services/
-  utils/
-.github/
-  workflows/ci.yml
-```
+3. **Grupo 10 — Escrita real controlada no Google Sheets**  
+   Primeiro teste real em um dia, um estado e com auditoria.
+
+4. **Grupo 11 — WhatsApp real**  
+   Somente após histórico, aprovação e operação real mínima estarem confiáveis.
 
 ---
 
-## Governança documental
+## Documentos principais
 
-Cada bloco completo de construção deve atualizar:
-
-1. `README.md`;
-2. documento funcional/técnico correspondente em `docs/`;
-3. UML específico quando houver mudança arquitetural;
-4. `docs/ROADMAP.md`.
+- `docs/ROADMAP.md` — visão de fases e prioridade.
+- `docs/OPERATIONAL_IMPLEMENTATION_PHASES.md` — fases operacionais detalhadas.
+- `docs/OPERACAO_REAL.md` — checklist para operação real.
+- `docs/SEGMENT_ADAPTERS.md` — arquitetura de adapters por segmento.
+- `docs/M1_CLIENT_REGISTRY_MODULE.md` — registry de clientes.
+- `docs/M2_DENTAL_SHEET_AUTOMATION_SPEC.md` — preenchimento Dental.
+- `docs/DENTAL_SHARED_META_UML.md` — visão UML da conta Meta central compartilhada.
 
 ---
 
-## Roadmap atualizado
+## Regra de governança
 
-1. **Q1 Fundação de Qualidade** — segurança e testes implementados parcialmente.
-2. **Q2 Persistência Local** — implementação SQLite inicial adicionada.
-3. **Fase 1/2 Operacional** — resolução de aba, período e fuso do cliente implementada inicialmente.
-4. **Fase 3** — campos personalizáveis iniciados com `--fields`.
-5. **Fase 5.2** — diagnóstico agrupado da conta central implementado.
-6. **Fase 6** — endpoints de histórico.
-7. **Fase 7** — teste real controlado.
+Toda mudança relevante deve manter coerentes:
+
+1. README;
+2. ROADMAP;
+3. documento técnico correspondente em `docs/`;
+4. testes;
+5. validação operacional local.
