@@ -1,0 +1,63 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  html,
+  body {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-background text-content antialiased;
+    background-image:
+      radial-gradient(900px 600px at 12% -8%, rgba(182, 255, 0, 0.08), transparent 60%),
+      radial-gradient(800px 600px at 100% 0%, rgba(47, 140, 255, 0.06), transparent 55%),
+      radial-gradient(700px 500px at 50% 120%, rgba(168, 85, 247, 0.05), transparent 60%);
+    background-attachment: fixed;
+  }
+
+  ::selection {
+    background: rgba(182, 255, 0, 0.25);
+    color: #f5f7f2;
+  }
+
+  /* Scrollbar discreta no tema escuro */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 9999px;
+  }
+}
+
+@layer components {
+  /* Label pequeno com letter-spacing — padrão visual reutilizável */
+  .dl-label {
+    @apply text-[11px] font-medium uppercase tracking-label text-content-muted;
+  }
+
+  /* Card de vidro padrão */
+  .dl-card {
+    @apply rounded-2xl border border-white/[0.06] bg-surface shadow-card backdrop-blur-sm;
+  }
+
+  .dl-card-muted {
+    @apply rounded-2xl border border-white/[0.05] bg-surface-muted backdrop-blur-sm;
+  }
+
+  /* Realce neon reutilizável (item ativo, destaques) */
+  .dl-neon-active {
+    @apply border-neon-border bg-neon/[0.08] shadow-neon;
+  }
+}
