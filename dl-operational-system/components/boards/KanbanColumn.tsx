@@ -26,6 +26,7 @@ export function KanbanColumn({
           <span className="ml-2 text-xs text-content-muted">{cards.length}</span>
         </p>
         <button
+          type="button"
           onClick={() => futureFeature("Novo card")}
           className="rounded-lg p-1 text-content-muted transition-colors hover:bg-white/[0.06] hover:text-content"
           aria-label="Adicionar card"

@@ -45,6 +45,7 @@ export function BriefingChecklist({
         <div className="space-y-2">
           {items.map((item) => (
             <button
+              type="button"
               key={item.id}
               onClick={() => toggle(item.id)}
               className="flex w-full items-center gap-3 rounded-xl border border-white/[0.06] bg-surface-muted p-3 text-left transition-colors hover:border-neon-border"

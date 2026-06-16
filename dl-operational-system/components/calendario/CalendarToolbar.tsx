@@ -50,6 +50,7 @@ export function CalendarToolbar({
       <div className="flex flex-wrap gap-1 rounded-xl border border-white/10 bg-white/[0.03] p-1">
         {VIEWS.map((v) => (
           <button
+            type="button"
             key={v.key}
             onClick={() => onViewChange(v.key)}
             className={`rounded-lg px-3 py-1.5 text-sm transition-colors ${

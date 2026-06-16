@@ -22,12 +22,14 @@ export function BoardCard({
       <div className="p-4">
         <div className="flex items-start justify-between gap-2">
           <button
+            type="button"
             onClick={() => onOpen(board.id)}
             className="text-left text-base font-semibold text-content hover:text-neon"
           >
             {board.title}
           </button>
           <button
+            type="button"
             onClick={() => futureFeature("Menu do quadro")}
             className="rounded-lg p-1 text-content-muted transition-colors hover:bg-white/[0.06] hover:text-content"
             aria-label="Opções do quadro"

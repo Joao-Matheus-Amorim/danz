@@ -26,6 +26,7 @@ export function FileCard({ file }: { file: DriveFile }) {
         </p>
       </div>
       <button
+        type="button"
         onClick={(e) => {
           e.stopPropagation();
           futureFeature("Menu do arquivo");

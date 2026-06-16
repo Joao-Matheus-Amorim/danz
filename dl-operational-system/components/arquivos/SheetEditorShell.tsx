@@ -46,6 +46,7 @@ export function SheetEditorShell({ sheets }: { sheets: SheetItem[] }) {
           <div className="flex-1 space-y-1 overflow-y-auto">
             {visible.map((s) => (
               <button
+                type="button"
                 key={s.id}
                 onClick={() => setSelectedId(s.id)}
                 className={cn(

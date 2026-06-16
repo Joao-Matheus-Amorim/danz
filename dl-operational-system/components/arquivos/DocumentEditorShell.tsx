@@ -47,6 +47,7 @@ export function DocumentEditorShell({ documents }: { documents: DocumentItem[] }
           <div className="flex-1 space-y-1 overflow-y-auto">
             {visible.map((d) => (
               <button
+                type="button"
                 key={d.id}
                 onClick={() => setSelectedId(d.id)}
                 className={cn(

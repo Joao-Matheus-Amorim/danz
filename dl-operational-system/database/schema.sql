@@ -89,14 +89,16 @@ create table board_columns (
   board_id   uuid not null references boards (id) on delete cascade,
   title      text not null,
   position   int not null default 0,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  -- Alvo do FK composto de board_cards (garante coluna+board consistentes).
+  unique (id, board_id)
 );
 create index on board_columns (board_id);
 
 create table board_cards (
   id              uuid primary key default gen_random_uuid(),
   board_id        uuid not null references boards (id) on delete cascade,
-  column_id       uuid not null references board_columns (id) on delete cascade,
+  column_id       uuid not null,
   title           text not null,
   description     text,
   labels          text[] not null default '{}',
@@ -106,7 +108,13 @@ create table board_cards (
   due_date        date,
   position        int not null default 0,
   created_at      timestamptz not null default now(),
-  updated_at      timestamptz not null default now()
+  updated_at      timestamptz not null default now(),
+  -- FK composto: a coluna do card DEVE pertencer ao MESMO board.
+  -- Impede referência cruzada (card de um board apontando p/ coluna de outro
+  -- board/workspace), que a RLS — que autoriza via board_cards.board_id —
+  -- não conseguiria barrar sozinha.
+  foreign key (column_id, board_id)
+    references board_columns (id, board_id) on delete cascade
 );
 create index on board_cards (column_id);
 

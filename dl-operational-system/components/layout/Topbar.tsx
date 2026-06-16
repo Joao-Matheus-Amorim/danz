@@ -18,6 +18,7 @@ export function Topbar() {
 
       {/* Busca global */}
       <button
+        type="button"
         onClick={() => futureFeature("Busca global")}
         className="group flex h-10 flex-1 items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-3 text-left text-sm text-content-muted transition-colors hover:border-neon-border lg:max-w-md"
       >
@@ -30,6 +31,7 @@ export function Topbar() {
 
       <div className="ml-auto flex items-center gap-2">
         <button
+          type="button"
           onClick={() => futureFeature("Alternância de tema")}
           className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] text-content-muted transition-colors hover:text-content"
           aria-label="Alternar tema"
@@ -37,6 +39,7 @@ export function Topbar() {
           <Sun className="h-4 w-4" />
         </button>
         <button
+          type="button"
           onClick={() => futureFeature("Notificações")}
           className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] text-content-muted transition-colors hover:text-content"
           aria-label="Notificações"

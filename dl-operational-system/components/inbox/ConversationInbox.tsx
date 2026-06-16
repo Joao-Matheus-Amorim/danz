@@ -18,6 +18,7 @@ export function ConversationInbox({
     <div className="space-y-1 overflow-y-auto">
       {conversations.map((c) => (
         <button
+          type="button"
           key={c.id}
           onClick={() => onSelect(c.id)}
           className={cn(

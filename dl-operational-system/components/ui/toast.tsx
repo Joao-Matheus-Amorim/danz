@@ -69,6 +69,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
               <Info className="mt-0.5 h-4 w-4 shrink-0 text-neon" />
               <p className="flex-1 text-sm text-content">{t.message}</p>
               <button
+                type="button"
                 onClick={() => setItems((prev) => prev.filter((x) => x.id !== t.id))}
                 className="text-content-muted transition-colors hover:text-content"
                 aria-label="Fechar notificação"

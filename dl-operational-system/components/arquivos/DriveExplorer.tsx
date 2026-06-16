@@ -52,6 +52,7 @@ export function DriveExplorer({ files }: { files: DriveFile[] }) {
         {SECTIONS.map((s) => (
           <button
             key={s.key}
+            type="button"
             onClick={() => setSection(s.key)}
             className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm transition-colors ${
               section === s.key

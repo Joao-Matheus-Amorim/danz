@@ -50,6 +50,7 @@ export function MyTasks({ initialTasks }: { initialTasks: Task[] }) {
       ) : (
         list.map((t) => (
           <button
+            type="button"
             key={t.id}
             onClick={() => toggle(t.id)}
             className="flex w-full items-center gap-3 rounded-xl border border-white/[0.06] bg-surface-muted p-3 text-left transition-colors hover:border-neon-border"

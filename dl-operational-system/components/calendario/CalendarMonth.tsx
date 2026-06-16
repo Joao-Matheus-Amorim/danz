@@ -56,6 +56,7 @@ export function CalendarMonth({
           const dayEvents = eventsByDay(day);
           return (
             <button
+              type="button"
               key={day.toISOString()}
               onClick={() => onSelectDay?.(day)}
               className={cn(

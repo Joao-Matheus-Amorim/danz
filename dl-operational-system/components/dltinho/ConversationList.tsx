@@ -27,6 +27,7 @@ export function ConversationList({
       <div className="flex-1 space-y-1 overflow-y-auto">
         {conversations.map((c) => (
           <button
+            type="button"
             key={c.id}
             onClick={() => onSelect(c.id)}
             className={cn(
