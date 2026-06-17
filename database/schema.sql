@@ -283,6 +283,15 @@ create table if not exists briefing_items (
 );
 create index if not exists briefing_items_briefing_id_idx on briefing_items (briefing_id);
 
+-- Formulario publico de briefing: cada item ganha um token opaco para o link
+-- que o cliente preenche sem login, alem da resposta (campos fixos em jsonb) e
+-- o carimbo de submissao. O default volatil garante token distinto por linha
+-- existente ao adicionar a coluna.
+alter table briefing_items add column if not exists public_token uuid not null default gen_random_uuid();
+alter table briefing_items add column if not exists response jsonb;
+alter table briefing_items add column if not exists submitted_at timestamptz;
+create unique index if not exists briefing_items_public_token_idx on briefing_items (public_token);
+
 -- ----------------------------------------------------------------------
 -- Arquivos
 -- ----------------------------------------------------------------------

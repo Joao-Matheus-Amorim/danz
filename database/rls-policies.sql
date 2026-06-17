@@ -237,3 +237,64 @@ create policy "chat_messages_via_conversation" on chat_messages
         and is_workspace_member(c.workspace_id)
     )
   );
+
+-- ----------------------------------------------------------------------
+-- Formulario publico de briefing (acesso anonimo via funcoes)
+--
+-- O cliente preenche o briefing sem login. Em vez de abrir politicas de tabela
+-- para o papel `anon` (o que arriscaria expor outras linhas), expomos apenas
+-- duas funcoes security definer que operam exatamente na linha do token:
+--   - public_briefing_form(token): retorna so os campos seguros do formulario.
+--   - submit_briefing_response(token, payload): grava a resposta uma unica vez.
+-- ----------------------------------------------------------------------
+create or replace function public_briefing_form(p_token uuid)
+returns table (
+  client_name text,
+  month_ref text,
+  submitted boolean
+)
+language sql
+security definer
+stable
+set search_path = public
+as $$
+  select bi.client_name,
+         b.month_ref,
+         (bi.submitted_at is not null) as submitted
+  from briefing_items bi
+  join briefings b on b.id = bi.briefing_id
+  where bi.public_token = p_token;
+$$;
+
+create or replace function submit_briefing_response(p_token uuid, p_response jsonb)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_id uuid;
+begin
+  select id into v_id
+  from briefing_items
+  where public_token = p_token
+    and submitted_at is null;
+
+  if v_id is null then
+    return false;
+  end if;
+
+  update briefing_items
+  set response = p_response,
+      submitted_at = now(),
+      done = true
+  where id = v_id;
+
+  return true;
+end;
+$$;
+
+revoke all on function public_briefing_form(uuid) from public;
+revoke all on function submit_briefing_response(uuid, jsonb) from public;
+grant execute on function public_briefing_form(uuid) to anon, authenticated;
+grant execute on function submit_briefing_response(uuid, jsonb) to anon, authenticated;

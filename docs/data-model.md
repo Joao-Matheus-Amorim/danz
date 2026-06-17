@@ -11,7 +11,9 @@ Espelha `lib/types.ts` e `database/schema.sql`.
 - **Task**: tarefa atribuida a um Profile e opcionalmente a um Client.
 - **Campaign**: dados de campanha Meta Ads por Client.
 - **CalendarEvent**: evento por tipo.
-- **Briefing / BriefingItem**: controle mensal por Client.
+- **Briefing / BriefingItem**: controle mensal por Client. Cada BriefingItem tem
+  `public_token` (link publico), `response` (jsonb, campos fixos) e `submitted_at`
+  para o formulario que o cliente preenche sem login (via funcoes `anon`).
 - **DriveFile / DocumentItem / SheetItem**: metadados de arquivos Google.
 - **WhatsAppConversation / WhatsAppMessage**: inbox.
 - **ChatConversation / ChatMessage**: historico do Dogtooth.
