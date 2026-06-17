@@ -15,7 +15,8 @@
 - **Fase 3:** clientes, boards, calendario, briefing mensal e tarefas do Meu
   Painel ja persistem no Supabase; campanhas ja leem metricas do Supabase.
   Repositorios reais usam filtro explicito de workspace junto com RLS, e o
-  Dashboard consome esses repositorios para evitar numeros conflitantes.
+  Dashboard e o Meu Painel consomem esses repositorios para evitar numeros e
+  identidade conflitantes.
 - **Fase 5:** Trello iniciado com importacao de board/listas/cards e envio
   controlado de cards.
 
@@ -46,6 +47,7 @@
 - [x] Supabase Auth e seed preparados.
 - [x] Clientes e boards persistem em Supabase.
 - [x] Tarefas do Meu Painel persistem em Supabase.
+- [x] Perfil, cards e projetos do Meu Painel usam dados persistidos.
 - [x] Calendario e agenda do Meu Painel persistem em Supabase.
 - [x] Briefing mensal persiste em Supabase.
 - [x] Campanhas leem dados persistidos do Supabase.

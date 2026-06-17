@@ -1,11 +1,18 @@
 import Link from "next/link";
 import { FolderKanban } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { boards } from "@/lib/mock-data";
 import { ROUTES } from "@/lib/routes";
+import type { Board } from "@/lib/types";
 
-/** Bloco "Meus projetos" — boards em que o usuário participa (mock: todos). */
-export function MyProjects() {
+export function MyProjects({
+  boards,
+  loading = false,
+}: {
+  boards: Board[];
+  loading?: boolean;
+}) {
+  const visibleBoards = boards.slice(0, 4);
+
   return (
     <Card>
       <CardContent className="p-5">
@@ -14,18 +21,28 @@ export function MyProjects() {
           <p className="dl-label">Meus projetos</p>
         </div>
         <div className="space-y-2">
-          {boards.slice(0, 4).map((b) => (
-            <Link
-              key={b.id}
-              href={ROUTES.boards}
-              className="flex items-center justify-between rounded-xl border border-white/[0.06] bg-surface-muted p-3 transition-colors hover:border-neon-border"
-            >
-              <span className="text-sm text-content">{b.title}</span>
-              <span className="text-[11px] text-content-muted">
-                {b.cardsCount} cards
-              </span>
-            </Link>
-          ))}
+          {loading ? (
+            <p className="py-4 text-center text-sm text-content-muted">
+              Carregando projetos...
+            </p>
+          ) : visibleBoards.length === 0 ? (
+            <p className="py-4 text-center text-sm text-content-muted">
+              Nenhum projeto encontrado.
+            </p>
+          ) : (
+            visibleBoards.map((board) => (
+              <Link
+                key={board.id}
+                href={ROUTES.boards}
+                className="flex items-center justify-between rounded-xl border border-white/[0.06] bg-surface-muted p-3 transition-colors hover:border-neon-border"
+              >
+                <span className="text-sm text-content">{board.title}</span>
+                <span className="text-[11px] text-content-muted">
+                  {board.cardsCount} cards
+                </span>
+              </Link>
+            ))
+          )}
         </div>
       </CardContent>
     </Card>

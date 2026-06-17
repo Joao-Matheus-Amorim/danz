@@ -16,24 +16,44 @@ import { CalendarMonth } from "@/components/calendario/CalendarMonth";
 import { useToast } from "@/components/ui/toast";
 import { ROUTES } from "@/lib/routes";
 import { APP_TODAY } from "@/lib/constants";
-import {
-  currentProfile,
-  boardCards,
-} from "@/lib/mock-data";
+import { getCurrentProfile } from "@/lib/repositories/auth";
+import { listBoards, listMyBoardCards } from "@/lib/repositories/boards";
 import { listMyCalendarEvents } from "@/lib/repositories/calendar";
-import {
-  createTask,
-  listMyTasks,
-  setTaskDone,
-} from "@/lib/repositories/tasks";
-import type { CalendarEvent, Task } from "@/lib/types";
+import { createTask, listMyTasks, setTaskDone } from "@/lib/repositories/tasks";
+import type { Board, BoardCard, CalendarEvent, Profile, Task } from "@/lib/types";
 
 export default function MeuPainelPage() {
   const { toast } = useToast();
+  const [profile, setProfile] = React.useState<Profile | null>(null);
   const [myTasks, setMyTasks] = React.useState<Task[]>([]);
   const [calendarEvents, setCalendarEvents] = React.useState<CalendarEvent[]>([]);
+  const [myCards, setMyCards] = React.useState<BoardCard[]>([]);
+  const [boards, setBoards] = React.useState<Board[]>([]);
+  const [loadingProfile, setLoadingProfile] = React.useState(true);
   const [loadingTasks, setLoadingTasks] = React.useState(true);
   const [loadingCalendarEvents, setLoadingCalendarEvents] = React.useState(true);
+  const [loadingCards, setLoadingCards] = React.useState(true);
+  const [loadingBoards, setLoadingBoards] = React.useState(true);
+
+  React.useEffect(() => {
+    let mounted = true;
+
+    getCurrentProfile()
+      .then((item) => {
+        if (mounted) setProfile(item);
+      })
+      .catch((error) => {
+        console.error(error);
+        if (mounted) toast("Nao foi possivel carregar seu perfil.");
+      })
+      .finally(() => {
+        if (mounted) setLoadingProfile(false);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [toast]);
 
   React.useEffect(() => {
     let mounted = true;
@@ -44,7 +64,7 @@ export default function MeuPainelPage() {
       })
       .catch((error) => {
         console.error(error);
-        if (mounted) toast("Não foi possível carregar suas tarefas.");
+        if (mounted) toast("Nao foi possivel carregar suas tarefas.");
       })
       .finally(() => {
         if (mounted) setLoadingTasks(false);
@@ -64,7 +84,7 @@ export default function MeuPainelPage() {
       })
       .catch((error) => {
         console.error(error);
-        if (mounted) toast("Não foi possível carregar sua agenda.");
+        if (mounted) toast("Nao foi possivel carregar sua agenda.");
       })
       .finally(() => {
         if (mounted) setLoadingCalendarEvents(false);
@@ -75,10 +95,47 @@ export default function MeuPainelPage() {
     };
   }, [toast]);
 
-  const todayEvents = calendarEvents.filter(
-    (event) => event.date === APP_TODAY
-  );
-  const myCards = boardCards.filter((card) => card.assigneeId === currentProfile.id);
+  React.useEffect(() => {
+    let mounted = true;
+
+    listMyBoardCards()
+      .then((items) => {
+        if (mounted) setMyCards(items);
+      })
+      .catch((error) => {
+        console.error(error);
+        if (mounted) toast("Nao foi possivel carregar seus cards.");
+      })
+      .finally(() => {
+        if (mounted) setLoadingCards(false);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [toast]);
+
+  React.useEffect(() => {
+    let mounted = true;
+
+    listBoards()
+      .then((items) => {
+        if (mounted) setBoards(items);
+      })
+      .catch((error) => {
+        console.error(error);
+        if (mounted) toast("Nao foi possivel carregar seus projetos.");
+      })
+      .finally(() => {
+        if (mounted) setLoadingBoards(false);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [toast]);
+
+  const todayEvents = calendarEvents.filter((event) => event.date === APP_TODAY);
   const assignedToMe = myTasks.filter((task) => !task.done);
 
   const stats = [
@@ -99,7 +156,7 @@ export default function MeuPainelPage() {
       tone: "alert" as const,
     },
     {
-      label: "Entregas no mês",
+      label: "Entregas no mes",
       value: myTasks.filter((task) => task.done).length,
     },
   ];
@@ -111,7 +168,7 @@ export default function MeuPainelPage() {
       toast("Tarefa criada.");
     } catch (error) {
       console.error(error);
-      toast("Não foi possível criar a tarefa.");
+      toast("Nao foi possivel criar a tarefa.");
       throw error;
     }
   }
@@ -135,7 +192,7 @@ export default function MeuPainelPage() {
     } catch (error) {
       console.error(error);
       setMyTasks(previous);
-      toast("Não foi possível atualizar a tarefa.");
+      toast("Nao foi possivel atualizar a tarefa.");
       throw error;
     }
   }
@@ -143,7 +200,7 @@ export default function MeuPainelPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        label={`Olá, ${currentProfile.name}`}
+        label={loadingProfile ? "Ola" : `Ola, ${profile?.name ?? "usuario"}`}
         title="MEU PAINEL"
         subtitle="Suas tarefas, seus prazos, seu ritmo."
         actions={
@@ -155,7 +212,7 @@ export default function MeuPainelPage() {
             </Button>
             <Button variant="secondary" asChild>
               <Link href={ROUTES.calendario}>
-                <CalendarDays className="h-4 w-4" /> Calendário
+                <CalendarDays className="h-4 w-4" /> Calendario
               </Link>
             </Button>
             <Button variant="secondary" asChild>
@@ -195,7 +252,7 @@ export default function MeuPainelPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Tarefas atribuídas</CardTitle>
+              <CardTitle>Tarefas atribuidas</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
               {loadingTasks ? (
@@ -229,24 +286,34 @@ export default function MeuPainelPage() {
               <CardTitle>Meus cards nos quadros</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              {myCards.map((card) => (
-                <div
-                  key={card.id}
-                  className="flex items-center justify-between rounded-xl border border-white/[0.06] bg-surface-muted p-3"
-                >
-                  <span className="text-sm text-content">{card.title}</span>
-                  <span className="text-[11px] text-content-muted">
-                    {card.checklistDone}/{card.checklistTotal}
-                  </span>
-                </div>
-              ))}
+              {loadingCards ? (
+                <p className="py-4 text-center text-sm text-content-muted">
+                  Carregando cards...
+                </p>
+              ) : myCards.length === 0 ? (
+                <p className="py-4 text-center text-sm text-content-muted">
+                  Nenhum card atribuido.
+                </p>
+              ) : (
+                myCards.map((card) => (
+                  <div
+                    key={card.id}
+                    className="flex items-center justify-between rounded-xl border border-white/[0.06] bg-surface-muted p-3"
+                  >
+                    <span className="text-sm text-content">{card.title}</span>
+                    <span className="text-[11px] text-content-muted">
+                      {card.checklistDone}/{card.checklistTotal}
+                    </span>
+                  </div>
+                ))
+              )}
             </CardContent>
           </Card>
         </div>
 
         <div className="space-y-6">
           <MyScore />
-          <MyProjects />
+          <MyProjects boards={boards} loading={loadingBoards} />
         </div>
       </div>
     </div>

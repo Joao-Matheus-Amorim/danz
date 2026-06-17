@@ -44,7 +44,8 @@ Workspace 1-* ActivityLog
 ## Estado de Persistencia
 - **Real via Supabase:** Auth, profiles/workspaces/members, clientes, boards,
   colunas, cards, calendario, briefing mensal, campanhas e tarefas do Meu
-  Painel. O Dashboard consolida essas superficies reais em seus KPIs e widgets.
+  Painel. O Dashboard e o Meu Painel consolidam essas superficies reais em seus
+  KPIs e widgets.
 - **Escopo multi-tenant:** RLS segue como barreira de seguranca e os
   repositorios reais tambem filtram pelo workspace resolvido para evitar mistura
   de dados entre workspaces do mesmo usuario.

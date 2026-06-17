@@ -30,6 +30,8 @@ Status local:
   criacao de card e persistencia de DnD via Supabase.
 - `lib/repositories/tasks.ts`: leitura das tarefas do Meu Painel, criacao e
   marcar/desmarcar como concluida via Supabase.
+- Meu Painel usa perfil autenticado, cards atribuidos e projetos via
+  repositorios reais quando Supabase esta configurado.
 - `lib/repositories/calendar.ts`: leitura do calendario, criacao de evento e
   agenda do Meu Painel via Supabase.
 - `lib/repositories/briefings.ts`: leitura do briefing mensal e marcacao de

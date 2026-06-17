@@ -11,7 +11,7 @@
 - **Impacto:** clientes, boards, calendario, briefing mensal, campanhas e tarefas do Meu
   Painel ja persistem no Supabase; arquivos, inbox e superficies
   auxiliares de tarefas/calendario/briefing ainda dependem de mock/fallback.
-  O Dashboard consome dados reais das superficies ja migradas.
+  O Dashboard e o Meu Painel consomem dados reais das superficies ja migradas.
 - **Prioridade:** Alta.
 - **Plano:** continuar a camada de repositórios sobre Supabase, mantendo fallback
   mock apenas durante a transicao de cada superficie. Leituras reais ja aplicam

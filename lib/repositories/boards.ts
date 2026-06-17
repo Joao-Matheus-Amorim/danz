@@ -5,6 +5,7 @@ import {
 } from "@/lib/mock-data";
 import { getSupabase } from "@/lib/supabase";
 import type { Board, BoardCard, BoardCardLabel, BoardColumn } from "@/lib/types";
+import { getCurrentProfileId } from "@/lib/repositories/auth";
 import { getCurrentWorkspaceId } from "@/lib/repositories/workspace";
 
 interface BoardRow {
@@ -178,6 +179,47 @@ export async function getBoardDetail(boardId: string): Promise<{
     columns: (columns ?? []).map((row) => mapColumn(row as BoardColumnRow)),
     cards: (cards ?? []).map((row) => mapCard(row as BoardCardRow)),
   };
+}
+
+export async function listMyBoardCards(): Promise<BoardCard[]> {
+  const supabase = getSupabase();
+
+  if (!supabase) {
+    const profileId = await getCurrentProfileId();
+    return mockBoardCards
+      .filter((card) => card.assigneeId === profileId)
+      .sort((a, b) => a.order - b.order);
+  }
+
+  const [workspaceId, profileId] = await Promise.all([
+    getCurrentWorkspaceId(),
+    getCurrentProfileId(),
+  ]);
+
+  if (!workspaceId) throw new Error("Usuario autenticado nao esta vinculado a um workspace.");
+
+  const { data: boards, error: boardsError } = await supabase
+    .from("boards")
+    .select("id")
+    .eq("workspace_id", workspaceId);
+
+  if (boardsError) throw boardsError;
+
+  const boardIds = (boards ?? []).map((board) => board.id as string);
+  if (boardIds.length === 0) return [];
+
+  const { data, error } = await supabase
+    .from("board_cards")
+    .select(
+      "id, board_id, column_id, title, description, labels, assignee_id, checklist_total, checklist_done, due_date, position"
+    )
+    .in("board_id", boardIds)
+    .eq("assignee_id", profileId)
+    .order("due_date", { ascending: true })
+    .order("position", { ascending: true });
+
+  if (error) throw error;
+  return (data ?? []).map((row) => mapCard(row as BoardCardRow));
 }
 
 export async function createBoard(title: string): Promise<Board> {
