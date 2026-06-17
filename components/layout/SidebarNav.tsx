@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -21,6 +22,7 @@ import {
 } from "lucide-react";
 import { NAV_GROUPS } from "@/lib/routes";
 import { BRAND } from "@/lib/constants";
+import { getCurrentWorkspace } from "@/lib/repositories/workspace";
 import { cn } from "@/lib/utils";
 
 /** Mapeia o nome do ícone (string em routes.ts) para o componente lucide. */
@@ -48,6 +50,27 @@ const ICONS: Record<string, LucideIcon> = {
  */
 export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
+  const [wsName, setWsName] = React.useState(BRAND.fullName);
+  const [wsRole, setWsRole] = React.useState(BRAND.role);
+
+  React.useEffect(() => {
+    let mounted = true;
+
+    getCurrentWorkspace()
+      .then((ws) => {
+        if (!mounted || !ws) return;
+        setWsName(ws.name);
+        setWsRole(ws.role);
+      })
+      .catch((error) => {
+        // Mantem o fallback do BRAND; nao bloqueia a navegacao.
+        console.error(error);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   return (
     <div className="flex h-full flex-col">
@@ -105,8 +128,8 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
       {/* Rodapé: workspace ativo */}
       <div className="border-t border-white/[0.06] p-4">
         <p className="dl-label">Workspace ativo</p>
-        <p className="mt-1 text-sm font-medium text-content">{BRAND.fullName}</p>
-        <p className="text-xs text-content-muted">Função: {BRAND.role}</p>
+        <p className="mt-1 truncate text-sm font-medium text-content">{wsName}</p>
+        <p className="truncate text-xs text-content-muted">Função: {wsRole}</p>
       </div>
     </div>
   );
