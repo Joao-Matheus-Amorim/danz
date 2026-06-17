@@ -28,7 +28,10 @@ Status local:
 - `lib/repositories/clients.ts`: leitura e criacao real de clientes via Supabase.
 - `lib/repositories/boards.ts`: leitura de quadros/colunas/cards, criacao de quadro,
   criacao de card e persistencia de DnD via Supabase.
-- Pendentes da Fase 3: tarefas, calendario, briefings, campanhas, arquivos e inbox.
+- `lib/repositories/tasks.ts`: leitura das tarefas do Meu Painel, criacao e
+  marcar/desmarcar como concluida via Supabase.
+- Pendentes da Fase 3: calendario, briefings, campanhas, arquivos, inbox e
+  CRUD completo de tarefas fora do Meu Painel.
 
 ## Fase 4 - IA Dogtooth
 - Rota server-side `app/api/dogtooth` usando `OPENAI_API_KEY`.

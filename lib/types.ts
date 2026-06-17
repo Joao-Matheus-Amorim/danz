@@ -116,7 +116,7 @@ export interface Task {
   assigneeId: string;
   /** Id do Client relacionado (opcional). */
   clientId?: string;
-  dueDate: string; // ISO 8601
+  dueDate?: string; // ISO 8601
   done: boolean;
 }
 

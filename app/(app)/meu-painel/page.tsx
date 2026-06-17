@@ -1,3 +1,6 @@
+"use client";
+
+import * as React from "react";
 import Link from "next/link";
 import { parseISO } from "date-fns";
 import { ListChecks, CalendarDays, KanbanSquare, Sparkles } from "lucide-react";
@@ -10,32 +13,110 @@ import { MyTasks } from "@/components/painel/MyTasks";
 import { MyScore } from "@/components/painel/MyScore";
 import { MyProjects } from "@/components/painel/MyProjects";
 import { CalendarMonth } from "@/components/calendario/CalendarMonth";
+import { useToast } from "@/components/ui/toast";
 import { ROUTES } from "@/lib/routes";
 import { APP_TODAY } from "@/lib/constants";
 import {
   currentProfile,
   calendarEvents,
-  getTasksByAssignee,
   boardCards,
-  tasks,
 } from "@/lib/mock-data";
+import {
+  createTask,
+  listMyTasks,
+  setTaskDone,
+} from "@/lib/repositories/tasks";
+import type { Task } from "@/lib/types";
 
 export default function MeuPainelPage() {
-  const myTasks = getTasksByAssignee(currentProfile.id);
+  const { toast } = useToast();
+  const [myTasks, setMyTasks] = React.useState<Task[]>([]);
+  const [loadingTasks, setLoadingTasks] = React.useState(true);
+
+  React.useEffect(() => {
+    let mounted = true;
+
+    listMyTasks()
+      .then((items) => {
+        if (mounted) setMyTasks(items);
+      })
+      .catch((error) => {
+        console.error(error);
+        if (mounted) toast("Não foi possível carregar suas tarefas.");
+      })
+      .finally(() => {
+        if (mounted) setLoadingTasks(false);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [toast]);
+
   const todayEvents = calendarEvents.filter(
-    (e) => e.date === APP_TODAY && e.ownerId === currentProfile.id
+    (event) => event.date === APP_TODAY && event.ownerId === currentProfile.id
   );
-  const myCards = boardCards.filter((c) => c.assigneeId === currentProfile.id);
-  const assignedToMe = tasks.filter(
-    (t) => t.assigneeId === currentProfile.id && !t.done
-  );
+  const myCards = boardCards.filter((card) => card.assigneeId === currentProfile.id);
+  const assignedToMe = myTasks.filter((task) => !task.done);
 
   const stats = [
-    { label: "A fazer hoje", value: myTasks.filter((t) => t.dueDate === APP_TODAY && !t.done).length },
-    { label: "Esta semana", value: myTasks.filter((t) => !t.done).length, tone: "neon" as const },
-    { label: "Atrasadas", value: myTasks.filter((t) => t.dueDate < APP_TODAY && !t.done).length, tone: "alert" as const },
-    { label: "Entregas no mês", value: myTasks.filter((t) => t.done).length },
+    {
+      label: "A fazer hoje",
+      value: myTasks.filter((task) => task.dueDate === APP_TODAY && !task.done).length,
+    },
+    {
+      label: "Esta semana",
+      value: myTasks.filter((task) => !task.done).length,
+      tone: "neon" as const,
+    },
+    {
+      label: "Atrasadas",
+      value: myTasks.filter(
+        (task) => task.dueDate !== undefined && task.dueDate < APP_TODAY && !task.done
+      ).length,
+      tone: "alert" as const,
+    },
+    {
+      label: "Entregas no mês",
+      value: myTasks.filter((task) => task.done).length,
+    },
   ];
+
+  async function handleCreateTask(title: string) {
+    try {
+      const task = await createTask({ title, dueDate: APP_TODAY });
+      setMyTasks((prev) => [task, ...prev]);
+      toast("Tarefa criada.");
+    } catch (error) {
+      console.error(error);
+      toast("Não foi possível criar a tarefa.");
+      throw error;
+    }
+  }
+
+  async function handleToggleTask(task: Task) {
+    const previous = myTasks;
+    const nextDone = !task.done;
+    setMyTasks((prev) =>
+      prev.map((item) =>
+        item.id === task.id
+          ? { ...item, done: nextDone, status: nextDone ? "done" : "todo" }
+          : item
+      )
+    );
+
+    try {
+      const updated = await setTaskDone(task.id, nextDone);
+      setMyTasks((prev) =>
+        prev.map((item) => (item.id === updated.id ? updated : item))
+      );
+    } catch (error) {
+      console.error(error);
+      setMyTasks(previous);
+      toast("Não foi possível atualizar a tarefa.");
+      throw error;
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -83,24 +164,41 @@ export default function MeuPainelPage() {
             </CardContent>
           </Card>
 
-          <MyTasks initialTasks={myTasks} />
+          <MyTasks
+            tasks={myTasks}
+            loading={loadingTasks}
+            onCreateTask={handleCreateTask}
+            onToggleTask={handleToggleTask}
+          />
 
           <Card>
             <CardHeader>
               <CardTitle>Tarefas atribuídas</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              {assignedToMe.map((t) => (
-                <div
-                  key={t.id}
-                  className="flex items-center justify-between rounded-xl border border-white/[0.06] bg-surface-muted p-3"
-                >
-                  <span className="text-sm text-content">{t.title}</span>
-                  <span className="text-[11px] text-content-muted">
-                    vence {t.dueDate.slice(8, 10)}/{t.dueDate.slice(5, 7)}
-                  </span>
-                </div>
-              ))}
+              {loadingTasks ? (
+                <p className="py-4 text-center text-sm text-content-muted">
+                  Carregando tarefas...
+                </p>
+              ) : assignedToMe.length === 0 ? (
+                <p className="py-4 text-center text-sm text-content-muted">
+                  Nenhuma tarefa pendente.
+                </p>
+              ) : (
+                assignedToMe.map((task) => (
+                  <div
+                    key={task.id}
+                    className="flex items-center justify-between rounded-xl border border-white/[0.06] bg-surface-muted p-3"
+                  >
+                    <span className="text-sm text-content">{task.title}</span>
+                    <span className="text-[11px] text-content-muted">
+                      {task.dueDate
+                        ? `vence ${task.dueDate.slice(8, 10)}/${task.dueDate.slice(5, 7)}`
+                        : "sem prazo"}
+                    </span>
+                  </div>
+                ))
+              )}
             </CardContent>
           </Card>
 
@@ -109,14 +207,14 @@ export default function MeuPainelPage() {
               <CardTitle>Meus cards nos quadros</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              {myCards.map((c) => (
+              {myCards.map((card) => (
                 <div
-                  key={c.id}
+                  key={card.id}
                   className="flex items-center justify-between rounded-xl border border-white/[0.06] bg-surface-muted p-3"
                 >
-                  <span className="text-sm text-content">{c.title}</span>
+                  <span className="text-sm text-content">{card.title}</span>
                   <span className="text-[11px] text-content-muted">
-                    {c.checklistDone}/{c.checklistTotal}
+                    {card.checklistDone}/{card.checklistTotal}
                   </span>
                 </div>
               ))}
