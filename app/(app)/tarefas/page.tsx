@@ -22,6 +22,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input, Label, Select } from "@/components/ui/input";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useToast } from "@/components/ui/toast";
 import { listClients } from "@/lib/repositories/clients";
 import {
@@ -218,6 +219,7 @@ export default function TarefasPage() {
   const [modalOpen, setModalOpen] = React.useState(false);
   const [editingTask, setEditingTask] = React.useState<Task | null>(null);
   const [pendingTaskId, setPendingTaskId] = React.useState<string | null>(null);
+  const [taskToDelete, setTaskToDelete] = React.useState<Task | null>(null);
 
   React.useEffect(() => {
     let mounted = true;
@@ -327,8 +329,9 @@ export default function TarefasPage() {
     }
   }
 
-  async function handleDelete(task: Task) {
-    if (pendingTaskId) return;
+  async function handleConfirmDelete() {
+    const task = taskToDelete;
+    if (!task || pendingTaskId) return;
     const previous = tasks;
     setPendingTaskId(task.id);
     setTasks((prev) => prev.filter((item) => item.id !== task.id));
@@ -336,6 +339,7 @@ export default function TarefasPage() {
     try {
       await deleteTask(task.id);
       toast("Tarefa excluida.");
+      setTaskToDelete(null);
     } catch (error) {
       console.error(error);
       setTasks(previous);
@@ -481,7 +485,7 @@ export default function TarefasPage() {
                       <Button
                         variant="danger"
                         size="icon"
-                        onClick={() => void handleDelete(task)}
+                        onClick={() => setTaskToDelete(task)}
                         disabled={pendingTaskId === task.id}
                         aria-label="Excluir tarefa"
                       >
@@ -502,6 +506,25 @@ export default function TarefasPage() {
         task={editingTask}
         clients={clients}
         onSubmit={handleSubmit}
+      />
+
+      <ConfirmDialog
+        open={taskToDelete !== null}
+        onOpenChange={(open) => {
+          if (!open) setTaskToDelete(null);
+        }}
+        title="Excluir tarefa"
+        description={
+          <>
+            Tem certeza que deseja excluir
+            {taskToDelete ? ` "${taskToDelete.title}"` : " esta tarefa"}? Essa
+            acao nao pode ser desfeita.
+          </>
+        }
+        confirmLabel="Excluir tarefa"
+        pendingLabel="Excluindo..."
+        pending={pendingTaskId !== null}
+        onConfirm={() => void handleConfirmDelete()}
       />
     </div>
   );

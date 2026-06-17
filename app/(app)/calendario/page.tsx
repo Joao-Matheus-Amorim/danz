@@ -13,14 +13,7 @@ import {
   type CalendarView,
 } from "@/components/calendario/CalendarToolbar";
 import { EventModal } from "@/components/calendario/EventModal";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useToast } from "@/components/ui/toast";
 import { APP_TODAY } from "@/lib/constants";
 import {
@@ -216,42 +209,24 @@ export default function CalendarioPage() {
         onSubmit={handleSubmitEvent}
       />
 
-      <Dialog
+      <ConfirmDialog
         open={eventToDelete !== null}
         onOpenChange={(open) => {
-          if (!open && !pendingEventId) setEventToDelete(null);
+          if (!open) setEventToDelete(null);
         }}
-      >
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-semibold text-content">
-              Excluir evento
-            </DialogTitle>
-            <DialogDescription className="text-sm text-content-muted">
-              Tem certeza que deseja excluir
-              {eventToDelete ? ` "${eventToDelete.title}"` : " este evento"}? Essa
-              ação não pode ser desfeita.
-            </DialogDescription>
-          </DialogHeader>
-
-          <DialogFooter>
-            <Button
-              variant="ghost"
-              onClick={() => setEventToDelete(null)}
-              disabled={pendingEventId !== null}
-            >
-              Cancelar
-            </Button>
-            <Button
-              variant="danger"
-              onClick={() => void handleConfirmDelete()}
-              disabled={pendingEventId !== null}
-            >
-              {pendingEventId !== null ? "Excluindo..." : "Excluir evento"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        title="Excluir evento"
+        description={
+          <>
+            Tem certeza que deseja excluir
+            {eventToDelete ? ` "${eventToDelete.title}"` : " este evento"}? Essa
+            ação não pode ser desfeita.
+          </>
+        }
+        confirmLabel="Excluir evento"
+        pendingLabel="Excluindo..."
+        pending={pendingEventId !== null}
+        onConfirm={() => void handleConfirmDelete()}
+      />
     </div>
   );
 }
