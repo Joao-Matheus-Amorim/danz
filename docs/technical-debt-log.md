@@ -65,14 +65,16 @@
 - **Fase:** 5.
 
 ### TD07 — Estado local volátil (modais, DnD, checklists)
-- **Descrição:** evento/tarefa e algumas marcações vivem só em estado React.
+- **Descrição:** algumas marcações de card ainda vivem só em estado React/mock.
 - **Motivo:** sem persistência no MVP.
-- **Impacto:** novo cliente, novo quadro, novo card, ordem dos cards, tarefas
-  do Meu Painel, criacao/edicao/exclusao de eventos de calendario e checklist
-  mensal de briefing ja persistem; checklists de cards e outras superficies
-  auxiliares ainda nao sao duraveis.
-- **Prioridade:** Alta.
-- **Plano:** seguir persistindo cada superficie via repositórios (Fase 3).
+- **Impacto:** já persistem em Supabase: CRUD de clientes, tarefas do workspace,
+  eventos de calendário (criar/editar/excluir), campanhas (status/saldo + excluir),
+  quadros (criar/excluir) e cards (criar/editar título-descrição/excluir), ordem
+  dos cards (DnD) e checklist mensal de briefing. Ainda não são duráveis: checklist,
+  labels e responsável (assignee) de cards.
+- **Prioridade:** Média.
+- **Plano:** persistir os campos restantes do card (checklist/labels/assignee) via
+  repositório quando entrarem em escopo.
 - **Fase:** 3.
 
 ### TD08 — Trello não sincroniza
@@ -109,9 +111,11 @@
 - **Fase:** 6.
 
 ### TD11 — Permissões por papel não aplicadas
-- **Descrição:** papéis existem nos tipos/seed, mas a UI não restringe ações.
+- **Descrição:** papéis existem nos tipos/seed e há uma primeira política por papel
+  (`workspaces_admin_update`, edição do workspace restrita a owner/admin), mas a UI
+  ainda não restringe as demais ações por papel.
 - **Motivo:** RBAC fora do MVP.
-- **Impacto:** todos veem/fazem tudo.
+- **Impacto:** fora da edição do workspace, todos veem/fazem tudo.
 - **Prioridade:** Média.
 - **Plano:** refinar RLS por papel + guards na UI.
 - **Fase:** 6.

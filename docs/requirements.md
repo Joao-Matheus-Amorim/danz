@@ -7,11 +7,11 @@
 | RF02 | Dashboard com hero, KPIs, crescimento e widgets | Concluido |
 | RF03 | Dogtooth: chat, conversas, sugestoes e construtor | Stub |
 | RF04 | Meu Painel: agenda, metricas, tarefas e pontuacao | Agenda/tarefas em Supabase; demais widgets em mock/fallback |
-| RF05 | Boards: grid, quadro, card, drag and drop e persistencia | Supabase |
-| RF06 | Clientes: tabela, busca, filtro e criacao | Supabase |
-| RF07 | Calendario: grade mensal, filtros e novo evento | Supabase |
+| RF05 | Boards: grid, quadro, card, drag and drop e persistencia | Supabase; CRUD de quadro (criar/excluir; quadro do Trello nao e excluivel) e de card (criar/editar/excluir) |
+| RF06 | Clientes: tabela, busca, filtro e CRUD | Supabase; criar, editar (nome, bandeira, plano, status) e excluir |
+| RF07 | Calendario: grade mensal, filtros e CRUD de eventos | Supabase; criar/editar/excluir nas visoes Agenda e Mes, com confirmacao de exclusao |
 | RF08 | Briefings: controle mensal e checklist | Checklist mensal em Supabase; formularios publicos em mock/fallback |
-| RF09 | Campanhas: metricas, tabela Meta Ads e aviso de token | Metricas/tabela em Supabase; token Meta em mock/fallback |
+| RF09 | Campanhas: metricas, tabela Meta Ads e aviso de token | Metricas/tabela em Supabase; editar status/saldo e excluir campanha; token Meta em mock/fallback |
 | RF10 | Drive/Documentos/Planilhas: navegacao e shells | Metadados em Supabase; editores Google em mock/fallback |
 | RF11 | Inbox: conexao WhatsApp, conversas e painel | Conversas/mensagens em Supabase; conexao/envio em mock/fallback |
 | RF12 | Configuracoes: workspace, usuarios e integracoes | Nome/segmento do workspace persistem (owner/admin via RLS); usuarios e integracoes em mock/fallback |
