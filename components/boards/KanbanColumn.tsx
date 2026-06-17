@@ -10,10 +10,16 @@ export function KanbanColumn({
   column,
   cards,
   onCreateCard,
+  onEditCard,
+  onDeleteCard,
+  pendingCardId,
 }: {
   column: BoardColumnType;
   cards: BoardCard[];
   onCreateCard?: (columnId: string) => void;
+  onEditCard?: (card: BoardCard) => void;
+  onDeleteCard?: (card: BoardCard) => void;
+  pendingCardId?: string | null;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: column.id });
 
@@ -45,7 +51,13 @@ export function KanbanColumn({
           strategy={verticalListSortingStrategy}
         >
           {cards.map((card) => (
-            <KanbanCard key={card.id} card={card} />
+            <KanbanCard
+              key={card.id}
+              card={card}
+              onEdit={onEditCard}
+              onDelete={onDeleteCard}
+              pending={pendingCardId === card.id}
+            />
           ))}
         </SortableContext>
         {cards.length === 0 && (

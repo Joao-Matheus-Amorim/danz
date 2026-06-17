@@ -28,8 +28,8 @@ Status local:
 - `lib/repositories/clients.ts`: leitura, criacao, edicao (nome, bandeira, plano,
   status) e exclusao de clientes via Supabase.
 - `lib/repositories/boards.ts`: leitura de quadros/colunas/cards, criacao de quadro,
-  exclusao de quadro (cascata de listas/cards), criacao de card e persistencia de
-  DnD via Supabase.
+  exclusao de quadro (cascata de listas/cards), criacao/edicao (titulo, descricao)/
+  exclusao de card e persistencia de DnD via Supabase.
 - `lib/repositories/tasks.ts`: leitura das tarefas do Meu Painel, criacao e
   marcar/desmarcar como concluida via Supabase.
 - `/tarefas`: CRUD operacional de tarefas do workspace, com filtros por texto,
