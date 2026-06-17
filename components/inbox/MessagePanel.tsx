@@ -17,9 +17,11 @@ import { formatDate, cn } from "@/lib/utils";
 export function MessagePanel({
   conversation,
   messages,
+  loading = false,
 }: {
   conversation: WhatsAppConversation | null;
   messages: WhatsAppMessage[];
+  loading?: boolean;
 }) {
   const { futureFeature } = useToast();
 
@@ -43,26 +45,39 @@ export function MessagePanel({
       </div>
 
       <div className="flex-1 space-y-3 overflow-y-auto py-4">
-        {messages.map((m) => (
-          <div
-            key={m.id}
-            className={cn("flex", m.direction === "out" ? "justify-end" : "justify-start")}
-          >
+        {loading ? (
+          <p className="py-10 text-center text-sm text-content-muted">
+            Carregando mensagens...
+          </p>
+        ) : messages.length === 0 ? (
+          <p className="py-10 text-center text-sm text-content-muted">
+            Nenhuma mensagem encontrada.
+          </p>
+        ) : (
+          messages.map((m) => (
             <div
+              key={m.id}
               className={cn(
-                "max-w-[75%] rounded-2xl px-3.5 py-2 text-sm",
-                m.direction === "out"
-                  ? "bg-neon/[0.12] text-content"
-                  : "border border-white/[0.06] bg-surface-muted text-content"
+                "flex",
+                m.direction === "out" ? "justify-end" : "justify-start"
               )}
             >
-              <p>{m.body}</p>
-              <p className="mt-1 text-right text-[10px] text-content-muted">
-                {formatDate(m.timestamp, "HH:mm")}
-              </p>
+              <div
+                className={cn(
+                  "max-w-[75%] rounded-2xl px-3.5 py-2 text-sm",
+                  m.direction === "out"
+                    ? "bg-neon/[0.12] text-content"
+                    : "border border-white/[0.06] bg-surface-muted text-content"
+                )}
+              >
+                <p>{m.body}</p>
+                <p className="mt-1 text-right text-[10px] text-content-muted">
+                  {formatDate(m.timestamp, "HH:mm")}
+                </p>
+              </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
 
       <form

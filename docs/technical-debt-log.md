@@ -8,10 +8,11 @@
 ### TD01 — Dados mockados em `lib/mock-data.ts`
 - **Descrição:** parte do domínio ainda vem de constantes mockadas.
 - **Motivo:** MVP foca em navegação/UX antes do banco.
-- **Impacto:** clientes, boards, calendario, briefing mensal, campanhas e tarefas do Meu
-  Painel ja persistem no Supabase; arquivos, inbox e superficies
-  auxiliares de tarefas/calendario/briefing ainda dependem de mock/fallback.
-  O Dashboard e o Meu Painel consomem dados reais das superficies ja migradas.
+- **Impacto:** clientes, boards, calendario, briefing mensal, campanhas,
+  Drive/Documentos/Planilhas, Inbox e tarefas do Meu Painel ja persistem no
+  Supabase; superficies auxiliares de tarefas/calendario/briefing ainda
+  dependem de mock/fallback. O Dashboard e o Meu Painel consomem dados reais
+  das superficies migradas.
 - **Prioridade:** Alta.
 - **Plano:** continuar a camada de repositórios sobre Supabase, mantendo fallback
   mock apenas durante a transicao de cada superficie. Leituras reais ja aplicam
@@ -44,19 +45,21 @@
 - **Plano:** OAuth Google + APIs Drive/Docs/Sheets + embed.
 - **Fase:** 5.
 
-### TD05 — Inbox WhatsApp mockado
-- **Descrição:** conexão por QR e mensagens são simuladas.
+### TD05 - Inbox WhatsApp sem provedor real
+- **Descricao:** conversas e mensagens leem Supabase, mas conexao por QR,
+  webhooks e envio ainda sao simulados.
 - **Motivo:** depende de provedor externo homologado.
-- **Impacto:** não envia/recebe mensagens reais.
-- **Prioridade:** Média.
-- **Plano:** Evolution API / Z-API / Baileys com abstração de provider + webhooks.
+- **Impacto:** nao envia nem recebe mensagens reais do WhatsApp.
+- **Prioridade:** Media.
+- **Plano:** Evolution API / Z-API / Baileys com abstracao de provider + webhooks.
 - **Fase:** 5.
 
-- **Descrição:** métricas e tabela leem campanhas persistidas no Supabase; token Meta
-  ainda não é configurado de fato.
-- **Motivo:** integração Meta fora do MVP.
+### TD06 - Meta Ads sem integracao real
+- **Descricao:** metricas e tabela leem campanhas persistidas no Supabase; token
+  Meta ainda nao e configurado de fato.
+- **Motivo:** integracao Meta fora do MVP.
 - **Impacto:** sem dados externos reais de performance.
-- **Prioridade:** Média.
+- **Prioridade:** Media.
 - **Plano:** portar `lib/integrations/meta-ads.legacy.js` (Graph API) para rota
   server-side TS (`app/api/meta/...`).
 - **Fase:** 5.

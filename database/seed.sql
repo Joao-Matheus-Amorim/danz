@@ -181,6 +181,42 @@ begin
     trashed = excluded.trashed,
     modified_at = excluded.modified_at;
 
+  insert into whatsapp_conversations (
+    id,
+    workspace_id,
+    contact_name,
+    number_label,
+    last_message,
+    last_message_at,
+    unread
+  )
+  values
+    ('00000000-0000-4000-8000-000000000901', v_workspace_id, 'Maria Eduarda', 'Suporte', 'Perfeito, pode seguir!', '2026-06-16T09:12:00Z', 2),
+    ('00000000-0000-4000-8000-000000000902', v_workspace_id, 'Suporte DL', 'Suporte', 'Recebido, obrigado.', '2026-06-16T08:40:00Z', 0),
+    ('00000000-0000-4000-8000-000000000903', v_workspace_id, 'Suporte DL', 'Suporte', 'Vou verificar e te retorno.', '2026-06-15T18:05:00Z', 0)
+  on conflict (id) do update set
+    contact_name = excluded.contact_name,
+    number_label = excluded.number_label,
+    last_message = excluded.last_message,
+    last_message_at = excluded.last_message_at,
+    unread = excluded.unread;
+
+  insert into whatsapp_messages (
+    id,
+    conversation_id,
+    direction,
+    body,
+    created_at
+  )
+  values
+    ('00000000-0000-4000-8000-000000000911', '00000000-0000-4000-8000-000000000901', 'in', 'Oi! Recebeu os materiais?', '2026-06-16T09:05:00Z'),
+    ('00000000-0000-4000-8000-000000000912', '00000000-0000-4000-8000-000000000901', 'out', 'Recebi sim! Ja estou organizando.', '2026-06-16T09:08:00Z'),
+    ('00000000-0000-4000-8000-000000000913', '00000000-0000-4000-8000-000000000901', 'in', 'Perfeito, pode seguir!', '2026-06-16T09:12:00Z')
+  on conflict (id) do update set
+    direction = excluded.direction,
+    body = excluded.body,
+    created_at = excluded.created_at;
+
   insert into activity_logs (id, workspace_id, actor_id, actor_name, action, target, created_at)
   values
     ('00000000-0000-4000-8000-000000000701', v_workspace_id, v_owner_id, 'Admin', 'atualizou', 'PLAST RIO', '2026-06-16T08:10:00Z'),

@@ -8,12 +8,30 @@ import { formatDate, cn } from "@/lib/utils";
 export function ConversationInbox({
   conversations,
   activeId,
+  loading = false,
   onSelect,
 }: {
   conversations: WhatsAppConversation[];
   activeId: string | null;
+  loading?: boolean;
   onSelect: (id: string) => void;
 }) {
+  if (loading) {
+    return (
+      <div className="flex h-full items-center justify-center text-sm text-content-muted">
+        Carregando conversas...
+      </div>
+    );
+  }
+
+  if (conversations.length === 0) {
+    return (
+      <div className="flex h-full items-center justify-center px-6 text-center text-sm text-content-muted">
+        Nenhuma conversa encontrada.
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-1 overflow-y-auto">
       {conversations.map((c) => (
