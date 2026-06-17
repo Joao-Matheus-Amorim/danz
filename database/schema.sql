@@ -255,10 +255,14 @@ create table if not exists drive_files (
   file_type     text not null default '',
   owner_name    text not null default '',
   source        text not null default 'meu-drive',
+  starred       boolean not null default false,
+  trashed       boolean not null default false,
   external_id   text,
   modified_at   timestamptz not null default now(),
   created_at    timestamptz not null default now()
 );
+alter table drive_files add column if not exists starred boolean not null default false;
+alter table drive_files add column if not exists trashed boolean not null default false;
 create index if not exists drive_files_workspace_id_idx on drive_files (workspace_id);
 
 create table if not exists documents (

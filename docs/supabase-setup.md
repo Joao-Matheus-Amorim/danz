@@ -55,8 +55,9 @@ baseados em `lib/mock-data.ts`.
 ## Observacoes
 
 - A Fase 2 ativa identidade e isolamento por RLS.
-- Clientes e boards ja usam `lib/repositories/*` com Supabase quando as envs
-  existem.
+- Clientes, boards, tarefas, calendario, briefings, campanhas, Drive,
+  Documentos e Planilhas ja usam `lib/repositories/*` com Supabase quando as
+  envs existem.
 - As demais superficies ainda podem usar `lib/mock-data.ts` ate seus cortes da
   Fase 3.
 - Convites, RBAC refinado e auditoria operacional continuam na Fase 6.

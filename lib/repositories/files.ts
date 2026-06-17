@@ -20,6 +20,8 @@ interface DriveFileRow {
   file_type: string;
   owner_name: string;
   source: string;
+  starred: boolean;
+  trashed: boolean;
   modified_at: string;
 }
 
@@ -64,6 +66,8 @@ function mapDriveFile(row: DriveFileRow): DriveFile {
     fileType: row.file_type,
     owner: row.owner_name,
     source: asDriveSource(row.source),
+    starred: row.starred,
+    trashed: row.trashed,
     modifiedAt: row.modified_at,
   };
 }
@@ -104,7 +108,9 @@ export async function listDriveFiles(): Promise<DriveFile[]> {
   const workspaceId = await requireWorkspaceId();
   const { data, error } = await supabase
     .from("drive_files")
-    .select("id, name, kind, file_type, owner_name, source, modified_at")
+    .select(
+      "id, name, kind, file_type, owner_name, source, starred, trashed, modified_at"
+    )
     .eq("workspace_id", workspaceId)
     .order("modified_at", { ascending: false });
 

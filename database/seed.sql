@@ -153,6 +153,34 @@ begin
     client_name = excluded.client_name,
     done = excluded.done;
 
+  insert into drive_files (
+    id,
+    workspace_id,
+    name,
+    kind,
+    file_type,
+    owner_name,
+    source,
+    starred,
+    trashed,
+    modified_at
+  )
+  values
+    ('00000000-0000-4000-8000-000000000801', v_workspace_id, 'DL DISTRIBUIDORA', 'folder', 'Pasta', 'Admin', 'meu-drive', true, false, '2026-06-10T00:00:00Z'),
+    ('00000000-0000-4000-8000-000000000802', v_workspace_id, 'Meet Recordings', 'folder', 'Pasta', 'Admin', 'meu-drive', false, false, '2026-06-14T00:00:00Z'),
+    ('00000000-0000-4000-8000-000000000803', v_workspace_id, 'Criativos Junho', 'folder', 'Pasta', 'Ana Lima', 'compartilhados', true, false, '2026-06-15T00:00:00Z'),
+    ('00000000-0000-4000-8000-000000000804', v_workspace_id, 'Contrato_PLAST_RIO.pdf', 'file', 'PDF', 'Admin', 'recentes', false, false, '2026-06-09T00:00:00Z'),
+    ('00000000-0000-4000-8000-000000000805', v_workspace_id, 'Rascunho_Antigo.docx', 'file', 'Documento', 'Admin', 'meu-drive', false, true, '2026-05-20T00:00:00Z')
+  on conflict (id) do update set
+    name = excluded.name,
+    kind = excluded.kind,
+    file_type = excluded.file_type,
+    owner_name = excluded.owner_name,
+    source = excluded.source,
+    starred = excluded.starred,
+    trashed = excluded.trashed,
+    modified_at = excluded.modified_at;
+
   insert into activity_logs (id, workspace_id, actor_id, actor_name, action, target, created_at)
   values
     ('00000000-0000-4000-8000-000000000701', v_workspace_id, v_owner_id, 'Admin', 'atualizou', 'PLAST RIO', '2026-06-16T08:10:00Z'),
