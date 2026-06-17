@@ -11,37 +11,55 @@ import {
 } from "@/components/ui/dialog";
 import { Input, Label, Select } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import type { Client, ClientPlan } from "@/lib/types";
+import type { Client, ClientPlan, ClientStatus } from "@/lib/types";
 
 const PLANS: ClientPlan[] = ["Essencial", "Pro", "Premium", "Performance"];
+
+export interface ClientFormInput {
+  name: string;
+  bandeira: string;
+  plan: ClientPlan;
+  status: ClientStatus;
+}
 
 export function ClientModal({
   open,
   onOpenChange,
-  onCreate,
+  client,
+  onSubmit,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCreate: (client: Pick<Client, "name" | "bandeira" | "plan">) => Promise<void> | void;
+  client?: Client | null;
+  onSubmit: (input: ClientFormInput) => Promise<void> | void;
 }) {
   const [name, setName] = React.useState("");
   const [bandeira, setBandeira] = React.useState("");
   const [plan, setPlan] = React.useState<ClientPlan>("Essencial");
+  const [status, setStatus] = React.useState<ClientStatus>("ativo");
   const [submitting, setSubmitting] = React.useState(false);
 
+  const isEditing = Boolean(client);
+
+  React.useEffect(() => {
+    if (!open) return;
+    setName(client?.name ?? "");
+    setBandeira(client?.bandeira && client.bandeira !== "-" ? client.bandeira : "");
+    setPlan(client?.plan ?? "Essencial");
+    setStatus(client?.status ?? "ativo");
+  }, [open, client]);
+
   async function submit() {
-    if (!name.trim()) return;
+    if (!name.trim() || submitting) return;
 
     setSubmitting(true);
     try {
-      await onCreate({
+      await onSubmit({
         name: name.trim().toUpperCase(),
         bandeira: bandeira.trim() || "-",
         plan,
+        status,
       });
-      setName("");
-      setBandeira("");
-      setPlan("Essencial");
       onOpenChange(false);
     } catch (error) {
       console.error(error);
@@ -55,10 +73,12 @@ export function ClientModal({
       <DialogContent>
         <DialogHeader>
           <DialogTitle className="text-lg font-semibold text-content">
-            Novo cliente
+            {isEditing ? "Editar cliente" : "Novo cliente"}
           </DialogTitle>
           <DialogDescription className="text-sm text-content-muted">
-            Cadastro persistido no Supabase quando a integracao estiver configurada.
+            {isEditing
+              ? "Atualize os dados da carteira deste cliente."
+              : "Cadastro persistido no Supabase quando a integracao estiver configurada."}
           </DialogDescription>
         </DialogHeader>
 
@@ -95,6 +115,19 @@ export function ClientModal({
               ))}
             </Select>
           </div>
+          {isEditing && (
+            <div>
+              <Label htmlFor="c-status">Status</Label>
+              <Select
+                id="c-status"
+                value={status}
+                onChange={(e) => setStatus(e.target.value as ClientStatus)}
+              >
+                <option value="ativo">Ativo</option>
+                <option value="pausado">Pausado</option>
+              </Select>
+            </div>
+          )}
         </div>
 
         <DialogFooter>
@@ -102,7 +135,11 @@ export function ClientModal({
             Cancelar
           </Button>
           <Button variant="primary" onClick={() => void submit()} disabled={submitting}>
-            {submitting ? "Criando..." : "Criar cliente"}
+            {submitting
+              ? "Salvando..."
+              : isEditing
+                ? "Salvar cliente"
+                : "Criar cliente"}
           </Button>
         </DialogFooter>
       </DialogContent>

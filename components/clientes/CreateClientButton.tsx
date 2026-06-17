@@ -34,9 +34,13 @@ export function CreateClientButton({
       <ClientModal
         open={open}
         onOpenChange={setOpen}
-        onCreate={async (input) => {
+        onSubmit={async (input) => {
           try {
-            const client = await createClient(input);
+            const client = await createClient({
+              name: input.name,
+              bandeira: input.bandeira,
+              plan: input.plan,
+            });
             onCreated?.(client);
             toast("Cliente criado no Supabase.");
           } catch (error) {

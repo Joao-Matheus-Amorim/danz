@@ -6,9 +6,16 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input, Select } from "@/components/ui/input";
 import { ClientsTable } from "@/components/clientes/ClientsTable";
+import { ClientModal } from "@/components/clientes/ClientModal";
 import { CreateClientButton } from "@/components/clientes/CreateClientButton";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useToast } from "@/components/ui/toast";
-import { listClients } from "@/lib/repositories/clients";
+import {
+  deleteClient,
+  listClients,
+  updateClient,
+  type UpdateClientInput,
+} from "@/lib/repositories/clients";
 import type { Client, ClientStatus } from "@/lib/types";
 
 export default function ClientesPage() {
@@ -17,6 +24,10 @@ export default function ClientesPage() {
   const [query, setQuery] = React.useState("");
   const [status, setStatus] = React.useState<ClientStatus | "todos">("todos");
   const [loading, setLoading] = React.useState(true);
+  const [editingClient, setEditingClient] = React.useState<Client | null>(null);
+  const [modalOpen, setModalOpen] = React.useState(false);
+  const [clientToDelete, setClientToDelete] = React.useState<Client | null>(null);
+  const [pendingId, setPendingId] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     let mounted = true;
@@ -37,6 +48,46 @@ export default function ClientesPage() {
       mounted = false;
     };
   }, [toast]);
+
+  function openEditModal(client: Client) {
+    setEditingClient(client);
+    setModalOpen(true);
+  }
+
+  async function handleUpdate(input: UpdateClientInput) {
+    if (!editingClient) return;
+    try {
+      const updated = await updateClient(editingClient.id, input);
+      setClients((prev) =>
+        prev.map((item) => (item.id === updated.id ? updated : item))
+      );
+      toast("Cliente atualizado.");
+    } catch (error) {
+      console.error(error);
+      toast("Nao foi possivel salvar o cliente.");
+      throw error;
+    }
+  }
+
+  async function handleConfirmDelete() {
+    const client = clientToDelete;
+    if (!client || pendingId) return;
+    const previous = clients;
+    setPendingId(client.id);
+    setClients((prev) => prev.filter((item) => item.id !== client.id));
+
+    try {
+      await deleteClient(client.id);
+      toast("Cliente excluido.");
+      setClientToDelete(null);
+    } catch (error) {
+      console.error(error);
+      setClients(previous);
+      toast("Nao foi possivel excluir o cliente.");
+    } finally {
+      setPendingId(null);
+    }
+  }
 
   const filtered = clients.filter((c) => {
     const matchesQuery =
@@ -88,7 +139,39 @@ export default function ClientesPage() {
         </Button>
       </div>
 
-      <ClientsTable clients={filtered} loading={loading} />
+      <ClientsTable
+        clients={filtered}
+        loading={loading}
+        onEdit={openEditModal}
+        onDelete={setClientToDelete}
+        pendingId={pendingId}
+      />
+
+      <ClientModal
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        client={editingClient}
+        onSubmit={handleUpdate}
+      />
+
+      <ConfirmDialog
+        open={clientToDelete !== null}
+        onOpenChange={(open) => {
+          if (!open) setClientToDelete(null);
+        }}
+        title="Excluir cliente"
+        description={
+          <>
+            Tem certeza que deseja excluir
+            {clientToDelete ? ` ${clientToDelete.name}` : " este cliente"}? Essa
+            acao nao pode ser desfeita.
+          </>
+        }
+        confirmLabel="Excluir cliente"
+        pendingLabel="Excluindo..."
+        pending={pendingId !== null}
+        onConfirm={() => void handleConfirmDelete()}
+      />
     </div>
   );
 }
