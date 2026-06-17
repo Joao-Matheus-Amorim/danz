@@ -41,7 +41,7 @@ export function ConversationInbox({
             <p className="truncate text-[12px] text-content-muted">{c.lastMessage}</p>
           </div>
           {c.unread > 0 && (
-            <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-neon px-1 text-[10px] font-semibold text-background">
+            <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-neon px-1 text-[10px] font-semibold text-content">
               {c.unread}
             </span>
           )}

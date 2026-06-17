@@ -45,10 +45,10 @@ export const CLIENT_TAG_STYLE: Record<ClientTag, string> = {
 
 /** Cor base por tipo de evento do calendário. */
 export const EVENT_TYPE_COLOR: Record<CalendarEventType, string> = {
-  reuniao: "#2F8CFF",
-  tarefa: "#A855F7",
-  conteudo: "#B6FF00",
-  campanha: "#A855F7",
+  reuniao: "#4F9BE8",
+  tarefa: "#D9A441",
+  conteudo: "#A86017",
+  campanha: "#B9732A",
 };
 
 export const EVENT_TYPE_LABEL: Record<CalendarEventType, string> = {

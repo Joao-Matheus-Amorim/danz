@@ -59,7 +59,7 @@ export function MyTasks({ initialTasks }: { initialTasks: Task[] }) {
               className={cn(
                 "flex h-5 w-5 shrink-0 items-center justify-center rounded-md border",
                 t.done
-                  ? "border-neon bg-neon text-background"
+                  ? "border-neon bg-neon text-content"
                   : "border-white/15"
               )}
             >

@@ -31,7 +31,7 @@ export function KanbanCard({ card }: { card: BoardCardType }) {
           {card.labels.map((l) => (
             <span
               key={l}
-              className={cn("rounded px-1.5 py-0.5 text-[10px] font-medium text-background", BOARD_LABEL_STYLE[l])}
+              className={cn("rounded px-1.5 py-0.5 text-[10px] font-medium text-content", BOARD_LABEL_STYLE[l])}
             >
               {BOARD_LABEL_TEXT[l]}
             </span>

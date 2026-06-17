@@ -19,7 +19,7 @@
 
 ## Checklist Visual
 - [ ] Tema escuro premium aplicado.
-- [ ] Neon verde-limao em destaques e itens ativos.
+- [ ] Laranja Dental Lead em destaques e itens ativos.
 - [ ] Cards com profundidade controlada.
 - [ ] Labels pequenos e consistentes.
 - [ ] Dialogos com titulo e descricao acessiveis.

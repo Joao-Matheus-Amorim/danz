@@ -63,7 +63,7 @@ export default function ConfiguracoesPage() {
           <div className="flex items-center justify-between rounded-xl border border-white/[0.06] bg-surface-muted p-3">
             <div>
               <p className="text-sm text-content">Tema escuro premium</p>
-              <p className="text-[11px] text-content-muted">Neon verde-limão sobre preto esverdeado.</p>
+              <p className="text-[11px] text-content-muted">Laranja Dental Lead sobre azul institucional.</p>
             </div>
             <Badge className="text-neon border-neon-border bg-neon/[0.08]">Ativo</Badge>
           </div>

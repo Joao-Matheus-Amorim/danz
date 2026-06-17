@@ -11,25 +11,25 @@ const config: Config = {
     extend: {
       colors: {
         // Identidade visual DL (Dental Lead)
-        background: "#050A07",
+        background: "#0A2647",
         surface: {
-          DEFAULT: "rgba(255,255,255,0.04)",
-          muted: "rgba(255,255,255,0.025)",
+          DEFAULT: "rgba(255,255,255,0.055)",
+          muted: "rgba(255,255,255,0.035)",
         },
         neon: {
-          DEFAULT: "#B6FF00",
-          soft: "#A3FF12",
-          border: "rgba(182,255,0,0.18)",
+          DEFAULT: "#A86017",
+          soft: "#C8782A",
+          border: "rgba(168,96,23,0.32)",
         },
         content: {
-          DEFAULT: "#F5F7F2",
-          muted: "#A1A89A",
+          DEFAULT: "#F8FAFC",
+          muted: "#C8D2DE",
         },
-        alert: "#FF3B3B",
-        warning: "#FFD43B",
+        alert: "#FF5A5A",
+        warning: "#D9A441",
         event: {
-          blue: "#2F8CFF",
-          purple: "#A855F7",
+          blue: "#4F9BE8",
+          purple: "#B9732A",
         },
       },
       fontFamily: {
@@ -43,9 +43,9 @@ const config: Config = {
         "2xl": "1.25rem",
       },
       boxShadow: {
-        neon: "0 0 0 1px rgba(182,255,0,0.18), 0 0 24px rgba(182,255,0,0.12)",
-        "neon-strong": "0 0 0 1px rgba(182,255,0,0.35), 0 0 32px rgba(182,255,0,0.22)",
-        card: "0 8px 30px rgba(0,0,0,0.35)",
+        neon: "0 0 0 1px rgba(168,96,23,0.26), 0 0 24px rgba(168,96,23,0.16)",
+        "neon-strong": "0 0 0 1px rgba(168,96,23,0.42), 0 0 32px rgba(168,96,23,0.26)",
+        card: "0 8px 30px rgba(0,0,0,0.28)",
       },
       keyframes: {
         "pulse-dot": {

@@ -53,7 +53,7 @@ export function BriefingChecklist({
               <span
                 className={cn(
                   "flex h-5 w-5 shrink-0 items-center justify-center rounded-md border",
-                  item.done ? "border-neon bg-neon text-background" : "border-white/15"
+                  item.done ? "border-neon bg-neon text-content" : "border-white/15"
                 )}
               >
                 {item.done && <Check className="h-3 w-3" />}
