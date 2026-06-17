@@ -25,11 +25,13 @@ export function CalendarMonth({
   month,
   events,
   onSelectDay,
+  onSelectEvent,
   compact = false,
 }: {
   month: Date;
   events: CalendarEvent[];
   onSelectDay?: (date: Date) => void;
+  onSelectEvent?: (event: CalendarEvent) => void;
   compact?: boolean;
 }) {
   const today = parseISO(APP_TODAY);
@@ -55,10 +57,9 @@ export function CalendarMonth({
           const isToday = isSameDay(day, today);
           const dayEvents = eventsByDay(day);
           return (
-            <button
-              type="button"
+            <div
               key={day.toISOString()}
-              onClick={() => onSelectDay?.(day)}
+              onClick={onSelectDay ? () => onSelectDay(day) : undefined}
               className={cn(
                 "flex flex-col rounded-lg border p-1.5 text-left transition-colors",
                 compact ? "min-h-[44px]" : "min-h-[88px]",
@@ -66,7 +67,7 @@ export function CalendarMonth({
                   ? "border-white/[0.06] bg-surface-muted"
                   : "border-transparent bg-transparent opacity-40",
                 isToday && "dl-neon-active",
-                onSelectDay && "hover:border-neon-border"
+                onSelectDay && "cursor-pointer hover:border-neon-border"
               )}
             >
               <span
@@ -79,19 +80,39 @@ export function CalendarMonth({
               </span>
               {!compact && (
                 <div className="mt-1 space-y-1">
-                  {dayEvents.slice(0, 2).map((ev) => (
-                    <div
-                      key={ev.id}
-                      className="flex items-center gap-1 truncate rounded px-1 py-0.5 text-[10px] text-content"
-                      style={{ backgroundColor: `${EVENT_TYPE_COLOR[ev.type]}22` }}
-                    >
-                      <span
-                        className="h-1.5 w-1.5 shrink-0 rounded-full"
-                        style={{ backgroundColor: EVENT_TYPE_COLOR[ev.type] }}
-                      />
-                      <span className="truncate">{ev.title}</span>
-                    </div>
-                  ))}
+                  {dayEvents.slice(0, 2).map((ev) =>
+                    onSelectEvent ? (
+                      <button
+                        type="button"
+                        key={ev.id}
+                        onClick={(clickEvent) => {
+                          clickEvent.stopPropagation();
+                          onSelectEvent(ev);
+                        }}
+                        className="flex w-full items-center gap-1 truncate rounded px-1 py-0.5 text-left text-[10px] text-content transition-opacity hover:opacity-80"
+                        style={{ backgroundColor: `${EVENT_TYPE_COLOR[ev.type]}22` }}
+                        title={ev.title}
+                      >
+                        <span
+                          className="h-1.5 w-1.5 shrink-0 rounded-full"
+                          style={{ backgroundColor: EVENT_TYPE_COLOR[ev.type] }}
+                        />
+                        <span className="truncate">{ev.title}</span>
+                      </button>
+                    ) : (
+                      <div
+                        key={ev.id}
+                        className="flex items-center gap-1 truncate rounded px-1 py-0.5 text-[10px] text-content"
+                        style={{ backgroundColor: `${EVENT_TYPE_COLOR[ev.type]}22` }}
+                      >
+                        <span
+                          className="h-1.5 w-1.5 shrink-0 rounded-full"
+                          style={{ backgroundColor: EVENT_TYPE_COLOR[ev.type] }}
+                        />
+                        <span className="truncate">{ev.title}</span>
+                      </div>
+                    )
+                  )}
                   {dayEvents.length > 2 && (
                     <span className="text-[10px] text-content-muted">
                       +{dayEvents.length - 2}
@@ -110,7 +131,7 @@ export function CalendarMonth({
                   ))}
                 </div>
               )}
-            </button>
+            </div>
           );
         })}
       </div>

@@ -38,9 +38,9 @@ Status local:
   repositorios reais quando Supabase esta configurado.
 - `lib/repositories/calendar.ts`: leitura do calendario, criacao, edicao e
   exclusao de evento e agenda do Meu Painel via Supabase.
-- `/calendario`: na visao Agenda, eventos podem ser editados e excluidos
-  (reaproveitando o `EventModal` para criar/editar). A visao Mes segue apenas
-  para leitura.
+- `/calendario`: eventos podem ser criados, editados e excluidos tanto na visao
+  Agenda (acoes inline) quanto na visao Mes (clicar no evento abre o `EventModal`,
+  que tem botao de excluir em modo edicao). Exclusao sempre passa pelo `ConfirmDialog`.
 - `lib/repositories/briefings.ts`: leitura do briefing mensal e marcacao de
   checklist via Supabase.
 - `lib/repositories/campaigns.ts`: leitura de campanhas e metricas via Supabase,
