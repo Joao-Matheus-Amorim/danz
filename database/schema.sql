@@ -112,13 +112,30 @@ create table if not exists clients (
 create index if not exists clients_workspace_id_idx on clients (workspace_id);
 do $$
 begin
-  if not exists (
+  if exists (
     select 1
     from information_schema.columns
     where table_name = 'clients'
       and table_schema = 'public'
       and column_name = 'bandeira'
   ) then
+    if exists (
+      select 1
+      from information_schema.columns
+      where table_name = 'clients'
+        and table_schema = 'public'
+        and column_name = 'niche'
+    ) then
+      update clients
+      set bandeira = coalesce(
+        nullif(trim(bandeira), ''),
+        nullif(trim(niche), '')
+      )
+      where (bandeira is null or trim(bandeira) = '')
+        and niche is not null
+        and trim(niche) <> '';
+    end if;
+  else
     if exists (
       select 1
       from information_schema.columns
