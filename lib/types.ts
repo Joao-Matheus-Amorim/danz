@@ -171,6 +171,12 @@ export interface BriefingItem {
   clientId?: string;
   clientName: string;
   done: boolean;
+  /** Token do link público do formulário (cliente preenche sem login). */
+  publicToken?: string;
+  /** Se o cliente já enviou a resposta pelo formulário público. */
+  submitted?: boolean;
+  /** Respostas do formulário público (campos fixos chave -> texto). */
+  response?: Record<string, string>;
 }
 
 /* ------------------------------------------------------------------ */

@@ -290,12 +290,27 @@ export const calendarEvents: CalendarEvent[] = [
 /* ------------------------------------------------------------------ */
 
 export const briefingItems: BriefingItem[] = [
-  { id: "bf_1", monthRef: "2026-06", clientId: clients[0].id, clientName: clients[0].name, done: true },
-  { id: "bf_2", monthRef: "2026-06", clientId: clients[1].id, clientName: clients[1].name, done: true },
-  { id: "bf_3", monthRef: "2026-06", clientId: clients[2].id, clientName: clients[2].name, done: false },
-  { id: "bf_4", monthRef: "2026-06", clientId: clients[3].id, clientName: clients[3].name, done: false },
-  { id: "bf_5", monthRef: "2026-06", clientId: clients[4].id, clientName: clients[4].name, done: true },
-  { id: "bf_6", monthRef: "2026-06", clientId: clients[5].id, clientName: clients[5].name, done: false },
+  {
+    id: "bf_1",
+    monthRef: "2026-06",
+    clientId: clients[0].id,
+    clientName: clients[0].name,
+    done: true,
+    publicToken: "demo-token-bf-1",
+    submitted: true,
+    response: {
+      objetivo: "Aumentar agendamentos de avaliação.",
+      ofertas: "Clareamento por R$ 199 no mês.",
+      datas: "Campanha do Dia das Mães.",
+      observacoes: "Priorizar público feminino 25-45.",
+      materiais: "https://drive.exemplo/materiais-junho",
+    },
+  },
+  { id: "bf_2", monthRef: "2026-06", clientId: clients[1].id, clientName: clients[1].name, done: true, publicToken: "demo-token-bf-2", submitted: true },
+  { id: "bf_3", monthRef: "2026-06", clientId: clients[2].id, clientName: clients[2].name, done: false, publicToken: "demo-token-bf-3", submitted: false },
+  { id: "bf_4", monthRef: "2026-06", clientId: clients[3].id, clientName: clients[3].name, done: false, publicToken: "demo-token-bf-4", submitted: false },
+  { id: "bf_5", monthRef: "2026-06", clientId: clients[4].id, clientName: clients[4].name, done: true, publicToken: "demo-token-bf-5", submitted: true },
+  { id: "bf_6", monthRef: "2026-06", clientId: clients[5].id, clientName: clients[5].name, done: false, publicToken: "demo-token-bf-6", submitted: false },
 ];
 
 /* ------------------------------------------------------------------ */

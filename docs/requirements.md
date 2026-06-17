@@ -10,7 +10,7 @@
 | RF05 | Boards: grid, quadro, card, drag and drop e persistencia | Supabase; CRUD de quadro (criar/excluir; quadro do Trello nao e excluivel) e de card (criar/editar/excluir) |
 | RF06 | Clientes: tabela, busca, filtro e CRUD | Supabase; criar, editar (nome, bandeira, plano, status) e excluir |
 | RF07 | Calendario: grade mensal, filtros e CRUD de eventos | Supabase; criar/editar/excluir nas visoes Agenda e Mes, com confirmacao de exclusao |
-| RF08 | Briefings: controle mensal e checklist | Checklist mensal em Supabase; formularios publicos em mock/fallback |
+| RF08 | Briefings: controle mensal, checklist e formularios publicos | Supabase; checklist mensal + link publico por cliente (/b/[token]) que o cliente preenche sem login, com status e resposta na UI da agencia |
 | RF09 | Campanhas: metricas, tabela Meta Ads e aviso de token | Metricas/tabela em Supabase; editar status/saldo e excluir campanha; token Meta em mock/fallback |
 | RF10 | Drive/Documentos/Planilhas: navegacao e shells | Metadados em Supabase; editores Google em mock/fallback |
 | RF11 | Inbox: conexao WhatsApp, conversas e painel | Conversas/mensagens em Supabase; conexao/envio em mock/fallback |
