@@ -41,7 +41,8 @@ Status local:
   para leitura.
 - `lib/repositories/briefings.ts`: leitura do briefing mensal e marcacao de
   checklist via Supabase.
-- `lib/repositories/campaigns.ts`: leitura de campanhas e metricas via Supabase.
+- `lib/repositories/campaigns.ts`: leitura de campanhas e metricas via Supabase,
+  com edicao de status/saldo e exclusao de campanha (metricas seguem do Meta Ads).
 - `lib/repositories/files.ts`: leitura de Drive, Documentos e Planilhas via
   Supabase.
 - `lib/repositories/inbox.ts`: leitura de conversas e mensagens do Inbox via

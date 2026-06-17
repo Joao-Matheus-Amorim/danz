@@ -11,14 +11,25 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/input";
 import { EmptyState } from "@/components/ui/empty-state";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { CampaignModal } from "@/components/campanhas/CampaignModal";
 import { useToast } from "@/components/ui/toast";
-import { listCampaigns } from "@/lib/repositories/campaigns";
+import {
+  deleteCampaign,
+  listCampaigns,
+  updateCampaign,
+  type CampaignInput,
+} from "@/lib/repositories/campaigns";
 import type { Campaign } from "@/lib/types";
 
 export default function CampanhasPage() {
   const { futureFeature, toast } = useToast();
   const [campaigns, setCampaigns] = React.useState<Campaign[]>([]);
   const [loading, setLoading] = React.useState(true);
+  const [editingCampaign, setEditingCampaign] = React.useState<Campaign | null>(null);
+  const [modalOpen, setModalOpen] = React.useState(false);
+  const [campaignToDelete, setCampaignToDelete] = React.useState<Campaign | null>(null);
+  const [pendingId, setPendingId] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     let mounted = true;
@@ -39,6 +50,46 @@ export default function CampanhasPage() {
       mounted = false;
     };
   }, [toast]);
+
+  function openEditModal(campaign: Campaign) {
+    setEditingCampaign(campaign);
+    setModalOpen(true);
+  }
+
+  async function handleSubmit(input: CampaignInput) {
+    if (!editingCampaign) return;
+    try {
+      const updated = await updateCampaign(editingCampaign.id, input);
+      setCampaigns((prev) =>
+        prev.map((item) => (item.id === updated.id ? updated : item))
+      );
+      toast("Campanha atualizada.");
+    } catch (error) {
+      console.error(error);
+      toast("Nao foi possivel salvar a campanha.");
+      throw error;
+    }
+  }
+
+  async function handleConfirmDelete() {
+    const campaign = campaignToDelete;
+    if (!campaign || pendingId) return;
+    const previous = campaigns;
+    setPendingId(campaign.id);
+    setCampaigns((prev) => prev.filter((item) => item.id !== campaign.id));
+
+    try {
+      await deleteCampaign(campaign.id);
+      toast("Campanha excluida.");
+      setCampaignToDelete(null);
+    } catch (error) {
+      console.error(error);
+      setCampaigns(previous);
+      toast("Nao foi possivel excluir a campanha.");
+    } finally {
+      setPendingId(null);
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -79,7 +130,13 @@ export default function CampanhasPage() {
             </CardContent>
           </Card>
 
-          <CampaignClientsTable campaigns={campaigns} loading={loading} />
+          <CampaignClientsTable
+            campaigns={campaigns}
+            loading={loading}
+            onEdit={openEditModal}
+            onDelete={setCampaignToDelete}
+            pendingId={pendingId}
+          />
         </TabsContent>
 
         <TabsContent value="criativos">
@@ -102,6 +159,32 @@ export default function CampanhasPage() {
           />
         </TabsContent>
       </Tabs>
+
+      <CampaignModal
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        campaign={editingCampaign}
+        onSubmit={handleSubmit}
+      />
+
+      <ConfirmDialog
+        open={campaignToDelete !== null}
+        onOpenChange={(open) => {
+          if (!open) setCampaignToDelete(null);
+        }}
+        title="Excluir campanha"
+        description={
+          <>
+            Tem certeza que deseja excluir a campanha de
+            {campaignToDelete ? ` ${campaignToDelete.clientName}` : " este cliente"}?
+            Essa acao nao pode ser desfeita.
+          </>
+        }
+        confirmLabel="Excluir campanha"
+        pendingLabel="Excluindo..."
+        pending={pendingId !== null}
+        onConfirm={() => void handleConfirmDelete()}
+      />
     </div>
   );
 }
