@@ -40,7 +40,10 @@ export function EventModal({
     setTitle(event?.title ?? "");
     setType(event?.type ?? "reuniao");
     setDate(event?.date ?? APP_TODAY);
-    setTime(event?.time ?? "09:00");
+    // For existing events keep the time blank when there is none (all-day),
+    // so editing other fields does not silently add a time. New events default
+    // to 09:00 as a convenience.
+    setTime(event ? event.time ?? "" : "09:00");
   }, [open, event]);
 
   const isEditing = Boolean(event);
