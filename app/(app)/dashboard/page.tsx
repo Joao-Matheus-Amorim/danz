@@ -17,11 +17,12 @@ import { BoardsPreview } from "@/components/dashboard/BoardsPreview";
 import { ClientUpdates } from "@/components/dashboard/ClientUpdates";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { useToast } from "@/components/ui/toast";
-import { EVENT_TYPE_COLOR, EVENT_TYPE_LABEL } from "@/lib/constants";
+import { APP_TODAY, EVENT_TYPE_COLOR, EVENT_TYPE_LABEL } from "@/lib/constants";
 import { listBoards } from "@/lib/repositories/boards";
 import { listCalendarEvents } from "@/lib/repositories/calendar";
 import { listCampaigns } from "@/lib/repositories/campaigns";
 import { listClients } from "@/lib/repositories/clients";
+import { isSupabaseConfigured } from "@/lib/supabase";
 import type { Board, CalendarEvent, Campaign, Client, DashboardMetric } from "@/lib/types";
 import { formatCurrency, formatDate, formatNumber } from "@/lib/utils";
 
@@ -53,8 +54,8 @@ function isRecentClient(client: Client): boolean {
   return diffMs >= 0 && diffMs <= 7 * 24 * 60 * 60 * 1000;
 }
 
-function getTodayIso(): string {
-  return new Date().toLocaleDateString("sv-SE");
+function getAgendaAnchorDate(): string {
+  return isSupabaseConfigured ? new Date().toLocaleDateString("sv-SE") : APP_TODAY;
 }
 
 function buildDashboardMetrics({
@@ -207,7 +208,7 @@ export default function DashboardPage() {
     loading,
   });
   const growthMetrics = buildGrowthMetrics({ clients, campaigns, loading });
-  const todayIso = getTodayIso();
+  const todayIso = getAgendaAnchorDate();
   const upcomingEvents = calendarEvents
     .filter((event) => event.date >= todayIso)
     .sort((a, b) => `${a.date}${a.time ?? ""}`.localeCompare(`${b.date}${b.time ?? ""}`))
