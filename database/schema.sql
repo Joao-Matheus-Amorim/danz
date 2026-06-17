@@ -110,8 +110,45 @@ create table if not exists clients (
   updated_at    timestamptz not null default now()
 );
 create index if not exists clients_workspace_id_idx on clients (workspace_id);
-alter table clients rename column if exists niche to bandeira;
-alter table clients add column if not exists bandeira text not null default '';
+do $$
+begin
+  if exists (
+    select 1
+    from information_schema.columns
+    where table_name = 'clients'
+      and table_schema = 'public'
+      and column_name = 'bandeira'
+  ) then
+    if exists (
+      select 1
+      from information_schema.columns
+      where table_name = 'clients'
+        and table_schema = 'public'
+        and column_name = 'niche'
+    ) then
+      update clients
+      set bandeira = coalesce(
+        nullif(trim(bandeira), ''),
+        nullif(trim(niche), '')
+      )
+      where (bandeira is null or trim(bandeira) = '')
+        and niche is not null
+        and trim(niche) <> '';
+    end if;
+  else
+    if exists (
+      select 1
+      from information_schema.columns
+      where table_name = 'clients'
+        and table_schema = 'public'
+        and column_name = 'niche'
+    ) then
+      alter table clients rename column niche to bandeira;
+    else
+      alter table clients add column bandeira text not null default '';
+    end if;
+  end if;
+end $$;
 
 -- ----------------------------------------------------------------------
 -- Boards

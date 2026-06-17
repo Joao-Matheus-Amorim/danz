@@ -210,8 +210,8 @@ const clientPlans: Client["plan"][] = ["Essencial", "Pro", "Premium", "Performan
 
 export const clients: Client[] = unitLocations.map((location, index) => ({
   id: `c_${String(index + 1).padStart(3, "0")}`,
-  name: clinicBanners[index] ?? "Mais Sorriso",
-  bandeira: location,
+  name: location,
+  bandeira: clinicBanners[index] ?? "Mais Sorriso",
   plan: clientPlans[index % clientPlans.length],
   status: "ativo",
   startDate: `2025-06-${String(1 + (index % 28)).padStart(2, "0")}`,
