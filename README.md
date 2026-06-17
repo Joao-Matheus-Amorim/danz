@@ -39,7 +39,7 @@ app/            # rotas (route group (app) compartilha a AppShell; /login fora d
 components/     # layout, ui (primitivos) e componentes por domínio
 lib/            # types, mock-data, constants, routes, utils, supabase, openai
 lib/integrations/  # código real colhido do danz (Meta/Sheets) — a portar na Fase 5
-database/       # schema.sql + rls-policies.sql (previstos p/ Supabase)
+database/       # schema.sql + rls-policies.sql + seed.sql (Supabase)
 docs/           # PMBOK + ADR (charter, scope, requirements, architecture, data-model,
                 #             risk-register, quality-plan, roadmap, technical-debt-log,
                 #             adr-0001)
@@ -74,3 +74,7 @@ portada para rotas server-side TypeScript na **Fase 5**.
 6. Permissões e operação multiusuário
 
 Detalhes completos em [`docs/`](./docs).
+
+## Supabase (Fase 2)
+O repo ja contem Auth client-side, guard de sessao, schema/RLS e seed inicial.
+Para ligar em um projeto real, veja [`docs/supabase-setup.md`](./docs/supabase-setup.md).

@@ -19,7 +19,8 @@
 - **Motivo:** Supabase Auth fora do escopo do MVP.
 - **Impacto:** sem proteção de rotas nem identidade real.
 - **Prioridade:** Alta.
-- **Plano:** Supabase Auth + middleware de proteção de rotas.
+- **Plano:** Supabase Auth client-side + guard de sessão foram implementados na
+  Fase 2. Middleware/SSR pode entrar depois com `@supabase/ssr`.
 - **Fase:** 2.
 
 ### TD03 — DLtinho não chama a OpenAI (`lib/openai.ts`)

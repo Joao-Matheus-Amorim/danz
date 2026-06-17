@@ -1,14 +1,25 @@
 "use client";
 
-import { Bell, Search, Sun } from "lucide-react";
+import { Bell, LogOut, Search, Sun } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { BRAND } from "@/lib/constants";
 import { Avatar } from "@/components/ui/avatar";
 import { useToast } from "@/components/ui/toast";
 import { MobileNav } from "@/components/layout/MobileNav";
 import { currentProfile } from "@/lib/mock-data";
+import { getSupabase, isSupabaseConfigured } from "@/lib/supabase";
 
 export function Topbar() {
   const { futureFeature } = useToast();
+  const router = useRouter();
+
+  async function signOut() {
+    const supabase = getSupabase();
+    if (!supabase) return;
+
+    await supabase.auth.signOut();
+    router.replace("/login");
+  }
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-white/[0.06] bg-background/70 px-4 backdrop-blur-xl lg:px-6">
@@ -54,6 +65,16 @@ export function Topbar() {
           </span>
         </button>
         <Avatar initials={currentProfile.initials} />
+        {isSupabaseConfigured ? (
+          <button
+            type="button"
+            onClick={() => void signOut()}
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] text-content-muted transition-colors hover:text-content"
+            aria-label="Sair"
+          >
+            <LogOut className="h-4 w-4" />
+          </button>
+        ) : null}
       </div>
     </header>
   );

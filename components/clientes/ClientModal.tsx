@@ -12,14 +12,9 @@ import {
 import { Input, Label, Select } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import type { Client, ClientPlan } from "@/lib/types";
-import { localId } from "@/lib/utils";
 
 const PLANS: ClientPlan[] = ["Essencial", "Pro", "Premium", "Performance"];
 
-/**
- * Modal de novo cliente. No MVP salva apenas em estado local (callback
- * onCreate) — a persistência real (Supabase) chega na Fase 3.
- */
 export function ClientModal({
   open,
   onOpenChange,
@@ -27,28 +22,33 @@ export function ClientModal({
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCreate: (client: Client) => void;
+  onCreate: (client: Pick<Client, "name" | "niche" | "plan">) => Promise<void> | void;
 }) {
   const [name, setName] = React.useState("");
   const [niche, setNiche] = React.useState("");
   const [plan, setPlan] = React.useState<ClientPlan>("Essencial");
+  const [submitting, setSubmitting] = React.useState(false);
 
-  const submit = () => {
+  async function submit() {
     if (!name.trim()) return;
-    onCreate({
-      id: localId("client"),
-      name: name.trim().toUpperCase(),
-      niche: niche.trim() || "—",
-      plan,
-      status: "ativo",
-      startDate: new Date().toISOString().slice(0, 10),
-      tags: ["em-dia"],
-    });
-    setName("");
-    setNiche("");
-    setPlan("Essencial");
-    onOpenChange(false);
-  };
+
+    setSubmitting(true);
+    try {
+      await onCreate({
+        name: name.trim().toUpperCase(),
+        niche: niche.trim() || "-",
+        plan,
+      });
+      setName("");
+      setNiche("");
+      setPlan("Essencial");
+      onOpenChange(false);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -58,7 +58,7 @@ export function ClientModal({
             Novo cliente
           </DialogTitle>
           <DialogDescription className="text-sm text-content-muted">
-            Cadastro local (mock). Será persistido no Supabase na Fase 3.
+            Cadastro persistido no Supabase quando a integracao estiver configurada.
           </DialogDescription>
         </DialogHeader>
 
@@ -69,7 +69,7 @@ export function ClientModal({
               id="c-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Ex.: Padaria do Zé"
+              placeholder="Ex.: Padaria do Ze"
             />
           </div>
           <div>
@@ -78,7 +78,7 @@ export function ClientModal({
               id="c-niche"
               value={niche}
               onChange={(e) => setNiche(e.target.value)}
-              placeholder="Ex.: Alimentação"
+              placeholder="Ex.: Alimentacao"
             />
           </div>
           <div>
@@ -98,11 +98,11 @@ export function ClientModal({
         </div>
 
         <DialogFooter>
-          <Button variant="ghost" onClick={() => onOpenChange(false)}>
+          <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={submitting}>
             Cancelar
           </Button>
-          <Button variant="primary" onClick={submit}>
-            Criar cliente
+          <Button variant="primary" onClick={() => void submit()} disabled={submitting}>
+            {submitting ? "Criando..." : "Criar cliente"}
           </Button>
         </DialogFooter>
       </DialogContent>

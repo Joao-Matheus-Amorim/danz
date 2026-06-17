@@ -2,10 +2,15 @@ import { ClientRow } from "@/components/clientes/ClientRow";
 import { Card } from "@/components/ui/card";
 import type { Client } from "@/lib/types";
 
-const COLUMNS = ["Cliente", "Nicho", "Plano", "Status", "Início", "Tags"];
+const COLUMNS = ["Cliente", "Nicho", "Plano", "Status", "Inicio", "Tags"];
 
-/** Tabela de clientes. */
-export function ClientsTable({ clients }: { clients: Client[] }) {
+export function ClientsTable({
+  clients,
+  loading = false,
+}: {
+  clients: Client[];
+  loading?: boolean;
+}) {
   return (
     <Card className="overflow-hidden">
       <div className="overflow-x-auto">
@@ -23,7 +28,13 @@ export function ClientsTable({ clients }: { clients: Client[] }) {
             </tr>
           </thead>
           <tbody>
-            {clients.length === 0 ? (
+            {loading ? (
+              <tr>
+                <td colSpan={COLUMNS.length} className="px-4 py-10 text-center text-sm text-content-muted">
+                  Carregando clientes...
+                </td>
+              </tr>
+            ) : clients.length === 0 ? (
               <tr>
                 <td colSpan={COLUMNS.length} className="px-4 py-10 text-center text-sm text-content-muted">
                   Nenhum cliente encontrado com os filtros atuais.

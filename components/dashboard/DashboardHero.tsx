@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Sparkles, UserPlus, KanbanSquare, FileCheck2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { CreateClientButton } from "@/components/clientes/CreateClientButton";
 import { ROUTES } from "@/lib/routes";
 import { BRAND } from "@/lib/constants";
 import { useToast } from "@/components/ui/toast";
@@ -30,10 +31,10 @@ export function DashboardHero() {
           </p>
 
           <div className="flex flex-wrap gap-2 pt-1">
-            <Button variant="primary" onClick={() => futureFeature("Novo cliente")}>
+            <CreateClientButton>
               <UserPlus className="h-4 w-4" />
               Novo cliente
-            </Button>
+            </CreateClientButton>
             <Button variant="secondary" asChild>
               <Link href={ROUTES.boards}>
                 <KanbanSquare className="h-4 w-4" />

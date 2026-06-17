@@ -6,17 +6,37 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input, Select } from "@/components/ui/input";
 import { ClientsTable } from "@/components/clientes/ClientsTable";
-import { ClientModal } from "@/components/clientes/ClientModal";
+import { CreateClientButton } from "@/components/clientes/CreateClientButton";
 import { useToast } from "@/components/ui/toast";
-import { clients as initialClients } from "@/lib/mock-data";
+import { listClients } from "@/lib/repositories/clients";
 import type { Client, ClientStatus } from "@/lib/types";
 
 export default function ClientesPage() {
-  const { futureFeature } = useToast();
-  const [clients, setClients] = React.useState<Client[]>(initialClients);
+  const { futureFeature, toast } = useToast();
+  const [clients, setClients] = React.useState<Client[]>([]);
   const [query, setQuery] = React.useState("");
   const [status, setStatus] = React.useState<ClientStatus | "todos">("todos");
-  const [modalOpen, setModalOpen] = React.useState(false);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    let mounted = true;
+
+    listClients()
+      .then((items) => {
+        if (mounted) setClients(items);
+      })
+      .catch((error) => {
+        console.error(error);
+        if (mounted) toast("Nao foi possivel carregar clientes do Supabase.");
+      })
+      .finally(() => {
+        if (mounted) setLoading(false);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [toast]);
 
   const filtered = clients.filter((c) => {
     const matchesQuery =
@@ -31,15 +51,15 @@ export default function ClientesPage() {
       <PageHeader
         label="Carteira"
         title="CLIENTES"
-        subtitle="Cadastro e gestão da carteira ativa do workspace."
+        subtitle="Cadastro e gestao da carteira ativa do workspace."
         actions={
           <>
             <Button variant="ghost" onClick={() => futureFeature("POP Cliente Novo")}>
               <FileCheck2 className="h-4 w-4" /> POP Cliente Novo
             </Button>
-            <Button variant="primary" onClick={() => setModalOpen(true)}>
+            <CreateClientButton onCreated={(client) => setClients((prev) => [client, ...prev])}>
               <Plus className="h-4 w-4" /> Novo cliente
-            </Button>
+            </CreateClientButton>
           </>
         }
       />
@@ -63,18 +83,12 @@ export default function ClientesPage() {
           <option value="ativo">Ativo</option>
           <option value="pausado">Pausado</option>
         </Select>
-        <Button variant="secondary" onClick={() => futureFeature("Filtros avançados")}>
+        <Button variant="secondary" onClick={() => futureFeature("Filtros avancados")}>
           <SlidersHorizontal className="h-4 w-4" /> Filtrar
         </Button>
       </div>
 
-      <ClientsTable clients={filtered} />
-
-      <ClientModal
-        open={modalOpen}
-        onOpenChange={setModalOpen}
-        onCreate={(c) => setClients((prev) => [c, ...prev])}
-      />
+      <ClientsTable clients={filtered} loading={loading} />
     </div>
   );
 }

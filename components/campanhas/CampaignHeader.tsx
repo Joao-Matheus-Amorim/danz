@@ -3,6 +3,7 @@
 import { KeyRound, UserPlus } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
+import { CreateClientButton } from "@/components/clientes/CreateClientButton";
 import { useToast } from "@/components/ui/toast";
 
 /** Cabeçalho da central de campanhas com ações de token e novo cliente. */
@@ -19,9 +20,9 @@ export function CampaignHeader() {
           <Button variant="secondary" onClick={() => futureFeature("Configurar Token")}>
             <KeyRound className="h-4 w-4" /> Configurar Token
           </Button>
-          <Button variant="primary" onClick={() => futureFeature("Novo Cliente")}>
+          <CreateClientButton>
             <UserPlus className="h-4 w-4" /> Novo Cliente
-          </Button>
+          </CreateClientButton>
         </>
       }
     />
