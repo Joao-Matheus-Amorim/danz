@@ -101,7 +101,7 @@ create table if not exists clients (
   id            uuid primary key default gen_random_uuid(),
   workspace_id  uuid not null references workspaces (id) on delete cascade,
   name          text not null,
-  niche         text not null default '',
+  bandeira      text not null default '',
   plan          text not null default 'Essencial',
   status        client_status not null default 'ativo',
   start_date    date not null default current_date,
@@ -110,6 +110,8 @@ create table if not exists clients (
   updated_at    timestamptz not null default now()
 );
 create index if not exists clients_workspace_id_idx on clients (workspace_id);
+alter table clients rename column if exists niche to bandeira;
+alter table clients add column if not exists bandeira text not null default '';
 
 -- ----------------------------------------------------------------------
 -- Boards

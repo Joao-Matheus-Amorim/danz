@@ -6,7 +6,7 @@ import type { Client, ClientPlan, ClientStatus, ClientTag } from "@/lib/types";
 interface ClientRow {
   id: string;
   name: string;
-  niche: string;
+  bandeira: string;
   plan: string;
   status: ClientStatus;
   start_date: string;
@@ -17,7 +17,7 @@ function mapClient(row: ClientRow): Client {
   return {
     id: row.id,
     name: row.name,
-    niche: row.niche,
+    bandeira: row.bandeira,
     plan: row.plan as ClientPlan,
     status: row.status,
     startDate: row.start_date,
@@ -36,7 +36,7 @@ export async function listClients(): Promise<Client[]> {
 
   const { data, error } = await supabase
     .from("clients")
-    .select("id, name, niche, plan, status, start_date, tags")
+    .select("id, name, bandeira, plan, status, start_date, tags")
     .eq("workspace_id", workspaceId)
     .order("name", { ascending: true });
 
@@ -46,13 +46,13 @@ export async function listClients(): Promise<Client[]> {
 
 export async function createClient(input: {
   name: string;
-  niche: string;
+  bandeira: string;
   plan: ClientPlan;
 }): Promise<Client> {
   const supabase = getSupabase();
   const payload = {
     name: input.name.trim().toUpperCase(),
-    niche: input.niche.trim() || "-",
+    bandeira: input.bandeira.trim() || "-",
     plan: input.plan,
   };
 
@@ -76,13 +76,13 @@ export async function createClient(input: {
     .insert({
       workspace_id: workspaceId,
       name: payload.name,
-      niche: payload.niche,
+      bandeira: payload.bandeira,
       plan: payload.plan,
       status: "ativo",
       start_date: new Date().toISOString().slice(0, 10),
       tags: ["em-dia"],
     })
-    .select("id, name, niche, plan, status, start_date, tags")
+    .select("id, name, bandeira, plan, status, start_date, tags")
     .single();
 
   if (error) throw error;

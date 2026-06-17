@@ -2,7 +2,7 @@ import { ClientRow } from "@/components/clientes/ClientRow";
 import { Card } from "@/components/ui/card";
 import type { Client } from "@/lib/types";
 
-const COLUMNS = ["Cliente", "Nicho", "Plano", "Status", "Inicio", "Tags"];
+const COLUMNS = ["Cliente", "Bandeira", "Plano", "Status", "Inicio", "Tags"];
 
 export function ClientsTable({
   clients,
