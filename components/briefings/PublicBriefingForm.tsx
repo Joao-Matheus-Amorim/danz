@@ -39,9 +39,12 @@ export function PublicBriefingForm({ token }: { token: string }) {
       return;
     }
 
-    supabase
-      .rpc("public_briefing_form", { p_token: token })
-      .then(({ data, error: rpcError }) => {
+    void (async () => {
+      try {
+        const { data, error: rpcError } = await supabase.rpc(
+          "public_briefing_form",
+          { p_token: token }
+        );
         if (!mounted) return;
         if (rpcError) {
           console.error(rpcError);
@@ -59,7 +62,14 @@ export function PublicBriefingForm({ token }: { token: string }) {
         }
         setMeta({ clientName: row.client_name, monthRef: row.month_ref });
         setStatus("ready");
-      });
+      } catch (rejection) {
+        // A promise da RPC pode rejeitar (offline, CORS, Supabase inacessivel)
+        // antes de virar um erro estruturado; evita ficar preso no spinner.
+        if (!mounted) return;
+        console.error(rejection);
+        setStatus("notfound");
+      }
+    })();
 
     return () => {
       mounted = false;
@@ -78,24 +88,31 @@ export function PublicBriefingForm({ token }: { token: string }) {
       BRIEFING_FORM_FIELDS.map((field) => [field.key, form[field.key]?.trim() ?? ""])
     );
 
-    const { data, error: rpcError } = await supabase.rpc(
-      "submit_briefing_response",
-      { p_token: token, p_response: payload }
-    );
+    try {
+      const { data, error: rpcError } = await supabase.rpc(
+        "submit_briefing_response",
+        { p_token: token, p_response: payload }
+      );
 
-    setSubmitting(false);
-
-    if (rpcError) {
-      console.error(rpcError);
-      setError("Não foi possível enviar. Tente novamente em instantes.");
-      return;
-    }
-    if (data === false) {
-      // Token invalido ou ja respondido.
+      if (rpcError) {
+        console.error(rpcError);
+        setError("Não foi possível enviar. Tente novamente em instantes.");
+        return;
+      }
+      if (data === false) {
+        // Token invalido ou ja respondido.
+        setStatus("submitted");
+        return;
+      }
       setStatus("submitted");
-      return;
+    } catch (rejection) {
+      // A promise da RPC pode rejeitar (offline, CORS, Supabase inacessivel)
+      // em vez de retornar um erro estruturado.
+      console.error(rejection);
+      setError("Não foi possível enviar. Verifique sua conexão e tente novamente.");
+    } finally {
+      setSubmitting(false);
     }
-    setStatus("submitted");
   }
 
   return (
