@@ -7,71 +7,83 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import type { Task } from "@/lib/types";
-import { localId, cn } from "@/lib/utils";
-import { currentProfile } from "@/lib/mock-data";
+import { cn } from "@/lib/utils";
 
-/**
- * Bloco "Minhas tarefas" com abas Hoje/Semana/Mês e campo para adicionar.
- * Estado local (mock) — persistência real chega na Fase 3.
- */
-export function MyTasks({ initialTasks }: { initialTasks: Task[] }) {
-  const [tasks, setTasks] = React.useState<Task[]>(initialTasks);
+export function MyTasks({
+  tasks,
+  loading = false,
+  onCreateTask,
+  onToggleTask,
+}: {
+  tasks: Task[];
+  loading?: boolean;
+  onCreateTask: (title: string) => Promise<void> | void;
+  onToggleTask: (task: Task) => Promise<void> | void;
+}) {
   const [newTitle, setNewTitle] = React.useState("");
+  const [creating, setCreating] = React.useState(false);
+  const [pendingTaskId, setPendingTaskId] = React.useState<string | null>(null);
 
-  const addTask = () => {
+  async function addTask() {
     const title = newTitle.trim();
-    if (!title) return;
-    setTasks((prev) => [
-      {
-        id: localId("task"),
-        title,
-        status: "todo",
-        priority: "media",
-        assigneeId: currentProfile.id,
-        dueDate: new Date().toISOString().slice(0, 10),
-        done: false,
-      },
-      ...prev,
-    ]);
-    setNewTitle("");
-  };
+    if (!title || creating) return;
 
-  const toggle = (id: string) =>
-    setTasks((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, done: !t.done } : t))
-    );
+    setCreating(true);
+    try {
+      await onCreateTask(title);
+      setNewTitle("");
+    } finally {
+      setCreating(false);
+    }
+  }
+
+  async function toggle(task: Task) {
+    if (pendingTaskId) return;
+
+    setPendingTaskId(task.id);
+    try {
+      await onToggleTask(task);
+    } finally {
+      setPendingTaskId(null);
+    }
+  }
 
   const renderList = (list: Task[]) => (
     <div className="space-y-2">
-      {list.length === 0 ? (
+      {loading ? (
+        <p className="py-6 text-center text-sm text-content-muted">
+          Carregando tarefas...
+        </p>
+      ) : list.length === 0 ? (
         <p className="py-6 text-center text-sm text-content-muted">
           Nenhuma tarefa neste período.
         </p>
       ) : (
-        list.map((t) => (
+        list.map((task) => (
           <button
             type="button"
-            key={t.id}
-            onClick={() => toggle(t.id)}
-            className="flex w-full items-center gap-3 rounded-xl border border-white/[0.06] bg-surface-muted p-3 text-left transition-colors hover:border-neon-border"
+            key={task.id}
+            onClick={() => void toggle(task)}
+            disabled={pendingTaskId === task.id}
+            className="flex w-full items-center gap-3 rounded-xl border border-white/[0.06] bg-surface-muted p-3 text-left transition-colors hover:border-neon-border disabled:cursor-wait disabled:opacity-70"
           >
             <span
               className={cn(
                 "flex h-5 w-5 shrink-0 items-center justify-center rounded-md border",
-                t.done
+                task.done
                   ? "border-neon bg-neon text-content"
                   : "border-white/15"
               )}
             >
-              {t.done && <Check className="h-3 w-3" />}
+              {task.done && <Check className="h-3 w-3" />}
             </span>
             <span
               className={cn(
                 "text-sm",
-                t.done ? "text-content-muted line-through" : "text-content"
+                task.done ? "text-content-muted line-through" : "text-content"
               )}
             >
-              {t.title}
+              {task.title}
             </span>
           </button>
         ))
@@ -85,11 +97,19 @@ export function MyTasks({ initialTasks }: { initialTasks: Task[] }) {
         <div className="mb-4 flex items-center gap-2">
           <Input
             value={newTitle}
-            onChange={(e) => setNewTitle(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && addTask()}
+            onChange={(event) => setNewTitle(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") void addTask();
+            }}
             placeholder="Adicionar nova tarefa..."
+            disabled={creating}
           />
-          <Button variant="primary" size="icon" onClick={addTask}>
+          <Button
+            variant="primary"
+            size="icon"
+            onClick={() => void addTask()}
+            disabled={creating}
+          >
             <Plus className="h-4 w-4" />
           </Button>
         </div>
