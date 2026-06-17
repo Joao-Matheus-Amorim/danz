@@ -23,12 +23,17 @@ registro de dívidas técnicas.
   (criar cliente/tarefa, gerar copy, resumir cliente, métricas, relatório).
 - Persistir conversas (`chat_conversations` / `chat_messages`).
 
-## Fase 5 — Integrações + ponte com `danz`
-- Google Drive/Docs/Sheets (OAuth + embed/edição).
-- WhatsApp via provedor homologado (Evolution API / Z-API / Baileys).
-- Meta Ads (reusar lógica do motor `danz`).
-- Trello (sincronizar boards).
-- Consumir APIs internas do `danz` (alertas, histórico, jobs, planilhas).
+## Fase 5 — Integrações externas
+- **Meta Ads:** portar `lib/integrations/meta-ads.legacy.js` para rota
+  server-side TS (`app/api/meta/...`); dados reais de campanhas.
+- **Google Sheets/Docs/Drive:** portar `lib/integrations/google-sheets.legacy.js`
+  e adicionar OAuth + embed/edição.
+- **WhatsApp** via provedor homologado (Evolution API / Z-API / Baileys).
+- **Trello** (sincronizar boards).
+
+> Nota: o protótipo `danz` foi **erradicado** (ver `adr-0001`). A única parte
+> reaproveitável — as integrações reais — foi colhida para `lib/integrations/`
+> e será portada aqui. Não há mais "ponte com o danz".
 
 ## Fase 6 — Permissões e multiusuário
 - RBAC por papel (owner/admin/gestor/operador) refinando as RLS.

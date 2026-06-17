@@ -28,7 +28,7 @@
 - **Fase 2:** projeto Supabase, auth, aplicação do schema/RLS, env configurado.
 - **Fase 3:** repositórios de dados substituindo mock-data; CRUD completo.
 - **Fase 4:** rota server-side de IA + execução de ações do DLtinho.
-- **Fase 5:** conectores de Google/WhatsApp/Meta/Trello (e ponte com o `danz`).
+- **Fase 5:** conectores de Meta/Google/WhatsApp/Trello (portando `lib/integrations/`).
 - **Fase 6:** RBAC, convites, auditoria ativa.
 
 ## Critérios de aceite (MVP)

@@ -71,8 +71,10 @@ as páginas internas compartilhem a `AppShell` (sidebar + topbar + toasts). O
 - As "ações" (criar cliente, criar tarefa, gerar copy, etc.) serão mapeadas para
   operações reais nos repositórios, com confirmação na UI.
 
-## Conexão com o motor `danz` (Fase 5)
-O projeto `danz` (Node/CommonJS) permanece como **motor operacional** (Meta Ads,
-Google Sheets, alertas, jobs, histórico). O frontend consumirá suas APIs internas
-nas fases de integração. Esse acoplamento está registrado como item de roadmap e
-de dívida técnica até existir de fato — nada é apresentado como pronto antes disso.
+## Integrações externas (Fase 5) — legado `danz` colhido
+O protótipo `danz` foi **erradicado** (ver `adr-0001-unificacao-front-back.md`).
+A única parte real dele — `metaAds.js` (Graph API) e `googleSheets.js`
+(googleapis) — foi colhida para `lib/integrations/*.legacy.js` (CommonJS, fora do
+build). Na Fase 5 esses módulos serão **portados** para rotas server-side
+TypeScript (`app/api/meta/...`, `app/api/sheets/...`), com tokens lidos apenas no
+servidor. Nada é apresentado como pronto antes de existir de fato.

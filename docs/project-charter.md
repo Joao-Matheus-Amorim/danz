@@ -12,9 +12,10 @@ interna **DLtinho** em um único workspace.
 A operação hoje está espalhada em ferramentas desconectadas (planilhas, Trello,
 Drive, WhatsApp, Meta Ads). Isso gera retrabalho, perda de contexto e falta de
 visão consolidada. O DL Operational System centraliza a operação, padroniza
-processos e prepara a base para automação e inteligência (DLtinho), reaproveitando
-o motor operacional existente (projeto `danz`: Meta Ads, Google Sheets, alertas,
-histórico, jobs).
+processos e prepara a base para automação e inteligência (DLtinho). O protótipo
+anterior (`danz`) foi erradicado; aproveitou-se apenas seu código real de
+integração (Meta Ads, Google Sheets), preservado em `lib/integrations/` (ver
+`adr-0001`).
 
 ## Escopo macro
 - **Fase 1 (este MVP):** frontend SaaS navegável, visualmente fiel, com dados
@@ -40,7 +41,8 @@ histórico, jobs).
 
 ## Premissas
 - Os dados mockados refletem a realidade da carteira e da operação da DL.
-- O motor `danz` continuará existindo e será conectado nas fases de integração.
+- O legado `danz` foi erradicado; suas integrações reais foram colhidas para
+  `lib/integrations/` e serão portadas na Fase 5.
 - O ambiente roda sem variáveis de ambiente (modo mock) por padrão.
 
 ## Critérios de sucesso

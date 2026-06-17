@@ -19,7 +19,7 @@ Escala: Probabilidade (B/M/A) × Impacto (B/M/A).
 | ID | Risco | P×I | Mitigação |
 |----|-------|-----|-----------|
 | RI01 | Integração WhatsApp depender de provedor instável | M×A | Provedor homologado (Evolution/Z-API/Baileys) na Fase 5; abstração de provider |
-| RI02 | Mudanças na Meta Ads API quebrarem campanhas | M×M | Reuso do motor `danz` que já trata Meta Ads; camada anti-corrupção |
+| RI02 | Mudanças na Meta Ads API quebrarem campanhas | M×M | Reuso do código colhido (`lib/integrations/meta-ads.legacy.js`); camada anti-corrupção |
 | RI03 | Limites/escopos OAuth do Google | M×M | Planejar consentimento e escopos mínimos na Fase 5 |
 
 ## Riscos de performance

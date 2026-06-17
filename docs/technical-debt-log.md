@@ -48,10 +48,11 @@
 
 ### TD06 — Campanhas (Meta Ads) mockadas
 - **Descrição:** métricas e tabela são mock; token não é configurado de fato.
-- **Motivo:** integração Meta fora do MVP; será reaproveitada do motor `danz`.
+- **Motivo:** integração Meta fora do MVP.
 - **Impacto:** sem dados reais de performance.
 - **Prioridade:** Média.
-- **Plano:** consumir lógica de Meta Ads do `danz`; camada anti-corrupção.
+- **Plano:** portar `lib/integrations/meta-ads.legacy.js` (Graph API) para rota
+  server-side TS (`app/api/meta/...`).
 - **Fase:** 5.
 
 ### TD07 — Estado local volátil (modais, DnD, checklists)
@@ -71,12 +72,17 @@
 - **Plano:** API Trello + mapeamento para `boards/columns/cards`.
 - **Fase:** 5.
 
-### TD09 — Ponte com o motor `danz` ainda não existe
-- **Descrição:** o frontend não consome as APIs internas do `danz`.
-- **Motivo:** integração planejada após CRUD/auth.
-- **Impacto:** sem dados operacionais reais (alertas, histórico, jobs).
+### TD09 — Integrações reais ainda não portadas (legado `danz` colhido)
+- **Descrição:** `lib/integrations/*.legacy.js` (Meta Ads via Graph API e Google
+  Sheets) foram colhidos do `danz` erradicado, mas ainda não foram portados nem
+  ligados ao app.
+- **Motivo:** são CommonJS e dependem de `axios`/`googleapis`; portar para TS é da
+  Fase 5. Mantidos fora do build/lint/typecheck até lá.
+- **Impacto:** sem dados externos reais (Meta/Sheets) por enquanto.
 - **Prioridade:** Média.
-- **Plano:** cliente HTTP para as APIs do `danz` com token operacional.
+- **Plano:** portar para rotas server-side TS em `app/api/`, com tokens só no
+  servidor; remover os `.legacy.js` após portar. Ver `lib/integrations/README.md`
+  e `adr-0001`.
 - **Fase:** 5.
 
 ### TD10 — Funcionalidades de topbar (busca global, notificações, tema)

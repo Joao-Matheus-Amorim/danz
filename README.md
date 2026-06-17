@@ -49,19 +49,20 @@ Tema escuro premium: fundo preto esverdeado (`#050A07`), neon verde-limão
 letter-spacing. Tokens em `tailwind.config.ts`; utilitários `.dl-*` em
 `app/globals.css`.
 
-## Relação com o motor `danz`
-Este frontend vive em `dl-operational-system/`, ao lado do projeto **`danz`**
-(motor operacional Node/CommonJS: Meta Ads, Google Sheets, alertas, histórico,
-jobs). A integração entre os dois é planejada para a **Fase 5** (ver
-`docs/roadmap.md` e `docs/technical-debt-log.md`, TD09) — nada é apresentado como
-pronto antes de existir de fato.
+## Legado `danz` (erradicado)
+Este repositório começou como `danz` (protótipo Node/CommonJS com dados mock).
+Ele foi **erradicado** em favor deste app, que agora é a raiz do repositório
+(ver [`docs/adr-0001-unificacao-front-back.md`](./docs/adr-0001-unificacao-front-back.md)).
+A única parte com valor real do `danz` — as integrações que chamam APIs externas
+de verdade — foi preservada em [`lib/integrations/`](./lib/integrations) e será
+portada para rotas server-side TypeScript na **Fase 5**.
 
 ## Roadmap (resumo)
 1. **MVP visual navegável** ✅
 2. Supabase (auth + schema/RLS)
 3. CRUD real (repositórios)
 4. IA DLtinho (OpenAI server-side + ações)
-5. Integrações (Google/WhatsApp/Meta/Trello + ponte `danz`)
+5. Integrações (Meta/Google/WhatsApp/Trello — portando `lib/integrations/`)
 6. Permissões e operação multiusuário
 
 Detalhes completos em [`docs/`](./docs).

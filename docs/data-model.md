@@ -44,5 +44,6 @@ Workspace 1—* ActivityLog
 - **task_comments / card_comments** — colaboração.
 - **checklist_items** — checklist real dos cards (hoje agregado em total/done).
 - **integrations_credentials** — tokens por workspace (cofre/secret manager).
-- **automations / jobs_runs** — ponte com o motor `danz` (histórico de execuções).
+- **automations / jobs_runs** — histórico de execuções das integrações/jobs
+  (quando `lib/integrations/` for portado, Fase 5).
 - **notifications** — central de notificações real.
