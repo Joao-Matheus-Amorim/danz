@@ -23,11 +23,13 @@ export function EventModal({
   onOpenChange,
   event,
   onSubmit,
+  onDelete,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   event?: CalendarEvent | null;
   onSubmit: (event: CalendarEventInput) => Promise<void> | void;
+  onDelete?: () => void;
 }) {
   const [title, setTitle] = React.useState("");
   const [type, setType] = React.useState<CalendarEventType>("reuniao");
@@ -130,6 +132,16 @@ export function EventModal({
         </div>
 
         <DialogFooter>
+          {isEditing && onDelete && (
+            <Button
+              variant="danger"
+              onClick={onDelete}
+              disabled={creating}
+              className="mr-auto"
+            >
+              Excluir
+            </Button>
+          )}
           <Button
             variant="ghost"
             onClick={() => onOpenChange(false)}

@@ -95,6 +95,12 @@ export default function CalendarioPage() {
     setModalOpen(true);
   }
 
+  function requestDeleteFromModal() {
+    if (!editingEvent) return;
+    setModalOpen(false);
+    setEventToDelete(editingEvent);
+  }
+
   async function handleSubmitEvent(input: CalendarEventInput) {
     try {
       if (editingEvent) {
@@ -197,7 +203,11 @@ export default function CalendarioPage() {
               )}
             </div>
           ) : (
-            <CalendarMonth month={month} events={events} />
+            <CalendarMonth
+              month={month}
+              events={events}
+              onSelectEvent={openEditModal}
+            />
           )}
         </CardContent>
       </Card>
@@ -207,6 +217,7 @@ export default function CalendarioPage() {
         onOpenChange={setModalOpen}
         event={editingEvent}
         onSubmit={handleSubmitEvent}
+        onDelete={requestDeleteFromModal}
       />
 
       <ConfirmDialog
