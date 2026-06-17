@@ -71,7 +71,9 @@ export default function MeuPainelPage() {
     },
     {
       label: "Atrasadas",
-      value: myTasks.filter((task) => task.dueDate < APP_TODAY && !task.done).length,
+      value: myTasks.filter(
+        (task) => task.dueDate !== undefined && task.dueDate < APP_TODAY && !task.done
+      ).length,
       tone: "alert" as const,
     },
     {
@@ -190,7 +192,9 @@ export default function MeuPainelPage() {
                   >
                     <span className="text-sm text-content">{task.title}</span>
                     <span className="text-[11px] text-content-muted">
-                      vence {task.dueDate.slice(8, 10)}/{task.dueDate.slice(5, 7)}
+                      {task.dueDate
+                        ? `vence ${task.dueDate.slice(8, 10)}/${task.dueDate.slice(5, 7)}`
+                        : "sem prazo"}
                     </span>
                   </div>
                 ))

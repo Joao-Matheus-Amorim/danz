@@ -10,9 +10,11 @@ interface TaskRow {
   priority: TaskPriority;
   assignee_id: string;
   client_id: string | null;
-  due_date: string;
+  due_date: string | null;
   done: boolean;
 }
+
+let mockTaskStore: Task[] = [...mockTasks];
 
 function mapTask(row: TaskRow): Task {
   return {
@@ -22,7 +24,7 @@ function mapTask(row: TaskRow): Task {
     priority: row.priority,
     assigneeId: row.assignee_id,
     clientId: row.client_id ?? undefined,
-    dueDate: row.due_date,
+    dueDate: row.due_date ?? undefined,
     done: row.done,
   };
 }
@@ -41,7 +43,7 @@ export async function listMyTasks(): Promise<Task[]> {
   const supabase = getSupabase();
 
   if (!supabase) {
-    return mockTasks.filter((task) => task.assigneeId === currentProfile.id);
+    return mockTaskStore.filter((task) => task.assigneeId === currentProfile.id);
   }
 
   const profileId = await getCurrentProfileId();
@@ -70,7 +72,7 @@ export async function createTask(input: {
   const priority = input.priority ?? "media";
 
   if (!supabase) {
-    return {
+    const task: Task = {
       id: `task_${crypto.randomUUID()}`,
       title,
       status: "todo",
@@ -79,6 +81,8 @@ export async function createTask(input: {
       dueDate,
       done: false,
     };
+    mockTaskStore = [task, ...mockTaskStore];
+    return task;
   }
 
   const [workspaceId, profileId] = await Promise.all([
@@ -112,13 +116,17 @@ export async function setTaskDone(taskId: string, done: boolean): Promise<Task> 
   const supabase = getSupabase();
 
   if (!supabase) {
-    const existing = mockTasks.find((task) => task.id === taskId);
+    const existing = mockTaskStore.find((task) => task.id === taskId);
     if (!existing) throw new Error("Tarefa nao encontrada.");
-    return {
+    const updated: Task = {
       ...existing,
       done,
       status: done ? "done" : "todo",
     };
+    mockTaskStore = mockTaskStore.map((task) =>
+      task.id === taskId ? updated : task
+    );
+    return updated;
   }
 
   const { data, error } = await supabase
