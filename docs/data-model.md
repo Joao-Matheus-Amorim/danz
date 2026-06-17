@@ -45,15 +45,16 @@ Workspace 1-* ActivityLog
 
 ## Estado de Persistencia
 - **Real via Supabase:** Auth, profiles/workspaces/members, clientes, boards,
-  colunas, cards, calendario, briefing mensal, campanhas, metadados de Drive,
-  Documentos, Planilhas, Inbox e tarefas do Meu Painel. O Dashboard e o Meu
-  Painel consolidam essas superficies reais em seus KPIs e widgets.
+  colunas, cards, calendario, briefing mensal, formularios publicos de briefing
+  (link `/b/[token]` + funcoes anon), campanhas, metadados de Drive, Documentos,
+  Planilhas, Inbox e tarefas do Meu Painel. O Dashboard e o Meu Painel consolidam
+  essas superficies reais em seus KPIs e widgets.
 - **Escopo multi-tenant:** RLS segue como barreira de seguranca e os
   repositorios reais tambem filtram pelo workspace resolvido para evitar mistura
   de dados entre workspaces do mesmo usuario.
-- **Mock/fallback por enquanto:** Dogtooth, formularios publicos de briefing,
-  superficies fora dos cortes atuais e fallback local de
-  Drive/Documentos/Planilhas/Inbox quando Supabase nao esta configurado.
+- **Mock/fallback por enquanto:** Dogtooth, superficies fora dos cortes atuais e
+  fallback local de Drive/Documentos/Planilhas/Inbox quando Supabase nao esta
+  configurado.
 - **Trello:** importacao nao destrutiva e envio controlado de cards, usando os
   campos `external_id`.
 

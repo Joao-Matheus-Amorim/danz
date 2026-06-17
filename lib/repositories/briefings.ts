@@ -13,7 +13,13 @@ interface BriefingItemRow {
   client_id: string | null;
   client_name: string;
   done: boolean;
+  public_token: string | null;
+  response: Record<string, string> | null;
+  submitted_at: string | null;
 }
+
+const briefingItemSelect =
+  "id, client_id, client_name, done, public_token, response, submitted_at";
 
 let mockBriefingItemStore: BriefingItem[] = [...mockBriefingItems];
 
@@ -24,6 +30,9 @@ function mapBriefingItem(row: BriefingItemRow, monthRef: string): BriefingItem {
     clientId: row.client_id ?? undefined,
     clientName: row.client_name,
     done: row.done,
+    publicToken: row.public_token ?? undefined,
+    submitted: row.submitted_at != null,
+    response: row.response ?? undefined,
   };
 }
 
@@ -54,7 +63,7 @@ export async function listBriefingItems(
   const row = briefing as BriefingRow;
   const { data, error } = await supabase
     .from("briefing_items")
-    .select("id, client_id, client_name, done")
+    .select(briefingItemSelect)
     .eq("briefing_id", row.id)
     .order("client_name", { ascending: true });
 
@@ -85,7 +94,7 @@ export async function setBriefingItemDone(
     .from("briefing_items")
     .update({ done })
     .eq("id", itemId)
-    .select("id, client_id, client_name, done")
+    .select(briefingItemSelect)
     .single();
 
   if (error) throw error;

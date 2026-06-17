@@ -56,7 +56,11 @@ Status local:
   configurado.
 - Dashboard usa os repositórios reais para KPIs, crescimento, agenda, clientes,
   boards e resumo de campanhas quando Supabase esta configurado.
-- Pendentes da Fase 3: formularios publicos de briefing.
+- `lib/repositories/briefings.ts` + `/briefings`: formularios publicos de briefing
+  completos. Cada item gera link publico (`/b/[token]`) que o cliente preenche sem
+  login (campos fixos), via funcoes `anon` security-definer; a aba "Formularios do
+  cliente" copia o link, mostra status (pendente/respondido) e exibe a resposta.
+- Fase 3 operacional concluida.
 
 ## Fase 4 - IA Dogtooth
 - Rota server-side `app/api/dogtooth` usando `OPENAI_API_KEY`.
@@ -97,8 +101,8 @@ Status local:
 
 ## Proximos marcos objetivos
 
-1. Fechar a Fase 3 operacional:
-   - Formularios publicos de briefing com gravacao no Supabase.
+1. Fase 3 operacional concluida (CRUDs reais + formularios publicos de briefing).
+   Proximos focos sugeridos: Dogtooth (Fase 4) e RBAC/convites (Fase 6).
 
 2. Fechar o primeiro corte Trello da Fase 5:
    - Criacao de boards/listas no Trello ou politica explicita para nao criar.
