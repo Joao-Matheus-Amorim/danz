@@ -35,11 +35,12 @@
 - **Plano:** rota server-side com `OPENAI_API_KEY` + execução das ações.
 - **Fase:** 4.
 
-### TD04 — Drive/Docs/Sheets mockados
-- **Descrição:** listagens vêm do mock; editores são placeholders.
-- **Motivo:** integração Google (OAuth/embed) é grande e fora do MVP.
-- **Impacto:** sem arquivos reais nem edição.
-- **Prioridade:** Média.
+### TD04 - Drive/Docs/Sheets sem integracao Google
+- **Descricao:** listagens internas leem metadados do Supabase, mas editores
+  ainda sao placeholders e dependem de fallback mock quando Supabase nao existe.
+- **Motivo:** integracao Google (OAuth/embed) e grande e fora do MVP.
+- **Impacto:** sem sincronizacao direta com Google nem edicao real embutida.
+- **Prioridade:** Media.
 - **Plano:** OAuth Google + APIs Drive/Docs/Sheets + embed.
 - **Fase:** 5.
 

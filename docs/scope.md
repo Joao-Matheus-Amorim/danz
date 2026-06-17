@@ -13,7 +13,8 @@
 ## Estado Pos-MVP
 - **Fase 2:** Supabase Auth, schema, RLS, seed e setup documentado.
 - **Fase 3:** clientes, boards, calendario, briefing mensal e tarefas do Meu
-  Painel ja persistem no Supabase; campanhas ja leem metricas do Supabase.
+  Painel ja persistem no Supabase; campanhas, Drive, Documentos e Planilhas ja
+  leem dados do Supabase.
   Repositorios reais usam filtro explicito de workspace junto com RLS, e o
   Dashboard e o Meu Painel consomem esses repositorios para evitar numeros e
   identidade conflitantes.
@@ -21,8 +22,8 @@
   controlado de cards.
 
 ## Ainda Fora do Corte Atual
-- CRUD real de arquivos, inbox, configuracoes, formularios publicos
-  de briefing, edicao/exclusao de eventos e tarefas fora do Meu Painel.
+- Escrita/sincronizacao real de arquivos, inbox, configuracoes, formularios
+  publicos de briefing, edicao/exclusao de eventos e tarefas fora do Meu Painel.
 - Execucao real de acoes da IA e chamadas OpenAI.
 - Integracoes Google Drive/Docs/Sheets, WhatsApp e Meta Ads.
 - Criacao de boards/listas no Trello, webhooks, labels, membros e checklists.
@@ -51,6 +52,7 @@
 - [x] Calendario e agenda do Meu Painel persistem em Supabase.
 - [x] Briefing mensal persiste em Supabase.
 - [x] Campanhas leem dados persistidos do Supabase.
+- [x] Drive, Documentos e Planilhas leem metadados persistidos do Supabase.
 - [x] Dashboard usa dados reais das superficies ja persistidas.
 - [x] Trello preparado sem expor credenciais no client.
 - [x] Docs PMBOK e dividas tecnicas atualizados.

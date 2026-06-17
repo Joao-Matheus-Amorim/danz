@@ -16,7 +16,13 @@ import { formatDate, cn } from "@/lib/utils";
  * No MVP a área central mostra um placeholder. A edição real (Google Docs
  * embutido com todas as funções) chega na Fase 5 — claramente sinalizado.
  */
-export function DocumentEditorShell({ documents }: { documents: DocumentItem[] }) {
+export function DocumentEditorShell({
+  documents,
+  loading = false,
+}: {
+  documents: DocumentItem[];
+  loading?: boolean;
+}) {
   const { futureFeature } = useToast();
   const [query, setQuery] = React.useState("");
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
@@ -45,27 +51,37 @@ export function DocumentEditorShell({ documents }: { documents: DocumentItem[] }
             />
           </div>
           <div className="flex-1 space-y-1 overflow-y-auto">
-            {visible.map((d) => (
-              <button
-                type="button"
-                key={d.id}
-                onClick={() => setSelectedId(d.id)}
-                className={cn(
-                  "flex w-full items-start gap-2.5 rounded-xl border p-2.5 text-left transition-colors",
-                  selectedId === d.id
-                    ? "dl-neon-active"
-                    : "border-white/[0.06] bg-surface-muted hover:border-neon-border"
-                )}
-              >
-                <FileText className="mt-0.5 h-4 w-4 shrink-0 text-content-muted" />
-                <div className="min-w-0">
-                  <p className="truncate text-sm text-content">{d.title}</p>
-                  <p className="text-[11px] text-content-muted">
-                    {formatDate(d.updatedAt, "dd/MM/yyyy")}
-                  </p>
-                </div>
-              </button>
-            ))}
+            {loading ? (
+              <p className="py-6 text-center text-sm text-content-muted">
+                Carregando documentos...
+              </p>
+            ) : visible.length === 0 ? (
+              <p className="py-6 text-center text-sm text-content-muted">
+                Nenhum documento encontrado.
+              </p>
+            ) : (
+              visible.map((d) => (
+                <button
+                  type="button"
+                  key={d.id}
+                  onClick={() => setSelectedId(d.id)}
+                  className={cn(
+                    "flex w-full items-start gap-2.5 rounded-xl border p-2.5 text-left transition-colors",
+                    selectedId === d.id
+                      ? "dl-neon-active"
+                      : "border-white/[0.06] bg-surface-muted hover:border-neon-border"
+                  )}
+                >
+                  <FileText className="mt-0.5 h-4 w-4 shrink-0 text-content-muted" />
+                  <div className="min-w-0">
+                    <p className="truncate text-sm text-content">{d.title}</p>
+                    <p className="text-[11px] text-content-muted">
+                      {formatDate(d.updatedAt, "dd/MM/yyyy")}
+                    </p>
+                  </div>
+                </button>
+              ))
+            )}
           </div>
         </CardContent>
       </Card>

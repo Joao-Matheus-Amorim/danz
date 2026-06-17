@@ -22,7 +22,13 @@ const FILTERS = ["Tipo", "Pessoas", "Modificado", "Fonte"];
  * Explorador do Drive (mock). Os dados vêm de mock-data e estão claramente
  * isolados — a integração real com o Google Drive chega na Fase 5.
  */
-export function DriveExplorer({ files }: { files: DriveFile[] }) {
+export function DriveExplorer({
+  files,
+  loading = false,
+}: {
+  files: DriveFile[];
+  loading?: boolean;
+}) {
   const { futureFeature } = useToast();
   const [section, setSection] = React.useState<string>("meu-drive");
   const [query, setQuery] = React.useState("");
@@ -95,7 +101,11 @@ export function DriveExplorer({ files }: { files: DriveFile[] }) {
         </div>
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          {visible.length === 0 ? (
+          {loading ? (
+            <p className="col-span-full py-10 text-center text-sm text-content-muted">
+              Carregando arquivos...
+            </p>
+          ) : visible.length === 0 ? (
             <p className="col-span-full py-10 text-center text-sm text-content-muted">
               Nada por aqui ainda.
             </p>

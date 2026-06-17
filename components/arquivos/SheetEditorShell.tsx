@@ -16,7 +16,13 @@ import { formatDate, cn } from "@/lib/utils";
  * No MVP a área central mostra um placeholder. A edição real (Google Sheets
  * embutido com todas as funções) chega na Fase 5 — claramente sinalizado.
  */
-export function SheetEditorShell({ sheets }: { sheets: SheetItem[] }) {
+export function SheetEditorShell({
+  sheets,
+  loading = false,
+}: {
+  sheets: SheetItem[];
+  loading?: boolean;
+}) {
   const { futureFeature } = useToast();
   const [query, setQuery] = React.useState("");
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
@@ -44,27 +50,37 @@ export function SheetEditorShell({ sheets }: { sheets: SheetItem[] }) {
             />
           </div>
           <div className="flex-1 space-y-1 overflow-y-auto">
-            {visible.map((s) => (
-              <button
-                type="button"
-                key={s.id}
-                onClick={() => setSelectedId(s.id)}
-                className={cn(
-                  "flex w-full items-start gap-2.5 rounded-xl border p-2.5 text-left transition-colors",
-                  selectedId === s.id
-                    ? "dl-neon-active"
-                    : "border-white/[0.06] bg-surface-muted hover:border-neon-border"
-                )}
-              >
-                <Sheet className="mt-0.5 h-4 w-4 shrink-0 text-content-muted" />
-                <div className="min-w-0">
-                  <p className="truncate text-sm text-content">{s.title}</p>
-                  <p className="text-[11px] text-content-muted">
-                    {formatDate(s.updatedAt, "dd/MM/yyyy")}
-                  </p>
-                </div>
-              </button>
-            ))}
+            {loading ? (
+              <p className="py-6 text-center text-sm text-content-muted">
+                Carregando planilhas...
+              </p>
+            ) : visible.length === 0 ? (
+              <p className="py-6 text-center text-sm text-content-muted">
+                Nenhuma planilha encontrada.
+              </p>
+            ) : (
+              visible.map((s) => (
+                <button
+                  type="button"
+                  key={s.id}
+                  onClick={() => setSelectedId(s.id)}
+                  className={cn(
+                    "flex w-full items-start gap-2.5 rounded-xl border p-2.5 text-left transition-colors",
+                    selectedId === s.id
+                      ? "dl-neon-active"
+                      : "border-white/[0.06] bg-surface-muted hover:border-neon-border"
+                  )}
+                >
+                  <Sheet className="mt-0.5 h-4 w-4 shrink-0 text-content-muted" />
+                  <div className="min-w-0">
+                    <p className="truncate text-sm text-content">{s.title}</p>
+                    <p className="text-[11px] text-content-muted">
+                      {formatDate(s.updatedAt, "dd/MM/yyyy")}
+                    </p>
+                  </div>
+                </button>
+              ))
+            )}
           </div>
         </CardContent>
       </Card>
