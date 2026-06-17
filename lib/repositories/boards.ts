@@ -12,6 +12,7 @@ interface BoardRow {
   id: string;
   title: string;
   gradient: string;
+  external_id: string | null;
   board_columns?: { id: string }[];
   board_cards?: { id: string }[];
 }
@@ -49,6 +50,7 @@ const BOARD_GRADIENTS = [
 function mapBoard(row: BoardRow): Board {
   return {
     id: row.id,
+    externalId: row.external_id ?? undefined,
     title: row.title,
     gradient: row.gradient,
     columnsCount: row.board_columns?.length ?? 0,
@@ -133,7 +135,7 @@ export async function listBoards(): Promise<Board[]> {
 
   const { data, error } = await supabase
     .from("boards")
-    .select("id, title, gradient, board_columns(id), board_cards(id)")
+    .select("id, title, gradient, external_id, board_columns(id), board_cards(id)")
     .eq("workspace_id", workspaceId)
     .order("created_at", { ascending: true });
 
@@ -274,16 +276,40 @@ export async function createBoard(title: string): Promise<Board> {
   };
 }
 
+/**
+ * Quadros importados do Trello (com `external_id`) nao podem ser excluidos pelo
+ * DL: o sync os reimportaria a partir do `TRELLO_BOARD_ID`. Para remover um quadro
+ * sincronizado, arquive-o no proprio Trello.
+ */
+export const TRELLO_LINKED_BOARD_DELETE_MESSAGE =
+  "Quadro sincronizado com o Trello. Arquive-o no Trello para remover.";
+
 export async function deleteBoard(boardId: string): Promise<void> {
   const supabase = getSupabase();
 
   if (!supabase) {
-    mockBoardStore = mockBoardStore.filter((board) => board.id !== boardId);
+    const board = mockBoardStore.find((item) => item.id === boardId);
+    if (board?.externalId) {
+      throw new Error(TRELLO_LINKED_BOARD_DELETE_MESSAGE);
+    }
+    mockBoardStore = mockBoardStore.filter((item) => item.id !== boardId);
     return;
   }
 
   const workspaceId = await getCurrentWorkspaceId();
   if (!workspaceId) throw new Error("Usuario autenticado nao esta vinculado a um workspace.");
+
+  const { data: board, error: fetchError } = await supabase
+    .from("boards")
+    .select("external_id")
+    .eq("workspace_id", workspaceId)
+    .eq("id", boardId)
+    .maybeSingle();
+
+  if (fetchError) throw fetchError;
+  if (board?.external_id) {
+    throw new Error(TRELLO_LINKED_BOARD_DELETE_MESSAGE);
+  }
 
   // board_columns e board_cards saem por ON DELETE CASCADE no schema.
   const { error } = await supabase

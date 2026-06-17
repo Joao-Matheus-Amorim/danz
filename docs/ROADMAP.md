@@ -81,6 +81,8 @@ Status local:
   `board_columns` e `board_cards`.
 - DL -> Trello iniciado via `/api/trello/cards/push` para enviar cards criados
   ou movidos dentro de listas importadas do Trello.
+- Quadros importados (com `external_id`) nao podem ser excluidos pelo DL, para
+  evitar que o sync os reimporte; para remover, arquive no proprio Trello.
 - Pendentes: criacao de boards/listas no Trello, webhooks, labels, membros e
   checklists completos.
 

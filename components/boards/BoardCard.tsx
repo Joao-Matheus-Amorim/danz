@@ -1,6 +1,6 @@
 "use client";
 
-import { MoreVertical, Layers, SquareStack, Trash2 } from "lucide-react";
+import { MoreVertical, Layers, SquareStack, Trash2, Link2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/components/ui/toast";
 import type { Board } from "@/lib/types";
@@ -19,6 +19,10 @@ export function BoardCard({
   pending?: boolean;
 }) {
   const { futureFeature } = useToast();
+  // Quadros sincronizados do Trello (com externalId) nao podem ser excluidos aqui:
+  // o sync os reimportaria. Arquivar no Trello e o caminho para remove-los.
+  const isTrelloLinked = Boolean(board.externalId);
+  const canDelete = Boolean(onDelete) && !isTrelloLinked;
 
   return (
     <Card className="group overflow-hidden transition-colors hover:border-neon-border">
@@ -32,16 +36,24 @@ export function BoardCard({
           >
             {board.title}
           </button>
-          {onDelete ? (
+          {canDelete ? (
             <button
               type="button"
-              onClick={() => onDelete(board)}
+              onClick={() => onDelete?.(board)}
               disabled={pending}
               className="rounded-lg p-1 text-content-muted opacity-0 transition-colors hover:bg-alert/[0.12] hover:text-alert focus-visible:opacity-100 group-hover:opacity-100 disabled:cursor-wait disabled:opacity-60"
               aria-label="Excluir quadro"
             >
               <Trash2 className="h-4 w-4" />
             </button>
+          ) : isTrelloLinked ? (
+            <span
+              className="rounded-lg p-1 text-content-muted"
+              title="Sincronizado do Trello. Arquive no Trello para remover."
+              aria-label="Quadro sincronizado do Trello"
+            >
+              <Link2 className="h-4 w-4" />
+            </span>
           ) : (
             <button
               type="button"
