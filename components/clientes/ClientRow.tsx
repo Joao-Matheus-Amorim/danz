@@ -10,7 +10,7 @@ export function ClientRow({ client }: { client: Client }) {
       <td className="px-4 py-3">
         <p className="text-sm font-medium text-content">{client.name}</p>
       </td>
-      <td className="px-4 py-3 text-sm text-content-muted">{client.niche}</td>
+      <td className="px-4 py-3 text-sm text-content-muted">{client.bandeira}</td>
       <td className="px-4 py-3 text-sm text-content-muted">{client.plan}</td>
       <td className="px-4 py-3">
         <ClientStatusBadge status={client.status} />

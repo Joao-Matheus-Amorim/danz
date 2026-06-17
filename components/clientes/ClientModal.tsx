@@ -22,10 +22,10 @@ export function ClientModal({
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCreate: (client: Pick<Client, "name" | "niche" | "plan">) => Promise<void> | void;
+  onCreate: (client: Pick<Client, "name" | "bandeira" | "plan">) => Promise<void> | void;
 }) {
   const [name, setName] = React.useState("");
-  const [niche, setNiche] = React.useState("");
+  const [bandeira, setBandeira] = React.useState("");
   const [plan, setPlan] = React.useState<ClientPlan>("Essencial");
   const [submitting, setSubmitting] = React.useState(false);
 
@@ -36,11 +36,11 @@ export function ClientModal({
     try {
       await onCreate({
         name: name.trim().toUpperCase(),
-        niche: niche.trim() || "-",
+        bandeira: bandeira.trim() || "-",
         plan,
       });
       setName("");
-      setNiche("");
+      setBandeira("");
       setPlan("Essencial");
       onOpenChange(false);
     } catch (error) {
@@ -73,12 +73,12 @@ export function ClientModal({
             />
           </div>
           <div>
-            <Label htmlFor="c-niche">Nicho</Label>
+            <Label htmlFor="c-bandeira">Bandeira</Label>
             <Input
-              id="c-niche"
-              value={niche}
-              onChange={(e) => setNiche(e.target.value)}
-              placeholder="Ex.: Alimentacao"
+              id="c-bandeira"
+              value={bandeira}
+              onChange={(e) => setBandeira(e.target.value)}
+              placeholder="Ex.: Mais Sorriso"
             />
           </div>
           <div>

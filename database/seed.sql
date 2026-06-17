@@ -43,7 +43,7 @@ begin
   values (v_workspace_id, v_owner_id, 'owner')
   on conflict (workspace_id, profile_id) do update set role = excluded.role;
 
-  insert into clients (id, workspace_id, name, niche, plan, status, start_date, tags)
+  insert into clients (id, workspace_id, name, bandeira, plan, status, start_date, tags)
   values
     ('00000000-0000-4000-8000-000000000101', v_workspace_id, 'ANDREA BOUTIQUE', 'Moda', 'Pro', 'ativo', '2025-09-01', array['em-dia']::client_tag[]),
     ('00000000-0000-4000-8000-000000000102', v_workspace_id, 'ANNA LIMA', 'Estetica', 'Essencial', 'ativo', '2025-11-12', array['atencao']::client_tag[]),
@@ -57,7 +57,7 @@ begin
     ('00000000-0000-4000-8000-000000000110', v_workspace_id, 'MARCELO RADIADOR', 'Automotivo', 'Essencial', 'pausado', '2024-10-25', array['critico']::client_tag[])
   on conflict (id) do update set
     name = excluded.name,
-    niche = excluded.niche,
+    bandeira = excluded.bandeira,
     plan = excluded.plan,
     status = excluded.status,
     start_date = excluded.start_date,

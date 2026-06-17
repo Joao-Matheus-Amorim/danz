@@ -41,7 +41,7 @@ export default function ClientesPage() {
   const filtered = clients.filter((c) => {
     const matchesQuery =
       c.name.toLowerCase().includes(query.toLowerCase()) ||
-      c.niche.toLowerCase().includes(query.toLowerCase());
+      c.bandeira.toLowerCase().includes(query.toLowerCase());
     const matchesStatus = status === "todos" || c.status === status;
     return matchesQuery && matchesStatus;
   });
@@ -70,7 +70,7 @@ export default function ClientesPage() {
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Buscar cliente ou nicho..."
+            placeholder="Buscar cliente ou bandeira..."
             className="pl-9"
           />
         </div>

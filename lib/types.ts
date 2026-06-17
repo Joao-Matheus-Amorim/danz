@@ -52,7 +52,7 @@ export type ClientPlan = "Essencial" | "Pro" | "Premium" | "Performance";
 export interface Client {
   id: string;
   name: string;
-  niche: string;
+  bandeira: string;
   plan: ClientPlan;
   status: ClientStatus;
   /** Data de início do contrato (ISO 8601). */
