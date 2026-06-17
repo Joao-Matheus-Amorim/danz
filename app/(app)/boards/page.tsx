@@ -21,9 +21,11 @@ import {
   createBoard,
   createBoardCard,
   deleteBoard,
+  deleteBoardCard,
   getBoardDetail,
   listBoards,
   syncTrelloBoard,
+  updateBoardCard,
   updateBoardCardPositions,
 } from "@/lib/repositories/boards";
 import type { Board, BoardCard, BoardColumn } from "@/lib/types";
@@ -197,6 +199,29 @@ export default function BoardsPage() {
                 )
               );
               toast("Card criado no Supabase.");
+            }}
+            onUpdateCard={async (cardId, input) => {
+              const updated = await updateBoardCard(cardId, {
+                boardId: openBoard.id,
+                title: input.title,
+                description: input.description,
+              });
+              setCards((prev) =>
+                prev.map((card) => (card.id === updated.id ? updated : card))
+              );
+              toast("Card atualizado.");
+            }}
+            onDeleteCard={async (card) => {
+              await deleteBoardCard(card.id, openBoard.id);
+              setCards((prev) => prev.filter((item) => item.id !== card.id));
+              setBoards((prev) =>
+                prev.map((board) =>
+                  board.id === openBoard.id
+                    ? { ...board, cardsCount: Math.max(0, board.cardsCount - 1) }
+                    : board
+                )
+              );
+              toast("Card excluido.");
             }}
           />
         )}

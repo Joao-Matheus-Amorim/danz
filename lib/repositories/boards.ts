@@ -125,6 +125,7 @@ async function assertBoardsInCurrentWorkspace(boardIds: string[]): Promise<void>
 }
 
 let mockBoardStore: Board[] = [...mockBoards];
+let mockBoardCardStore: BoardCard[] = [...mockBoardCards];
 
 export async function listBoards(): Promise<Board[]> {
   const supabase = getSupabase();
@@ -152,7 +153,7 @@ export async function getBoardDetail(boardId: string): Promise<{
   if (!supabase) {
     return {
       columns: getMockColumns(boardId),
-      cards: mockBoardCards
+      cards: mockBoardCardStore
         .filter((card) => card.boardId === boardId)
         .sort((a, b) => a.order - b.order),
     };
@@ -190,7 +191,7 @@ export async function listMyBoardCards(): Promise<BoardCard[]> {
 
   if (!supabase) {
     const profileId = await getCurrentProfileId();
-    return mockBoardCards
+    return mockBoardCardStore
       .filter((card) => card.assigneeId === profileId)
       .sort((a, b) => a.order - b.order);
   }
@@ -332,7 +333,7 @@ export async function createBoardCard(input: {
   if (!cleanTitle) throw new Error("Informe o titulo do card.");
 
   if (!supabase) {
-    return {
+    const card: BoardCard = {
       id: `card_${crypto.randomUUID()}`,
       boardId: input.boardId,
       columnId: input.columnId,
@@ -342,6 +343,8 @@ export async function createBoardCard(input: {
       checklistDone: 0,
       order: input.position,
     };
+    mockBoardCardStore = [...mockBoardCardStore, card];
+    return card;
   }
 
   await assertBoardsInCurrentWorkspace([input.boardId]);
@@ -368,9 +371,81 @@ export async function createBoardCard(input: {
   return card;
 }
 
+export async function updateBoardCard(
+  cardId: string,
+  input: { boardId: string; title: string; description?: string }
+): Promise<BoardCard> {
+  const supabase = getSupabase();
+  const cleanTitle = input.title.trim();
+  if (!cleanTitle) throw new Error("Informe o titulo do card.");
+  const description = input.description?.trim() || null;
+
+  if (!supabase) {
+    const existing = mockBoardCardStore.find((card) => card.id === cardId);
+    if (!existing) throw new Error("Card nao encontrado.");
+    const updated: BoardCard = {
+      ...existing,
+      title: cleanTitle,
+      description: description ?? undefined,
+    };
+    mockBoardCardStore = mockBoardCardStore.map((card) =>
+      card.id === cardId ? updated : card
+    );
+    return updated;
+  }
+
+  await assertBoardsInCurrentWorkspace([input.boardId]);
+
+  const { data, error } = await supabase
+    .from("board_cards")
+    .update({
+      title: cleanTitle,
+      description,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("board_id", input.boardId)
+    .eq("id", cardId)
+    .select(
+      "id, board_id, column_id, title, description, labels, assignee_id, checklist_total, checklist_done, due_date, position"
+    )
+    .single();
+
+  if (error) throw error;
+  return mapCard(data as BoardCardRow);
+}
+
+export async function deleteBoardCard(
+  cardId: string,
+  boardId: string
+): Promise<void> {
+  const supabase = getSupabase();
+
+  if (!supabase) {
+    mockBoardCardStore = mockBoardCardStore.filter((card) => card.id !== cardId);
+    return;
+  }
+
+  await assertBoardsInCurrentWorkspace([boardId]);
+
+  const { error } = await supabase
+    .from("board_cards")
+    .delete()
+    .eq("board_id", boardId)
+    .eq("id", cardId);
+
+  if (error) throw error;
+}
+
 export async function updateBoardCardPositions(cards: BoardCard[]): Promise<void> {
   const supabase = getSupabase();
-  if (!supabase) return;
+  if (!supabase) {
+    const byId = new Map(cards.map((card) => [card.id, card]));
+    mockBoardCardStore = mockBoardCardStore.map((card) => {
+      const next = byId.get(card.id);
+      return next ? { ...card, columnId: next.columnId, order: next.order } : card;
+    });
+    return;
+  }
 
   await assertBoardsInCurrentWorkspace(cards.map((card) => card.boardId));
 

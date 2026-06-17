@@ -23,7 +23,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input, Label } from "@/components/ui/input";
+import { Input, Label, Textarea } from "@/components/ui/input";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useToast } from "@/components/ui/toast";
 import type { BoardCard, BoardColumn } from "@/lib/types";
 
@@ -32,11 +33,18 @@ export function KanbanBoard({
   initialCards,
   onCardsChange,
   onCreateCard,
+  onUpdateCard,
+  onDeleteCard,
 }: {
   columns: BoardColumn[];
   initialCards: BoardCard[];
   onCardsChange?: (cards: BoardCard[]) => Promise<void> | void;
   onCreateCard?: (columnId: string, title: string, position: number) => Promise<void> | void;
+  onUpdateCard?: (
+    cardId: string,
+    input: { title: string; description?: string }
+  ) => Promise<void> | void;
+  onDeleteCard?: (card: BoardCard) => Promise<void> | void;
 }) {
   const { toast } = useToast();
   const [cards, setCards] = React.useState<BoardCard[]>(initialCards);
@@ -44,10 +52,22 @@ export function KanbanBoard({
   const [targetColumnId, setTargetColumnId] = React.useState<string | null>(null);
   const [cardTitle, setCardTitle] = React.useState("");
   const [creatingCard, setCreatingCard] = React.useState(false);
+  const [editingCard, setEditingCard] = React.useState<BoardCard | null>(null);
+  const [editTitle, setEditTitle] = React.useState("");
+  const [editDescription, setEditDescription] = React.useState("");
+  const [savingCard, setSavingCard] = React.useState(false);
+  const [cardToDelete, setCardToDelete] = React.useState<BoardCard | null>(null);
+  const [pendingCardId, setPendingCardId] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     setCards(initialCards);
   }, [initialCards]);
+
+  React.useEffect(() => {
+    if (!editingCard) return;
+    setEditTitle(editingCard.title);
+    setEditDescription(editingCard.description ?? "");
+  }, [editingCard]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } })
@@ -147,6 +167,40 @@ export function KanbanBoard({
     }
   }
 
+  async function submitEditCard() {
+    if (!editingCard || !editTitle.trim() || savingCard) return;
+
+    setSavingCard(true);
+    try {
+      await onUpdateCard?.(editingCard.id, {
+        title: editTitle,
+        description: editDescription,
+      });
+      setEditingCard(null);
+    } catch (error) {
+      console.error(error);
+      toast("Nao foi possivel salvar o card.");
+    } finally {
+      setSavingCard(false);
+    }
+  }
+
+  async function confirmDeleteCard() {
+    const card = cardToDelete;
+    if (!card || pendingCardId) return;
+
+    setPendingCardId(card.id);
+    try {
+      await onDeleteCard?.(card);
+      setCardToDelete(null);
+    } catch (error) {
+      console.error(error);
+      toast("Nao foi possivel excluir o card.");
+    } finally {
+      setPendingCardId(null);
+    }
+  }
+
   const activeCard = cards.find((c) => c.id === activeId) ?? null;
 
   return (
@@ -165,6 +219,9 @@ export function KanbanBoard({
               column={col}
               cards={cardsOf(col.id)}
               onCreateCard={setTargetColumnId}
+              onEditCard={onUpdateCard ? setEditingCard : undefined}
+              onDeleteCard={onDeleteCard ? setCardToDelete : undefined}
+              pendingCardId={pendingCardId}
             />
           ))}
         </div>
@@ -202,6 +259,74 @@ export function KanbanBoard({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <Dialog
+        open={editingCard !== null}
+        onOpenChange={(open) => {
+          if (!open && !savingCard) setEditingCard(null);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-lg font-semibold text-content">
+              Editar card
+            </DialogTitle>
+            <DialogDescription className="text-sm text-content-muted">
+              Atualize o titulo e a descricao do card.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="edit-card-title">Titulo do card</Label>
+              <Input
+                id="edit-card-title"
+                value={editTitle}
+                onChange={(event) => setEditTitle(event.target.value)}
+                placeholder="Ex.: Revisar criativos"
+                disabled={savingCard}
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-card-description">Descricao</Label>
+              <Textarea
+                id="edit-card-description"
+                value={editDescription}
+                onChange={(event) => setEditDescription(event.target.value)}
+                placeholder="Detalhes, contexto ou checklist do card."
+                rows={4}
+                disabled={savingCard}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setEditingCard(null)} disabled={savingCard}>
+              Cancelar
+            </Button>
+            <Button variant="primary" onClick={() => void submitEditCard()} disabled={savingCard}>
+              {savingCard ? "Salvando..." : "Salvar card"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <ConfirmDialog
+        open={cardToDelete !== null}
+        onOpenChange={(open) => {
+          if (!open) setCardToDelete(null);
+        }}
+        title="Excluir card"
+        description={
+          <>
+            Tem certeza que deseja excluir
+            {cardToDelete ? ` "${cardToDelete.title}"` : " este card"}? Essa acao nao
+            pode ser desfeita.
+          </>
+        }
+        confirmLabel="Excluir card"
+        pendingLabel="Excluindo..."
+        pending={pendingCardId !== null}
+        onConfirm={() => void confirmDeleteCard()}
+      />
     </>
   );
 }
