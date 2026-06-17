@@ -1,4 +1,5 @@
 import { briefingItems as mockBriefingItems } from "@/lib/mock-data";
+import { getCurrentWorkspaceId } from "@/lib/repositories/workspace";
 import { getSupabase } from "@/lib/supabase";
 import type { BriefingItem } from "@/lib/types";
 
@@ -35,9 +36,15 @@ export async function listBriefingItems(
     return mockBriefingItemStore.filter((item) => item.monthRef === monthRef);
   }
 
+  const workspaceId = await getCurrentWorkspaceId();
+  if (!workspaceId) {
+    throw new Error("Usuario autenticado nao esta vinculado a um workspace.");
+  }
+
   const { data: briefing, error: briefingError } = await supabase
     .from("briefings")
     .select("id, month_ref")
+    .eq("workspace_id", workspaceId)
     .eq("month_ref", monthRef)
     .maybeSingle();
 
