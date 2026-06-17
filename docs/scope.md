@@ -13,12 +13,12 @@
 ## Estado Pos-MVP
 - **Fase 2:** Supabase Auth, schema, RLS, seed e setup documentado.
 - **Fase 3:** clientes, boards, calendario, briefing mensal e tarefas do Meu
-  Painel ja persistem no Supabase.
+  Painel ja persistem no Supabase; campanhas ja leem metricas do Supabase.
 - **Fase 5:** Trello iniciado com importacao de board/listas/cards e envio
   controlado de cards.
 
 ## Ainda Fora do Corte Atual
-- CRUD real de campanhas, arquivos, inbox, configuracoes, formularios publicos
+- CRUD real de arquivos, inbox, configuracoes, formularios publicos
   de briefing, edicao/exclusao de eventos e tarefas fora do Meu Painel.
 - Execucao real de acoes da IA e chamadas OpenAI.
 - Integracoes Google Drive/Docs/Sheets, WhatsApp e Meta Ads.
@@ -46,5 +46,6 @@
 - [x] Tarefas do Meu Painel persistem em Supabase.
 - [x] Calendario e agenda do Meu Painel persistem em Supabase.
 - [x] Briefing mensal persiste em Supabase.
+- [x] Campanhas leem dados persistidos do Supabase.
 - [x] Trello preparado sem expor credenciais no client.
 - [x] Docs PMBOK e dividas tecnicas atualizados.

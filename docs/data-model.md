@@ -43,8 +43,9 @@ Workspace 1-* ActivityLog
 
 ## Estado de Persistencia
 - **Real via Supabase:** Auth, profiles/workspaces/members, clientes, boards,
-  colunas, cards, calendario, briefing mensal e tarefas do Meu Painel.
-- **Mock/fallback por enquanto:** campanhas, arquivos, inbox, Dogtooth,
+  colunas, cards, calendario, briefing mensal, campanhas e tarefas do Meu
+  Painel.
+- **Mock/fallback por enquanto:** arquivos, inbox, Dogtooth,
   formularios publicos de briefing e superficies fora dos cortes atuais.
 - **Trello:** importacao nao destrutiva e envio controlado de cards, usando os
   campos `external_id`.

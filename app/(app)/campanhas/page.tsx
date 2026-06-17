@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import { Download, Copy, RefreshCw, ImageIcon, CreditCard } from "lucide-react";
 import { CampaignHeader } from "@/components/campanhas/CampaignHeader";
 import { MetaTokenNotice } from "@/components/campanhas/MetaTokenNotice";
@@ -11,10 +12,33 @@ import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/input";
 import { EmptyState } from "@/components/ui/empty-state";
 import { useToast } from "@/components/ui/toast";
-import { campaigns } from "@/lib/mock-data";
+import { listCampaigns } from "@/lib/repositories/campaigns";
+import type { Campaign } from "@/lib/types";
 
 export default function CampanhasPage() {
-  const { futureFeature } = useToast();
+  const { futureFeature, toast } = useToast();
+  const [campaigns, setCampaigns] = React.useState<Campaign[]>([]);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    let mounted = true;
+
+    listCampaigns()
+      .then((items) => {
+        if (mounted) setCampaigns(items);
+      })
+      .catch((error) => {
+        console.error(error);
+        if (mounted) toast("Nao foi possivel carregar campanhas.");
+      })
+      .finally(() => {
+        if (mounted) setLoading(false);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [toast]);
 
   return (
     <div className="space-y-6">
@@ -29,7 +53,7 @@ export default function CampanhasPage() {
         </TabsList>
 
         <TabsContent value="relatorios" className="space-y-6">
-          <CampaignMetrics campaigns={campaigns} />
+          <CampaignMetrics campaigns={campaigns} loading={loading} />
 
           <Card>
             <CardContent className="flex flex-col gap-4 p-5 lg:flex-row lg:items-center lg:justify-between">
@@ -55,7 +79,7 @@ export default function CampanhasPage() {
             </CardContent>
           </Card>
 
-          <CampaignClientsTable campaigns={campaigns} />
+          <CampaignClientsTable campaigns={campaigns} loading={loading} />
         </TabsContent>
 
         <TabsContent value="criativos">

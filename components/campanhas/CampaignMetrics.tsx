@@ -4,7 +4,13 @@ import type { Campaign } from "@/lib/types";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 
 /** Faixa de métricas consolidadas das campanhas (Meta Ads). */
-export function CampaignMetrics({ campaigns }: { campaigns: Campaign[] }) {
+export function CampaignMetrics({
+  campaigns,
+  loading = false,
+}: {
+  campaigns: Campaign[];
+  loading?: boolean;
+}) {
   const totals = campaigns.reduce(
     (acc, c) => ({
       spend: acc.spend + c.spendCents,
@@ -21,7 +27,10 @@ export function CampaignMetrics({ campaigns }: { campaigns: Campaign[] }) {
     { label: "Conversas", value: formatNumber(totals.conversations), icon: MessageSquare },
     { label: "Resultados", value: formatNumber(totals.results), icon: Target },
     { label: "Enviados", value: formatNumber(totals.sent), icon: Send },
-  ];
+  ].map((metric) => ({
+    ...metric,
+    value: loading ? "..." : metric.value,
+  }));
 
   return (
     <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5">

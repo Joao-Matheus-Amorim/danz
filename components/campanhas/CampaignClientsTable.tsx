@@ -18,7 +18,13 @@ const STATUS_LABEL: Record<Campaign["status"], string> = {
 };
 
 /** Tabela "Clientes & Dados Meta Ads". */
-export function CampaignClientsTable({ campaigns }: { campaigns: Campaign[] }) {
+export function CampaignClientsTable({
+  campaigns,
+  loading = false,
+}: {
+  campaigns: Campaign[];
+  loading?: boolean;
+}) {
   return (
     <Card className="overflow-hidden">
       <div className="border-b border-white/[0.06] px-5 py-3">
@@ -39,18 +45,32 @@ export function CampaignClientsTable({ campaigns }: { campaigns: Campaign[] }) {
             </tr>
           </thead>
           <tbody>
-            {campaigns.map((c) => (
-              <tr key={c.id} className="border-b border-white/[0.04] hover:bg-white/[0.02]">
-                <td className="px-4 py-3 text-sm font-medium text-content">{c.clientName}</td>
-                <td className="px-4 py-3">
-                  <Badge className={cn(STATUS_STYLE[c.status])}>{STATUS_LABEL[c.status]}</Badge>
+            {loading ? (
+              <tr>
+                <td colSpan={COLUMNS.length} className="px-4 py-10 text-center text-sm text-content-muted">
+                  Carregando campanhas...
                 </td>
-                <td className="px-4 py-3 text-sm text-content-muted">{formatCurrency(c.spendCents)}</td>
-                <td className="px-4 py-3 text-sm text-content-muted">{formatNumber(c.conversations)}</td>
-                <td className="px-4 py-3 text-sm text-content-muted">{formatNumber(c.results)}</td>
-                <td className="px-4 py-3 text-sm text-neon-text">{formatCurrency(c.balanceCents)}</td>
               </tr>
-            ))}
+            ) : campaigns.length === 0 ? (
+              <tr>
+                <td colSpan={COLUMNS.length} className="px-4 py-10 text-center text-sm text-content-muted">
+                  Nenhuma campanha encontrada neste workspace.
+                </td>
+              </tr>
+            ) : (
+              campaigns.map((c) => (
+                <tr key={c.id} className="border-b border-white/[0.04] hover:bg-white/[0.02]">
+                  <td className="px-4 py-3 text-sm font-medium text-content">{c.clientName}</td>
+                  <td className="px-4 py-3">
+                    <Badge className={cn(STATUS_STYLE[c.status])}>{STATUS_LABEL[c.status]}</Badge>
+                  </td>
+                  <td className="px-4 py-3 text-sm text-content-muted">{formatCurrency(c.spendCents)}</td>
+                  <td className="px-4 py-3 text-sm text-content-muted">{formatNumber(c.conversations)}</td>
+                  <td className="px-4 py-3 text-sm text-content-muted">{formatNumber(c.results)}</td>
+                  <td className="px-4 py-3 text-sm text-neon-text">{formatCurrency(c.balanceCents)}</td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

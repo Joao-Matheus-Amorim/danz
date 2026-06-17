@@ -34,7 +34,8 @@ Status local:
   agenda do Meu Painel via Supabase.
 - `lib/repositories/briefings.ts`: leitura do briefing mensal e marcacao de
   checklist via Supabase.
-- Pendentes da Fase 3: campanhas, arquivos, inbox, formularios publicos de
+- `lib/repositories/campaigns.ts`: leitura de campanhas e metricas via Supabase.
+- Pendentes da Fase 3: arquivos, inbox, formularios publicos de
   briefing, edicao/exclusao de eventos e CRUD completo de tarefas fora do Meu
   Painel.
 
