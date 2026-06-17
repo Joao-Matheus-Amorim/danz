@@ -14,7 +14,7 @@
 | RF09 | Campanhas: metricas, tabela Meta Ads e aviso de token | Metricas/tabela em Supabase; token Meta em mock/fallback |
 | RF10 | Drive/Documentos/Planilhas: navegacao e shells | Metadados em Supabase; editores Google em mock/fallback |
 | RF11 | Inbox: conexao WhatsApp, conversas e painel | Conversas/mensagens em Supabase; conexao/envio em mock/fallback |
-| RF12 | Configuracoes: workspace, usuarios e integracoes | UI pronta |
+| RF12 | Configuracoes: workspace, usuarios e integracoes | Nome/segmento do workspace persistem (owner/admin via RLS); usuarios e integracoes em mock/fallback |
 | RF13 | Login | Supabase Auth quando envs existem; fallback local sem envs |
 | RF14 | Trello: importar board/listas/cards | Preparado server-side |
 | RF15 | Trello: enviar criacao/movimento de card | Preparado server-side |

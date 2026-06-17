@@ -20,6 +20,22 @@ as $$
   );
 $$;
 
+create or replace function is_workspace_admin(ws uuid)
+returns boolean
+language sql
+security definer
+stable
+set search_path = public
+as $$
+  select exists (
+    select 1
+    from workspace_members m
+    where m.workspace_id = ws
+      and m.profile_id = auth.uid()
+      and m.role in ('owner', 'admin')
+  );
+$$;
+
 alter table workspaces enable row level security;
 alter table profiles enable row level security;
 alter table workspace_members enable row level security;
@@ -45,6 +61,7 @@ drop policy if exists "profiles_self_select" on profiles;
 drop policy if exists "profiles_self_insert" on profiles;
 drop policy if exists "profiles_self_update" on profiles;
 drop policy if exists "workspaces_member_select" on workspaces;
+drop policy if exists "workspaces_admin_update" on workspaces;
 drop policy if exists "members_select" on workspace_members;
 drop policy if exists "clients_member_all" on clients;
 drop policy if exists "boards_member_all" on boards;
@@ -76,6 +93,10 @@ create policy "profiles_self_update" on profiles
 
 create policy "workspaces_member_select" on workspaces
   for select using (is_workspace_member(id));
+
+create policy "workspaces_admin_update" on workspaces
+  for update using (is_workspace_admin(id))
+  with check (is_workspace_admin(id));
 
 create policy "members_select" on workspace_members
   for select using (is_workspace_member(workspace_id));

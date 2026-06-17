@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import { Building2, Palette, Users, Plug } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -8,8 +9,12 @@ import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
 import { Avatar } from "@/components/ui/avatar";
 import { useToast } from "@/components/ui/toast";
-import { BRAND, INTEGRATION_STATUS_LABEL, INTEGRATION_STATUS_STYLE } from "@/lib/constants";
+import { INTEGRATION_STATUS_LABEL, INTEGRATION_STATUS_STYLE } from "@/lib/constants";
 import { integrations, profiles } from "@/lib/mock-data";
+import {
+  getCurrentWorkspace,
+  updateCurrentWorkspace,
+} from "@/lib/repositories/workspace";
 import { cn } from "@/lib/utils";
 
 const ROLE_LABEL: Record<string, string> = {
@@ -20,7 +25,49 @@ const ROLE_LABEL: Record<string, string> = {
 };
 
 export default function ConfiguracoesPage() {
-  const { futureFeature } = useToast();
+  const { futureFeature, toast } = useToast();
+  const [wsName, setWsName] = React.useState("");
+  const [wsRole, setWsRole] = React.useState("");
+  const [loadingWs, setLoadingWs] = React.useState(true);
+  const [savingWs, setSavingWs] = React.useState(false);
+
+  React.useEffect(() => {
+    let mounted = true;
+
+    getCurrentWorkspace()
+      .then((ws) => {
+        if (!mounted || !ws) return;
+        setWsName(ws.name);
+        setWsRole(ws.role);
+      })
+      .catch((error) => {
+        console.error(error);
+        if (mounted) toast("Nao foi possivel carregar o workspace.");
+      })
+      .finally(() => {
+        if (mounted) setLoadingWs(false);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [toast]);
+
+  async function handleSaveWorkspace() {
+    if (!wsName.trim() || savingWs) return;
+    setSavingWs(true);
+    try {
+      const updated = await updateCurrentWorkspace({ name: wsName, role: wsRole });
+      setWsName(updated.name);
+      setWsRole(updated.role);
+      toast("Workspace atualizado.");
+    } catch (error) {
+      console.error(error);
+      toast("Nao foi possivel salvar. Apenas owner/admin podem editar o workspace.");
+    } finally {
+      setSavingWs(false);
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -39,15 +86,31 @@ export default function ConfiguracoesPage() {
         <CardContent className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <Label htmlFor="ws-name">Nome do workspace</Label>
-            <Input id="ws-name" defaultValue={BRAND.fullName} />
+            <Input
+              id="ws-name"
+              value={wsName}
+              onChange={(event) => setWsName(event.target.value)}
+              disabled={loadingWs || savingWs}
+              placeholder={loadingWs ? "Carregando..." : "Nome do workspace"}
+            />
           </div>
           <div>
             <Label htmlFor="ws-role">Função / segmento</Label>
-            <Input id="ws-role" defaultValue={BRAND.role} />
+            <Input
+              id="ws-role"
+              value={wsRole}
+              onChange={(event) => setWsRole(event.target.value)}
+              disabled={loadingWs || savingWs}
+              placeholder={loadingWs ? "Carregando..." : "Ex.: Tráfego"}
+            />
           </div>
           <div className="sm:col-span-2">
-            <Button variant="primary" onClick={() => futureFeature("Salvar workspace")}>
-              Salvar alterações
+            <Button
+              variant="primary"
+              onClick={() => void handleSaveWorkspace()}
+              disabled={loadingWs || savingWs || !wsName.trim()}
+            >
+              {savingWs ? "Salvando..." : "Salvar alterações"}
             </Button>
           </div>
         </CardContent>
