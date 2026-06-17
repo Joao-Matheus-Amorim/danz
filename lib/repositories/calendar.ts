@@ -1,4 +1,5 @@
 import { calendarEvents as mockCalendarEvents } from "@/lib/mock-data";
+import { APP_TODAY } from "@/lib/constants";
 import { getCurrentProfileId } from "@/lib/repositories/auth";
 import { getCurrentWorkspaceId } from "@/lib/repositories/workspace";
 import { getSupabase } from "@/lib/supabase";
@@ -57,7 +58,7 @@ export async function listCalendarEvents(): Promise<CalendarEvent[]> {
   const supabase = getSupabase();
 
   if (!supabase) {
-    return mockCalendarEventStore;
+    return mockCalendarEventStore.filter((event) => event.date >= APP_TODAY);
   }
 
   const workspaceId = await getCurrentWorkspaceId();
@@ -81,7 +82,9 @@ export async function listMyCalendarEvents(): Promise<CalendarEvent[]> {
   const profileId = await getCurrentProfileId();
 
   if (!supabase) {
-    return mockCalendarEventStore.filter((event) => event.ownerId === profileId);
+    return mockCalendarEventStore.filter(
+      (event) => event.ownerId === profileId && event.date >= APP_TODAY
+    );
   }
 
   const workspaceId = await getCurrentWorkspaceId();
