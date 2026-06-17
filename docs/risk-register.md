@@ -1,36 +1,40 @@
-# Registro de Riscos — DL Operational System
+# Registro de Riscos - DL Operational System
 
-Escala: Probabilidade (B/M/A) × Impacto (B/M/A).
+Escala: Probabilidade (B/M/A) x Impacto (B/M/A).
 
-## Riscos técnicos
-| ID | Risco | P×I | Mitigação |
-|----|-------|-----|-----------|
-| RT01 | Acoplamento mock→banco mal planejado dificultar a Fase 3 | M×A | Helpers de leitura já com assinatura final; tipos compartilhados; camada de repositórios planejada |
-| RT02 | Divergência entre `types.ts` e `schema.sql` | M×M | Documento data-model como ponte; revisão ao alterar tipos |
-| RT03 | Componentes client demais → bundle/SSR ruim | B×M | Server por padrão; `"use client"` só onde necessário |
+## Riscos Tecnicos
+| ID | Risco | P x I | Mitigacao |
+|----|-------|-------|-----------|
+| RT01 | Migracao mock -> banco gerar duplicidade ou comportamento divergente | M x A | Migrar por repositorios pequenos; clientes e boards ja seguem esse padrao |
+| RT02 | Divergencia entre `types.ts` e `schema.sql` | M x M | Atualizar `data-model.md` e schema no mesmo corte |
+| RT03 | Componentes client demais aumentarem bundle | B x M | Server por padrao; `"use client"` apenas onde necessario |
+| RT04 | Persistencia de DnD perder ordem de cards | M x A | Repositorio persiste `column_id` e `position`; UI faz rollback em erro |
 
-## Riscos de escopo
-| ID | Risco | P×I | Mitigação |
-|----|-------|-----|-----------|
-| RE01 | "Telas bonitas" sem estrutura real | M×A | Cada página funcional com mock; sem placeholders vazios |
-| RE02 | Crescimento de escopo no MVP (gold plating) | M×M | Escopo fixado em `scope.md`; extras viram itens de roadmap |
+## Riscos de Escopo
+| ID | Risco | P x I | Mitigacao |
+|----|-------|-------|-----------|
+| RE01 | Tela visualmente pronta ser confundida com integracao real | M x A | Docs e toasts explicitam mock/fallback |
+| RE02 | Misturar muitos dominios no mesmo corte | M x M | Cortes por superficie: clientes, boards, Trello, etc. |
 
-## Riscos de integração
-| ID | Risco | P×I | Mitigação |
-|----|-------|-----|-----------|
-| RI01 | Integração WhatsApp depender de provedor instável | M×A | Provedor homologado (Evolution/Z-API/Baileys) na Fase 5; abstração de provider |
-| RI02 | Mudanças na Meta Ads API quebrarem campanhas | M×M | Reuso do código colhido (`lib/integrations/meta-ads.legacy.js`); camada anti-corrupção |
-| RI03 | Limites/escopos OAuth do Google | M×M | Planejar consentimento e escopos mínimos na Fase 5 |
+## Riscos de Integracao
+| ID | Risco | P x I | Mitigacao |
+|----|-------|-------|-----------|
+| RI01 | WhatsApp depender de provedor instavel | M x A | Homologar provedor antes do corte real |
+| RI02 | Mudancas na Meta Ads API quebrarem campanhas | M x M | Portar legado por camada server-side isolada |
+| RI03 | Limites/escopos OAuth do Google | M x M | Usar escopos minimos e consentimento claro |
+| RI04 | Trello causar perda de dados locais | M x A | Sync nao destrutivo; nao apaga dados DL; usa `external_id` |
+| RI05 | Trello criar duplicidade | M x M | Indices unicos parciais por `external_id` |
 
-## Riscos de performance
-| ID | Risco | P×I | Mitigação |
-|----|-------|-----|-----------|
-| RP01 | Boards com muitos cards travarem o DnD | B×M | Virtualização futura; medir antes de otimizar |
-| RP02 | Muitos gráficos no dashboard | B×B | Mini charts sem animação; dados agregados |
+## Riscos de Performance
+| ID | Risco | P x I | Mitigacao |
+|----|-------|-------|-----------|
+| RP01 | Boards com muitos cards travarem o DnD | B x M | Medir antes de otimizar; considerar virtualizacao |
+| RP02 | Muitos graficos no dashboard | B x B | Mini charts leves e dados agregados |
 
-## Riscos de segurança
-| ID | Risco | P×I | Mitigação |
-|----|-------|-----|-----------|
-| RS01 | Vazar `OPENAI_API_KEY`/tokens no client | B×A | Chaves só server-side; rotas de API; `.env.local` ignorado |
-| RS02 | Acesso cruzado entre workspaces | M×A | RLS por `workspace_id` (ver `rls-policies.sql`) |
-| RS03 | Permissões insuficientes por papel | M×M | RBAC planejado para a Fase 6 |
+## Riscos de Seguranca
+| ID | Risco | P x I | Mitigacao |
+|----|-------|-------|-----------|
+| RS01 | Vazar chaves no client | B x A | OpenAI/Trello/ provedores apenas server-side |
+| RS02 | Acesso cruzado entre workspaces | M x A | RLS por `workspace_id` |
+| RS03 | Permissoes insuficientes por papel | M x M | RBAC planejado para Fase 6 |
+| RS04 | Escrita Trello burlar RLS | B x A | Rotas usam token Supabase do usuario logado |

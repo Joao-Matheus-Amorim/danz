@@ -6,12 +6,13 @@
 ---
 
 ### TD01 — Dados mockados em `lib/mock-data.ts`
-- **Descrição:** todo o domínio (clientes, boards, tarefas, campanhas, etc.) vem
-  de constantes mockadas.
+- **Descrição:** parte do domínio ainda vem de constantes mockadas.
 - **Motivo:** MVP foca em navegação/UX antes do banco.
-- **Impacto:** dados não persistem; sem multiusuário real.
+- **Impacto:** clientes e boards ja persistem no Supabase; tarefas, calendario,
+  briefings, campanhas, arquivos e inbox ainda dependem de mock/fallback.
 - **Prioridade:** Alta.
-- **Plano:** camada de repositórios sobre Supabase com as mesmas assinaturas.
+- **Plano:** continuar a camada de repositórios sobre Supabase, mantendo fallback
+  mock apenas durante a transicao de cada superficie.
 - **Fase:** 2–3.
 
 ### TD02 — Autenticação simbólica (`/login`)
@@ -57,20 +58,24 @@
 - **Fase:** 5.
 
 ### TD07 — Estado local volátil (modais, DnD, checklists)
-- **Descrição:** novo cliente/evento/tarefa, ordem dos cards e marcações vivem só
-  em estado React; somem ao recarregar.
+- **Descrição:** evento/tarefa e algumas marcações vivem só em estado React.
 - **Motivo:** sem persistência no MVP.
-- **Impacto:** alterações não duráveis.
+- **Impacto:** novo cliente, novo quadro, novo card e ordem dos cards ja persistem;
+  evento/tarefa/checklists ainda nao sao duraveis.
 - **Prioridade:** Alta.
-- **Plano:** persistir via repositórios (Fase 3).
+- **Plano:** seguir persistindo cada superficie via repositórios (Fase 3).
 - **Fase:** 3.
 
 ### TD08 — Trello não sincroniza
-- **Descrição:** botão "Atualizar do Trello" apenas sinaliza integração futura.
+- **Descrição:** Trello -> DL ja importa board/listas/cards; DL -> Trello ja
+  envia criacao/movimentacao de cards em listas importadas. Ainda nao ha criacao
+  de boards/listas no Trello, webhooks, labels, membros e checklists completos.
 - **Motivo:** fora do escopo do MVP.
-- **Impacto:** boards não refletem o Trello real.
+- **Impacto:** o app consegue importar o board configurado e enviar alteracoes
+  basicas de cards; detalhes avancados ainda ficam fora da sincronizacao.
 - **Prioridade:** Baixa.
-- **Plano:** API Trello + mapeamento para `boards/columns/cards`.
+- **Plano:** completar API Trello com criacao de boards/listas, webhooks e
+  mapeamento de labels/membros/checklists.
 - **Fase:** 5.
 
 ### TD09 — Integrações reais ainda não portadas (legado `danz` colhido)

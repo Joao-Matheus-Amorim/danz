@@ -1,42 +1,46 @@
-# Escopo — DL Operational System
+# Escopo - DL Operational System
 
-## Dentro do MVP (Fase 1)
-- Shell de aplicação: sidebar com rota ativa, topbar, layout responsivo.
-- Páginas navegáveis e funcionais com dados mockados:
-  - Dashboard, DLtinho, Meu Painel, Boards, Clientes, Calendário, Drive,
-    Documentos, Planilhas, Inbox, Briefings, Campanhas, Configurações, Login.
-- Interações locais (estado React) onde fazem sentido:
-  - Boards: drag and drop de cards (dnd-kit).
-  - Clientes: busca, filtro de status e modal de novo cliente (estado local).
-  - Calendário: navegação de mês, filtros de visão e modal de novo evento.
-  - Meu Painel / Briefings: marcar tarefas/itens.
-  - DLtinho: chat com resposta simulada (stub, sem OpenAI).
-- Identidade visual premium (tema escuro, neon verde-limão, glassmorphism).
-- Tipos centralizados, mock-data centralizado, rotas e constantes centralizadas.
-- Estrutura de banco (`database/`) e camadas de integração preparadas (sem chamadas reais).
+## MVP Original
+- Shell de aplicacao com sidebar, topbar e layout responsivo.
+- Paginas navegaveis: Dashboard, DLtinho, Meu Painel, Boards, Clientes,
+  Calendario, Drive, Documentos, Planilhas, Inbox, Briefings, Campanhas,
+  Configuracoes e Login.
+- Interacoes locais onde faziam sentido: DnD de boards, filtros, modais,
+  calendario, briefings e chat stub.
+- Identidade visual premium.
+- Tipos, rotas, constantes e mock-data centralizados.
 
-## Fora do MVP (fases futuras)
-- Autenticação real (Supabase Auth) — Fase 2.
-- CRUD persistente em banco — Fase 3.
-- Execução real de ações da IA / chamadas OpenAI — Fase 4.
-- Integrações reais: Google Drive/Docs/Sheets, WhatsApp, Meta Ads, Trello — Fase 5.
-- Permissões por papel e operação multiusuário — Fase 6.
-- Busca global, notificações reais, alternância de tema.
+## Estado Pos-MVP
+- **Fase 2:** Supabase Auth, schema, RLS, seed e setup documentado.
+- **Fase 3:** clientes e boards ja persistem no Supabase.
+- **Fase 5:** Trello iniciado com importacao de board/listas/cards e envio
+  controlado de cards.
 
-## Entregáveis por fase
-- **Fase 1:** frontend navegável + docs + schema/RLS previstos. *(este MVP)*
-- **Fase 2:** projeto Supabase, auth, aplicação do schema/RLS, env configurado.
-- **Fase 3:** repositórios de dados substituindo mock-data; CRUD completo.
-- **Fase 4:** rota server-side de IA + execução de ações do DLtinho.
-- **Fase 5:** conectores de Meta/Google/WhatsApp/Trello (portando `lib/integrations/`).
-- **Fase 6:** RBAC, convites, auditoria ativa.
+## Ainda Fora do Corte Atual
+- CRUD real de tarefas, calendario, briefings, campanhas, arquivos, inbox e
+  configuracoes.
+- Execucao real de acoes da IA e chamadas OpenAI.
+- Integracoes Google Drive/Docs/Sheets, WhatsApp e Meta Ads.
+- Criacao de boards/listas no Trello, webhooks, labels, membros e checklists.
+- Permissoes completas por papel, convites e operacao multiusuario avancada.
+- Busca global, notificacoes reais e alternancia de tema.
 
-## Critérios de aceite (MVP)
-- [x] Todas as páginas existem e navegam.
+## Entregaveis por Fase
+- **Fase 1:** frontend navegavel + docs + schema/RLS previstos.
+- **Fase 2:** Supabase Auth, schema/RLS, seed e envs.
+- **Fase 3:** repositorios de dados por dominio; clientes e boards entregues,
+  demais dominios por cortar.
+- **Fase 4:** rota server-side de IA + execucao de acoes do DLtinho.
+- **Fase 5:** conectores reais; Trello iniciado, demais provedores pendentes.
+- **Fase 6:** RBAC, convites e auditoria ativa.
+
+## Criterios de Aceite Atuais
+- [x] Todas as paginas existem e navegam.
 - [x] Sidebar marca item ativo.
 - [x] Visual consistente com a identidade definida.
-- [x] Sem erros de TypeScript / imports quebrados / componentes órfãos.
-- [x] Mock-data centralizado.
-- [x] Nenhuma integração falsa apresentada como real (uso de toasts "integração futura").
-- [x] Estrutura pronta para Supabase e IA.
-- [x] Docs PMBOK + technical-debt-log preenchidos.
+- [x] Sem erros de TypeScript, imports quebrados ou componentes orfaos.
+- [x] Mock-data centralizado para superficies ainda nao migradas.
+- [x] Supabase Auth e seed preparados.
+- [x] Clientes e boards persistem em Supabase.
+- [x] Trello preparado sem expor credenciais no client.
+- [x] Docs PMBOK e dividas tecnicas atualizados.

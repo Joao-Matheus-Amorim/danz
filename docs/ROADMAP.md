@@ -24,6 +24,12 @@ Status local:
   calendario, briefings, campanhas, arquivos, inbox).
 - Persistir DnD dos boards, criacao de cliente/evento/tarefa.
 
+Status local:
+- `lib/repositories/clients.ts`: leitura e criacao real de clientes via Supabase.
+- `lib/repositories/boards.ts`: leitura de quadros/colunas/cards, criacao de quadro,
+  criacao de card e persistencia de DnD via Supabase.
+- Pendentes da Fase 3: tarefas, calendario, briefings, campanhas, arquivos e inbox.
+
 ## Fase 4 - IA DLtinho
 - Rota server-side `app/api/dltinho` usando `OPENAI_API_KEY`.
 - Implementar `askDLtinho` real e execucao das `DLTINHO_ACTIONS`
@@ -37,6 +43,14 @@ Status local:
   e adicionar OAuth + embed/edicao.
 - **WhatsApp** via provedor homologado (Evolution API / Z-API / Baileys).
 - **Trello** (sincronizar boards).
+
+Status local:
+- Trello -> DL iniciado via `/api/trello/sync`, usando `TRELLO_API_KEY`,
+  `TRELLO_API_TOKEN` e `TRELLO_BOARD_ID`.
+- Importacao nao destrutiva de board/listas/cards para `boards`,
+  `board_columns` e `board_cards`.
+- Pendentes: criacao de boards/listas no Trello, webhooks,
+  labels/membros/checklists completos.
 
 > Nota: o prototipo `danz` foi erradicado (ver `adr-0001`). A unica parte
 > reaproveitavel - as integracoes reais - foi colhida para `lib/integrations/`

@@ -1,54 +1,53 @@
-# Project Charter — DL Operational System
+# Project Charter - DL Operational System
 
-> Termo de abertura do projeto. Documento vivo (Fase 1 — MVP).
+Documento vivo do produto.
 
 ## Objetivo
-Construir a central operacional interna da **DL (Dental Lead)** — um "mini sistema
-operacional" da agência que reúne CRM, boards estilo Trello, calendário, tarefas,
-briefings, campanhas, arquivos (Drive/Docs/Sheets), inbox de WhatsApp e a IA
-interna **DLtinho** em um único workspace.
+Construir a central operacional interna da **DL (Dental Lead)**: CRM, boards
+estilo Trello, calendario, tarefas, briefings, campanhas, arquivos, inbox de
+WhatsApp e IA interna DLtinho em um unico workspace.
 
 ## Justificativa
-A operação hoje está espalhada em ferramentas desconectadas (planilhas, Trello,
-Drive, WhatsApp, Meta Ads). Isso gera retrabalho, perda de contexto e falta de
-visão consolidada. O DL Operational System centraliza a operação, padroniza
-processos e prepara a base para automação e inteligência (DLtinho). O protótipo
-anterior (`danz`) foi erradicado; aproveitou-se apenas seu código real de
-integração (Meta Ads, Google Sheets), preservado em `lib/integrations/` (ver
-`adr-0001`).
+A operacao esta espalhada em ferramentas desconectadas, como planilhas, Trello,
+Drive, WhatsApp e Meta Ads. O DL Operational System centraliza contexto,
+padroniza processo e cria base para automacao.
 
-## Escopo macro
-- **Fase 1 (este MVP):** frontend SaaS navegável, visualmente fiel, com dados
-  mockados centralizados e arquitetura pronta para banco e IA.
-- **Fases seguintes:** Supabase, CRUD real, DLtinho (OpenAI), integrações
-  (Google/Trello/WhatsApp/Meta) e operação multiusuário com permissões.
+O prototipo anterior `danz` foi consolidado neste app. A parte com valor real
+do legado, integracoes Meta Ads e Google Sheets, foi preservada em
+`lib/integrations/` para port futuro.
+
+## Escopo Macro
+- **Fase 1:** frontend SaaS navegavel.
+- **Fase 2:** Supabase Auth, schema, RLS e seed.
+- **Fase 3:** CRUD real por repositorios; clientes e boards ja iniciados.
+- **Fase 4:** DLtinho com OpenAI server-side e acoes reais.
+- **Fase 5:** integracoes externas; Trello iniciado.
+- **Fase 6:** permissoes, convites e auditoria operacional.
 
 ## Stakeholders
 | Papel | Responsabilidade |
 |------|------------------|
-| Patrocinador / Owner (Danyel) | Visão de produto, prioridades, validação |
-| Tech Lead | Arquitetura, qualidade, evolução técnica |
-| Operação (Tráfego, Social, Design, Filmmaker) | Usuários finais |
-| Clientes da DL | Beneficiários indiretos (briefings, performance) |
+| Patrocinador / Owner | Visao de produto, prioridades e validacao |
+| Tech Lead | Arquitetura, qualidade e evolucao tecnica |
+| Operacao | Usuarios finais |
+| Clientes da DL | Beneficiarios indiretos |
 
-## Restrições
-- Stack obrigatória: Next.js, TypeScript, Tailwind, shadcn/ui, lucide-react,
-  framer-motion, Recharts, dnd-kit, date-fns (pt-BR), Supabase (preparado),
-  OpenAI (preparado).
-- MVP **não** chama APIs reais (Supabase/OpenAI/Google/Meta/WhatsApp).
-- Nenhuma integração falsa pode ser apresentada como real.
-- Toda escolha temporária deve estar registrada em `technical-debt-log.md`.
+## Restricoes
+- Stack: Next.js, TypeScript, Tailwind, shadcn/ui, lucide-react,
+  framer-motion, Recharts, dnd-kit, date-fns, Supabase e OpenAI.
+- Credenciais reais nunca sao versionadas.
+- Chaves sensiveis de provedores ficam apenas server-side.
+- Toda escolha temporaria deve estar registrada em `technical-debt-log.md`.
 
 ## Premissas
-- Os dados mockados refletem a realidade da carteira e da operação da DL.
-- O legado `danz` foi erradicado; suas integrações reais foram colhidas para
-  `lib/integrations/` e serão portadas na Fase 5.
-- O ambiente roda sem variáveis de ambiente (modo mock) por padrão.
+- O ambiente local precisa continuar abrindo sem envs para facilitar validacao.
+- Supabase e Trello so executam fluxo real quando suas envs existem.
+- Integracoes devem ser adicionadas por cortes pequenos e auditaveis.
 
-## Critérios de sucesso
-1. Todas as páginas existem e navegam corretamente.
-2. Sidebar marca a rota ativa; layout responsivo.
-3. Sem erros de TypeScript; sem imports quebrados; sem componentes órfãos.
-4. Dados mockados 100% centralizados em `lib/mock-data.ts`.
-5. Documentação PMBOK + dívidas técnicas registradas.
-6. Estrutura pronta para Supabase e para a IA.
+## Criterios de Sucesso
+1. Todas as paginas navegam corretamente.
+2. Visual consistente com a identidade definida.
+3. TypeScript, lint e build limpos.
+4. Entidades migradas para banco usam repositorios ou rotas server-side.
+5. Documentacao acompanha o estado real do produto.
+6. Nenhuma integracao falsa e apresentada como pronta.

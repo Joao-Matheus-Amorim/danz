@@ -119,20 +119,26 @@ create table if not exists boards (
   workspace_id  uuid not null references workspaces (id) on delete cascade,
   title         text not null,
   gradient      text not null default '',
+  external_id   text,
   created_at    timestamptz not null default now(),
   updated_at    timestamptz not null default now()
 );
 create index if not exists boards_workspace_id_idx on boards (workspace_id);
+create unique index if not exists boards_external_id_idx on boards (external_id)
+  where external_id is not null;
 
 create table if not exists board_columns (
   id          uuid primary key default gen_random_uuid(),
   board_id    uuid not null references boards (id) on delete cascade,
   title       text not null,
   position    int not null default 0,
+  external_id text,
   created_at  timestamptz not null default now(),
   unique (id, board_id)
 );
 create index if not exists board_columns_board_id_idx on board_columns (board_id);
+create unique index if not exists board_columns_external_id_idx on board_columns (external_id)
+  where external_id is not null;
 
 create table if not exists board_cards (
   id              uuid primary key default gen_random_uuid(),
@@ -146,12 +152,15 @@ create table if not exists board_cards (
   checklist_done  int not null default 0,
   due_date        date,
   position        int not null default 0,
+  external_id     text,
   created_at      timestamptz not null default now(),
   updated_at      timestamptz not null default now(),
   foreign key (column_id, board_id)
     references board_columns (id, board_id) on delete cascade
 );
 create index if not exists board_cards_column_id_idx on board_cards (column_id);
+create unique index if not exists board_cards_external_id_idx on board_cards (external_id)
+  where external_id is not null;
 
 -- ----------------------------------------------------------------------
 -- Tarefas

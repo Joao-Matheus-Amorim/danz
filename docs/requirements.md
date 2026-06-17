@@ -1,47 +1,52 @@
-# Requisitos — DL Operational System
+# Requisitos - DL Operational System
 
-## Requisitos Funcionais (RF)
-| ID | Requisito | Status MVP |
-|----|-----------|-----------|
-| RF01 | Navegar entre todas as seções via sidebar com rota ativa | ✅ |
-| RF02 | Dashboard com hero, KPIs (mini gráficos), crescimento e widgets | ✅ |
-| RF03 | DLtinho: chat com conversas, sugestões e aba Construtor | ✅ (stub) |
-| RF04 | Meu Painel: agenda, métricas, tarefas, calendário, pontuação | ✅ |
-| RF05 | Boards: grid de quadros e quadro individual com drag and drop | ✅ |
-| RF06 | Clientes: tabela, busca, filtro de status e modal de novo cliente | ✅ |
-| RF07 | Calendário: grade mensal, navegação, visões e novo evento | ✅ |
-| RF08 | Briefings: controle mensal com checklist e aba de formulários | ✅ |
-| RF09 | Campanhas: métricas, tabela Meta Ads, abas e aviso de token | ✅ (mock) |
-| RF10 | Drive/Documentos/Planilhas: navegação e shells de edição | ✅ (mock) |
-| RF11 | Inbox: conexão WhatsApp (QR), lista de conversas e painel | ✅ (mock) |
-| RF12 | Configurações: workspace, preferências, usuários, integrações | ✅ |
-| RF13 | Login (simbólico no MVP) | ✅ |
+## Requisitos Funcionais
+| ID | Requisito | Status atual |
+|----|-----------|--------------|
+| RF01 | Navegar entre secoes via sidebar com rota ativa | Concluido |
+| RF02 | Dashboard com hero, KPIs, crescimento e widgets | Concluido |
+| RF03 | DLtinho: chat, conversas, sugestoes e construtor | Stub |
+| RF04 | Meu Painel: agenda, metricas, tarefas e pontuacao | Mock/fallback |
+| RF05 | Boards: grid, quadro, card, drag and drop e persistencia | Supabase |
+| RF06 | Clientes: tabela, busca, filtro e criacao | Supabase |
+| RF07 | Calendario: grade mensal, filtros e novo evento | Mock/fallback |
+| RF08 | Briefings: controle mensal e checklist | Mock/fallback |
+| RF09 | Campanhas: metricas, tabela Meta Ads e aviso de token | Mock/fallback |
+| RF10 | Drive/Documentos/Planilhas: navegacao e shells | Mock/fallback |
+| RF11 | Inbox: conexao WhatsApp, conversas e painel | Mock/fallback |
+| RF12 | Configuracoes: workspace, usuarios e integracoes | UI pronta |
+| RF13 | Login | Supabase Auth quando envs existem; fallback local sem envs |
+| RF14 | Trello: importar board/listas/cards | Preparado server-side |
+| RF15 | Trello: enviar criacao/movimento de card | Preparado server-side |
 
-## Requisitos Não Funcionais (RNF)
-- **RNF01 — Stack:** Next.js (App Router) + TypeScript estrito + Tailwind + shadcn/ui.
-- **RNF02 — Organização:** componentes pequenos, tipados e reutilizáveis; sem
-  arrays mockados dentro de páginas; rotas/constantes/tipos centralizados.
-- **RNF03 — Sem dívida silenciosa:** todo mock/decisão temporária registrado em
-  `technical-debt-log.md`.
-- **RNF04 — Resiliência:** app funciona sem variáveis de ambiente (modo mock).
-- **RNF05 — Manutenibilidade:** padrões visuais reaproveitáveis (`PageHeader`,
-  `Card`, `Button`, classes utilitárias `.dl-*`).
+## Requisitos Nao Funcionais
+- **RNF01 - Stack:** Next.js App Router, TypeScript estrito, Tailwind e shadcn/ui.
+- **RNF02 - Organizacao:** componentes pequenos, tipados e reutilizaveis; dados
+  por repositorios ou `mock-data.ts`, nunca arrays soltos em paginas.
+- **RNF03 - Sem divida silenciosa:** mock, fallback e decisao temporaria precisam
+  constar em `technical-debt-log.md`.
+- **RNF04 - Resiliencia:** app deve funcionar sem envs em modo mock.
+- **RNF05 - Manutenibilidade:** padroes visuais reaproveitaveis (`PageHeader`,
+  `Card`, `Button`, classes `.dl-*`).
 
-## Requisitos de Segurança (RSeg)
-- **RSeg01:** chaves sensíveis (OpenAI, provedores) nunca no client — apenas
-  server-side nas fases futuras.
-- **RSeg02:** isolamento multi-tenant por `workspace_id` + RLS (ver `database/`).
-- **RSeg03:** Supabase opcional e tolerante a ausência de credenciais.
-- **RSeg04:** nenhuma credencial real versionada (`.env.local` ignorado).
+## Requisitos de Seguranca
+- **RSeg01:** chaves sensiveis nunca ficam no client.
+- **RSeg02:** Supabase usa RLS por `workspace_id`.
+- **RSeg03:** Supabase e Trello sao tolerantes a ausencia de envs no ambiente
+  local.
+- **RSeg04:** nenhuma credencial real versionada.
+- **RSeg05:** Trello usa token server-side e sessao Supabase do usuario para
+  aplicar RLS nas escritas.
 
-## Requisitos de UX (RUX)
-- **RUX01:** tema escuro premium consistente; neon verde-limão como destaque.
-- **RUX02:** labels pequenos com letter-spacing; cards de vidro; brilhos radiais.
-- **RUX03:** todo botão dá feedback (navega, abre modal, muda estado ou exibe
-  toast "integração futura").
-- **RUX04:** datas e textos em pt-BR (date-fns/locale ptBR).
+## Requisitos de UX
+- **RUX01:** tema escuro premium consistente.
+- **RUX02:** labels pequenos, cards de vidro e neon como destaque.
+- **RUX03:** todo botao deve navegar, abrir modal, mudar estado, disparar acao
+  real ou exibir feedback claro.
+- **RUX04:** datas e textos em pt-BR.
 
-## Requisitos de Performance (RPerf)
-- **RPerf01:** componentes server por padrão; `"use client"` só onde há interação.
-- **RPerf02:** gráficos leves (Recharts sem animação nos mini charts).
-- **RPerf03:** imports diretos por componente para favorecer tree-shaking.
+## Requisitos de Performance
+- **RPerf01:** Server Components por padrao.
+- **RPerf02:** graficos leves.
+- **RPerf03:** imports diretos por componente.
+- **RPerf04:** DnD deve persistir apenas o conjunto necessario de cards movidos.

@@ -4,19 +4,18 @@ import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { Plus } from "lucide-react";
 import { KanbanCard } from "@/components/boards/KanbanCard";
-import { useToast } from "@/components/ui/toast";
 import type { BoardCard, BoardColumn as BoardColumnType } from "@/lib/types";
 
-/** Coluna droppable de um quadro kanban. */
 export function KanbanColumn({
   column,
   cards,
+  onCreateCard,
 }: {
   column: BoardColumnType;
   cards: BoardCard[];
+  onCreateCard?: (columnId: string) => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: column.id });
-  const { futureFeature } = useToast();
 
   return (
     <div className="flex w-72 shrink-0 flex-col rounded-2xl border border-white/[0.06] bg-surface-muted">
@@ -27,7 +26,7 @@ export function KanbanColumn({
         </p>
         <button
           type="button"
-          onClick={() => futureFeature("Novo card")}
+          onClick={() => onCreateCard?.(column.id)}
           className="rounded-lg p-1 text-content-muted transition-colors hover:bg-white/[0.06] hover:text-content"
           aria-label="Adicionar card"
         >

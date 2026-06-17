@@ -66,6 +66,7 @@ export interface Client {
 
 export interface Board {
   id: string;
+  externalId?: string;
   title: string;
   /** Classe(s) tailwind do gradiente do topo do card. */
   gradient: string;
@@ -75,6 +76,7 @@ export interface Board {
 
 export interface BoardColumn {
   id: string;
+  externalId?: string;
   boardId: string;
   title: string;
   order: number;
@@ -84,6 +86,7 @@ export type BoardCardLabel = "design" | "trafego" | "conteudo" | "urgente" | "re
 
 export interface BoardCard {
   id: string;
+  externalId?: string;
   columnId: string;
   boardId: string;
   title: string;

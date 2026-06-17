@@ -1,5 +1,6 @@
 import { clients as mockClients } from "@/lib/mock-data";
 import { getSupabase } from "@/lib/supabase";
+import { getCurrentWorkspaceId } from "@/lib/repositories/workspace";
 import type { Client, ClientPlan, ClientStatus, ClientTag } from "@/lib/types";
 
 interface ClientRow {
@@ -22,20 +23,6 @@ function mapClient(row: ClientRow): Client {
     startDate: row.start_date,
     tags: row.tags ?? [],
   };
-}
-
-async function getCurrentWorkspaceId(): Promise<string | null> {
-  const supabase = getSupabase();
-  if (!supabase) return null;
-
-  const { data, error } = await supabase
-    .from("workspace_members")
-    .select("workspace_id")
-    .limit(1)
-    .maybeSingle();
-
-  if (error) throw error;
-  return data?.workspace_id ?? null;
 }
 
 export async function listClients(): Promise<Client[]> {

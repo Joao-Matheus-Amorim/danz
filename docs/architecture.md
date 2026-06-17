@@ -1,88 +1,89 @@
-# Arquitetura — DL Operational System
+# Arquitetura - DL Operational System
 
 ## Stack
-- **Next.js 14 (App Router)** + **TypeScript** estrito.
-- **Tailwind CSS** + utilitários `.dl-*` (em `app/globals.css`) e tokens de tema
-  (em `tailwind.config.ts`).
-- **shadcn/ui** (Radix primitives) para Dialog/Tabs/Slot; componentes próprios em
-  `components/ui`.
-- **lucide-react** (ícones), **framer-motion** (animações/toasts), **Recharts**
-  (gráficos), **dnd-kit** (drag and drop dos boards), **date-fns** (pt-BR).
-- **@supabase/supabase-js** preparado (Fase 2). **OpenAI** preparado (Fase 4).
+- Next.js 14 (App Router) + TypeScript estrito.
+- Tailwind CSS + utilitarios `.dl-*` em `app/globals.css`.
+- shadcn/ui/Radix primitives para Dialog, Tabs e Slot.
+- lucide-react, framer-motion, Recharts, dnd-kit e date-fns pt-BR.
+- Supabase Auth/Database para a Fase 2 e os primeiros cortes da Fase 3.
+- OpenAI preparado para a Fase 4.
 
-## Organização de pastas
-O app DL é a **raiz do repositório** (após erradicação do `danz` — ver `adr-0001`).
-```
-app/                 # rotas (App Router)
-  (app)/             # route group: páginas internas com AppShell
-    <secao>/page.tsx
-  login/page.tsx     # fora do group (tela cheia)
-  layout.tsx         # root: fonte, metadata, <html> dark
-  page.tsx           # redireciona para /dashboard
+## Organizacao de Pastas
+```text
+app/
+  (app)/             # paginas internas com AppShell
+  api/trello/        # rotas server-side Trello
+  login/page.tsx     # login fora do shell
 components/
-  layout/            # AppShell, Sidebar, SidebarNav, MobileNav, Topbar, PageHeader
-  ui/                # primitivos (button, card, dialog, tabs, toast, ...)
-  <feature>/         # componentes por domínio (dashboard, boards, clientes, ...)
+  layout/            # AppShell, Sidebar, MobileNav, Topbar, PageHeader
+  ui/                # primitivos visuais
+  <feature>/         # componentes por dominio
 lib/
-  types.ts           # fonte única de tipos do domínio
-  mock-data.ts       # TODOS os dados mockados + helpers de leitura
-  constants.ts       # marca, labels, mapas de cor/estilo
-  routes.ts          # ROUTES + estrutura da navegação
-  utils.ts           # cn() + formatadores (datas, moeda, etc.)
-  supabase.ts        # client opcional (null se não configurado)
-  openai.ts          # contrato do DLtinho + stub (sem chamada real)
-  integrations/      # código real colhido do danz (*.legacy.js) — portar na Fase 5
-database/            # schema.sql + rls-policies.sql (previstos)
-docs/                # PMBOK + ADR + technical-debt-log
-vercel.json          # framework=nextjs (deploy)
+  repositories/      # leituras/escritas reais por dominio
+  mock-data.ts       # fallback e dados ainda nao migrados
+  types.ts           # fonte unica de tipos do dominio
+  constants.ts       # marca, labels e mapas visuais
+  routes.ts          # estrutura de navegacao
+  supabase.ts        # client opcional
+  openai.ts          # contrato do DLtinho
+  integrations/      # legado real colhido do danz, fora do build
+database/
+  schema.sql
+  rls-policies.sql
+  seed.sql
+  trello-sync.sql
+docs/
 ```
 
-### Responsividade do shell
-A `Sidebar` fixa aparece a partir de `lg`. Abaixo disso, a navegação vem de
-`MobileNav` (drawer com botão "hambúrguer" na `Topbar`). Ambos reaproveitam
-`SidebarNav` (marca + grupos + rodapé), evitando duplicação.
+## Shell e Rotas
+A `Sidebar` fixa aparece a partir de `lg`; abaixo disso a navegacao vem de
+`MobileNav`. O route group `(app)` mantem URLs como `/dashboard` e permite que
+as paginas internas compartilhem a `AppShell`. O `/login` fica fora do group.
 
-### Por que um route group `(app)`?
-Mantém URLs idênticas à especificação (ex.: `/dashboard`) e permite que **apenas**
-as páginas internas compartilhem a `AppShell` (sidebar + topbar + toasts). O
-`/login` fica fora do group e renderiza em tela cheia.
+## Padroes de Componentes
+- Server Components por padrao; `"use client"` apenas onde ha estado, eventos,
+  drag and drop, dialogos ou integracao client-side com Supabase.
+- UI pura nao carrega regra de negocio. Dados reais entram por
+  `lib/repositories/*`; dados ainda nao migrados continuam em `lib/mock-data.ts`.
+- `PageHeader` padroniza label, titulo, subtitulo e acoes.
+- `futureFeature` continua reservado para botoes sem acao real.
 
-## Padrões de componentes
-- **Server por padrão**, `"use client"` só onde há estado/eventos (boards,
-  modais, chat, filtros).
-- Componentes **pequenos e tipados**; um componente por arquivo.
-- **Sem regra de negócio dentro de UI pura**: cores/labels vêm de `constants.ts`;
-  dados vêm de `mock-data.ts`.
-- **PageHeader** padroniza label + título (com destaque) + subtítulo + ações.
-- **Toast `futureFeature`** padroniza o feedback de "integração futura".
+## Padroes de Dados
+- `lib/types.ts` e `database/schema.sql` devem evoluir juntos.
+- Toda tabela de dominio tem `workspace_id` para multi-tenant e RLS.
+- Valores monetarios usam centavos (`bigint` no banco).
+- Clientes e boards ja usam repositorios Supabase.
+- Tarefas, calendario, briefings, campanhas, arquivos e inbox ainda podem usar
+  mock/fallback ate os proximos cortes da Fase 3.
 
-## Padrões de dados
-- Todo dado mockado vive em `lib/mock-data.ts`, tipado por `lib/types.ts`.
-- Helpers de leitura (`getTasksByAssignee`, `getBoardCards`, ...) já têm a
-  assinatura que será mantida quando virarem queries Supabase.
-- Valores monetários em **centavos** (`spendCents`) para evitar erro de float.
+## Supabase
+O app usa `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_ANON_KEY` quando
+configurados. Sem essas envs, o fluxo local continua em modo mock para manter o
+MVP navegavel.
 
-## Como trocar mock-data por Supabase (Fase 2/3)
-1. Configurar `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
-2. Aplicar `database/schema.sql` e `database/rls-policies.sql`.
-3. Criar uma camada `lib/repositories/*` que implemente as mesmas assinaturas dos
-   helpers de `mock-data.ts`, usando `getSupabase()`.
-4. Substituir os imports de `mock-data` pelos repositórios (idealmente via uma
-   fachada única), mantendo os tipos de retorno.
-5. Como `getSupabase()` retorna `null` sem credenciais, é possível manter um
-   fallback para mock durante a transição.
+Para um projeto novo:
+1. Aplicar `database/schema.sql`.
+2. Aplicar `database/rls-policies.sql`.
+3. Criar o usuario inicial no Supabase Auth.
+4. Ajustar e executar `database/seed.sql`.
 
-## Como a IA (DLtinho) será acoplada (Fase 4)
-- `lib/openai.ts` já define `askDLtinho()` e o catálogo `DLTINHO_ACTIONS`.
-- Na Fase 4, `askDLtinho` chamará uma **rota server-side** (`app/api/dltinho`)
-  que usa `OPENAI_API_KEY` (nunca exposta no client) e retorna `DLtinhoReply`.
-- As "ações" (criar cliente, criar tarefa, gerar copy, etc.) serão mapeadas para
-  operações reais nos repositórios, com confirmação na UI.
+## Trello
+O corte Trello vive em rotas server-side:
+- `app/api/trello/sync/route.ts`: importa board/listas/cards do Trello para o DL.
+- `app/api/trello/cards/push/route.ts`: envia criacao/movimento de card para o
+  Trello quando o card pertence a uma lista importada.
 
-## Integrações externas (Fase 5) — legado `danz` colhido
-O protótipo `danz` foi **erradicado** (ver `adr-0001-unificacao-front-back.md`).
-A única parte real dele — `metaAds.js` (Graph API) e `googleSheets.js`
-(googleapis) — foi colhida para `lib/integrations/*.legacy.js` (CommonJS, fora do
-build). Na Fase 5 esses módulos serão **portados** para rotas server-side
-TypeScript (`app/api/meta/...`, `app/api/sheets/...`), com tokens lidos apenas no
-servidor. Nada é apresentado como pronto antes de existir de fato.
+As credenciais `TRELLO_API_KEY`, `TRELLO_API_TOKEN` e `TRELLO_BOARD_ID` ficam
+somente no servidor. O mapeamento usa `external_id` em `boards`,
+`board_columns` e `board_cards`.
+
+## DLtinho
+`lib/openai.ts` define o contrato do DLtinho. Na Fase 4, as chamadas OpenAI
+devem passar por rota server-side e acionar repositorios reais com confirmacao
+na UI.
+
+## Integracoes Legadas
+O prototipo `danz` foi consolidado neste app. A parte real dele, Meta Ads e
+Google Sheets, esta preservada em `lib/integrations/*.legacy.js`. Esses modulos
+seguem fora do build e serao portados para rotas TypeScript server-side em
+cortes futuros.
