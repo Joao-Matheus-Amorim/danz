@@ -6,10 +6,10 @@
 | RF01 | Navegar entre secoes via sidebar com rota ativa | Concluido |
 | RF02 | Dashboard com hero, KPIs, crescimento e widgets | Concluido |
 | RF03 | Dogtooth: chat, conversas, sugestoes e construtor | Stub |
-| RF04 | Meu Painel: agenda, metricas, tarefas e pontuacao | Tarefas em Supabase; demais widgets em mock/fallback |
+| RF04 | Meu Painel: agenda, metricas, tarefas e pontuacao | Agenda/tarefas em Supabase; demais widgets em mock/fallback |
 | RF05 | Boards: grid, quadro, card, drag and drop e persistencia | Supabase |
 | RF06 | Clientes: tabela, busca, filtro e criacao | Supabase |
-| RF07 | Calendario: grade mensal, filtros e novo evento | Mock/fallback |
+| RF07 | Calendario: grade mensal, filtros e novo evento | Supabase |
 | RF08 | Briefings: controle mensal e checklist | Mock/fallback |
 | RF09 | Campanhas: metricas, tabela Meta Ads e aviso de token | Mock/fallback |
 | RF10 | Drive/Documentos/Planilhas: navegacao e shells | Mock/fallback |

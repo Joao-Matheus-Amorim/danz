@@ -18,20 +18,22 @@ import { ROUTES } from "@/lib/routes";
 import { APP_TODAY } from "@/lib/constants";
 import {
   currentProfile,
-  calendarEvents,
   boardCards,
 } from "@/lib/mock-data";
+import { listMyCalendarEvents } from "@/lib/repositories/calendar";
 import {
   createTask,
   listMyTasks,
   setTaskDone,
 } from "@/lib/repositories/tasks";
-import type { Task } from "@/lib/types";
+import type { CalendarEvent, Task } from "@/lib/types";
 
 export default function MeuPainelPage() {
   const { toast } = useToast();
   const [myTasks, setMyTasks] = React.useState<Task[]>([]);
+  const [calendarEvents, setCalendarEvents] = React.useState<CalendarEvent[]>([]);
   const [loadingTasks, setLoadingTasks] = React.useState(true);
+  const [loadingCalendarEvents, setLoadingCalendarEvents] = React.useState(true);
 
   React.useEffect(() => {
     let mounted = true;
@@ -53,8 +55,28 @@ export default function MeuPainelPage() {
     };
   }, [toast]);
 
+  React.useEffect(() => {
+    let mounted = true;
+
+    listMyCalendarEvents()
+      .then((items) => {
+        if (mounted) setCalendarEvents(items);
+      })
+      .catch((error) => {
+        console.error(error);
+        if (mounted) toast("Não foi possível carregar sua agenda.");
+      })
+      .finally(() => {
+        if (mounted) setLoadingCalendarEvents(false);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [toast]);
+
   const todayEvents = calendarEvents.filter(
-    (event) => event.date === APP_TODAY && event.ownerId === currentProfile.id
+    (event) => event.date === APP_TODAY
   );
   const myCards = boardCards.filter((card) => card.assigneeId === currentProfile.id);
   const assignedToMe = myTasks.filter((task) => !task.done);
@@ -150,7 +172,7 @@ export default function MeuPainelPage() {
         }
       />
 
-      <TodayAgenda events={todayEvents} />
+      <TodayAgenda events={loadingCalendarEvents ? [] : todayEvents} />
       <TaskSummary stats={stats} />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_320px]">

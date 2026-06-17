@@ -30,8 +30,10 @@ Status local:
   criacao de card e persistencia de DnD via Supabase.
 - `lib/repositories/tasks.ts`: leitura das tarefas do Meu Painel, criacao e
   marcar/desmarcar como concluida via Supabase.
-- Pendentes da Fase 3: calendario, briefings, campanhas, arquivos, inbox e
-  CRUD completo de tarefas fora do Meu Painel.
+- `lib/repositories/calendar.ts`: leitura do calendario, criacao de evento e
+  agenda do Meu Painel via Supabase.
+- Pendentes da Fase 3: briefings, campanhas, arquivos, inbox, edicao/exclusao
+  de eventos e CRUD completo de tarefas fora do Meu Painel.
 
 ## Fase 4 - IA Dogtooth
 - Rota server-side `app/api/dogtooth` usando `OPENAI_API_KEY`.

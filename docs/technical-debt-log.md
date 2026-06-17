@@ -8,9 +8,9 @@
 ### TD01 — Dados mockados em `lib/mock-data.ts`
 - **Descrição:** parte do domínio ainda vem de constantes mockadas.
 - **Motivo:** MVP foca em navegação/UX antes do banco.
-- **Impacto:** clientes, boards e tarefas do Meu Painel ja persistem no
-  Supabase; calendario, briefings, campanhas, arquivos, inbox e superficies
-  auxiliares de tarefas ainda dependem de mock/fallback.
+- **Impacto:** clientes, boards, calendario e tarefas do Meu Painel ja
+  persistem no Supabase; briefings, campanhas, arquivos, inbox e superficies
+  auxiliares de tarefas/calendario ainda dependem de mock/fallback.
 - **Prioridade:** Alta.
 - **Plano:** continuar a camada de repositórios sobre Supabase, mantendo fallback
   mock apenas durante a transicao de cada superficie.
@@ -61,9 +61,9 @@
 ### TD07 — Estado local volátil (modais, DnD, checklists)
 - **Descrição:** evento/tarefa e algumas marcações vivem só em estado React.
 - **Motivo:** sem persistência no MVP.
-- **Impacto:** novo cliente, novo quadro, novo card, ordem dos cards e tarefas
-  do Meu Painel ja persistem; evento/checklists e outras superficies de tarefas
-  ainda nao sao duraveis.
+- **Impacto:** novo cliente, novo quadro, novo card, ordem dos cards, tarefas
+  do Meu Painel e novo evento de calendario ja persistem; checklists, edicao de
+  eventos e outras superficies de tarefas ainda nao sao duraveis.
 - **Prioridade:** Alta.
 - **Plano:** seguir persistindo cada superficie via repositórios (Fase 3).
 - **Fase:** 3.

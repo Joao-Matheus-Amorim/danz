@@ -1,4 +1,5 @@
 import { currentProfile, tasks as mockTasks } from "@/lib/mock-data";
+import { getCurrentProfileId } from "@/lib/repositories/auth";
 import { getSupabase } from "@/lib/supabase";
 import { getCurrentWorkspaceId } from "@/lib/repositories/workspace";
 import type { Task, TaskPriority, TaskStatus } from "@/lib/types";
@@ -27,16 +28,6 @@ function mapTask(row: TaskRow): Task {
     dueDate: row.due_date ?? undefined,
     done: row.done,
   };
-}
-
-async function getCurrentProfileId(): Promise<string> {
-  const supabase = getSupabase();
-  if (!supabase) return currentProfile.id;
-
-  const { data, error } = await supabase.auth.getUser();
-  if (error) throw error;
-  if (!data.user?.id) throw new Error("Sessao ausente para carregar tarefas.");
-  return data.user.id;
 }
 
 export async function listMyTasks(): Promise<Task[]> {

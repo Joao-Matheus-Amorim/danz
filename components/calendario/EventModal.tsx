@@ -11,17 +11,13 @@ import {
 } from "@/components/ui/dialog";
 import { Input, Label, Select } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import type { CalendarEvent, CalendarEventType } from "@/lib/types";
+import type { CalendarEventType } from "@/lib/types";
 import { EVENT_TYPE_LABEL } from "@/lib/constants";
 import { APP_TODAY } from "@/lib/constants";
-import { localId } from "@/lib/utils";
+import type { CalendarEventInput } from "@/lib/repositories/calendar";
 
 const TYPES: CalendarEventType[] = ["reuniao", "tarefa", "conteudo", "campanha"];
 
-/**
- * Modal de novo evento. No MVP salva em estado local (onCreate) —
- * sincronização com Google Calendar é planejada para a Fase 5.
- */
 export function EventModal({
   open,
   onOpenChange,
@@ -29,25 +25,31 @@ export function EventModal({
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCreate: (event: CalendarEvent) => void;
+  onCreate: (event: CalendarEventInput) => Promise<void> | void;
 }) {
   const [title, setTitle] = React.useState("");
   const [type, setType] = React.useState<CalendarEventType>("reuniao");
   const [date, setDate] = React.useState(APP_TODAY);
   const [time, setTime] = React.useState("09:00");
+  const [creating, setCreating] = React.useState(false);
 
-  const submit = () => {
-    if (!title.trim()) return;
-    onCreate({
-      id: localId("event"),
-      title: title.trim(),
-      type,
-      date,
-      time,
-    });
-    setTitle("");
-    onOpenChange(false);
-  };
+  async function submit() {
+    if (!title.trim() || creating) return;
+
+    setCreating(true);
+    try {
+      await onCreate({
+        title: title.trim(),
+        type,
+        date,
+        time,
+      });
+      setTitle("");
+      onOpenChange(false);
+    } finally {
+      setCreating(false);
+    }
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -57,7 +59,7 @@ export function EventModal({
             Novo evento
           </DialogTitle>
           <DialogDescription className="text-sm text-content-muted">
-            Evento local (mock). Sincronização com Google Calendar na Fase 5.
+            Crie um compromisso para o calendário operacional.
           </DialogDescription>
         </DialogHeader>
 
@@ -67,8 +69,9 @@ export function EventModal({
             <Input
               id="e-title"
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(event) => setTitle(event.target.value)}
               placeholder="Ex.: Reunião de alinhamento"
+              disabled={creating}
             />
           </div>
           <div>
@@ -76,11 +79,12 @@ export function EventModal({
             <Select
               id="e-type"
               value={type}
-              onChange={(e) => setType(e.target.value as CalendarEventType)}
+              onChange={(event) => setType(event.target.value as CalendarEventType)}
+              disabled={creating}
             >
-              {TYPES.map((t) => (
-                <option key={t} value={t}>
-                  {EVENT_TYPE_LABEL[t]}
+              {TYPES.map((item) => (
+                <option key={item} value={item}>
+                  {EVENT_TYPE_LABEL[item]}
                 </option>
               ))}
             </Select>
@@ -92,7 +96,8 @@ export function EventModal({
                 id="e-date"
                 type="date"
                 value={date}
-                onChange={(e) => setDate(e.target.value)}
+                onChange={(event) => setDate(event.target.value)}
+                disabled={creating}
               />
             </div>
             <div>
@@ -101,17 +106,26 @@ export function EventModal({
                 id="e-time"
                 type="time"
                 value={time}
-                onChange={(e) => setTime(e.target.value)}
+                onChange={(event) => setTime(event.target.value)}
+                disabled={creating}
               />
             </div>
           </div>
         </div>
 
         <DialogFooter>
-          <Button variant="ghost" onClick={() => onOpenChange(false)}>
+          <Button
+            variant="ghost"
+            onClick={() => onOpenChange(false)}
+            disabled={creating}
+          >
             Cancelar
           </Button>
-          <Button variant="primary" onClick={submit}>
+          <Button
+            variant="primary"
+            onClick={() => void submit()}
+            disabled={creating}
+          >
             Criar evento
           </Button>
         </DialogFooter>
