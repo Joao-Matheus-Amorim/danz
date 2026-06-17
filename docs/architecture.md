@@ -11,6 +11,7 @@
 - **@supabase/supabase-js** preparado (Fase 2). **OpenAI** preparado (Fase 4).
 
 ## Organização de pastas
+O app DL é a **raiz do repositório** (após erradicação do `danz` — ver `adr-0001`).
 ```
 app/                 # rotas (App Router)
   (app)/             # route group: páginas internas com AppShell
@@ -19,7 +20,7 @@ app/                 # rotas (App Router)
   layout.tsx         # root: fonte, metadata, <html> dark
   page.tsx           # redireciona para /dashboard
 components/
-  layout/            # AppShell, Sidebar, Topbar, PageHeader
+  layout/            # AppShell, Sidebar, SidebarNav, MobileNav, Topbar, PageHeader
   ui/                # primitivos (button, card, dialog, tabs, toast, ...)
   <feature>/         # componentes por domínio (dashboard, boards, clientes, ...)
 lib/
@@ -30,9 +31,16 @@ lib/
   utils.ts           # cn() + formatadores (datas, moeda, etc.)
   supabase.ts        # client opcional (null se não configurado)
   openai.ts          # contrato do DLtinho + stub (sem chamada real)
+  integrations/      # código real colhido do danz (*.legacy.js) — portar na Fase 5
 database/            # schema.sql + rls-policies.sql (previstos)
-docs/                # PMBOK + technical-debt-log
+docs/                # PMBOK + ADR + technical-debt-log
+vercel.json          # framework=nextjs (deploy)
 ```
+
+### Responsividade do shell
+A `Sidebar` fixa aparece a partir de `lg`. Abaixo disso, a navegação vem de
+`MobileNav` (drawer com botão "hambúrguer" na `Topbar`). Ambos reaproveitam
+`SidebarNav` (marca + grupos + rodapé), evitando duplicação.
 
 ### Por que um route group `(app)`?
 Mantém URLs idênticas à especificação (ex.: `/dashboard`) e permite que **apenas**

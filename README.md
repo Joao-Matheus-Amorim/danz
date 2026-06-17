@@ -38,10 +38,18 @@ npm run typecheck  # tsc --noEmit
 app/            # rotas (route group (app) compartilha a AppShell; /login fora dele)
 components/     # layout, ui (primitivos) e componentes por domínio
 lib/            # types, mock-data, constants, routes, utils, supabase, openai
+lib/integrations/  # código real colhido do danz (Meta/Sheets) — a portar na Fase 5
 database/       # schema.sql + rls-policies.sql (previstos p/ Supabase)
-docs/           # PMBOK: charter, scope, requirements, architecture, data-model,
-                #        risk-register, quality-plan, roadmap, technical-debt-log
+docs/           # PMBOK + ADR (charter, scope, requirements, architecture, data-model,
+                #             risk-register, quality-plan, roadmap, technical-debt-log,
+                #             adr-0001)
+vercel.json     # framework=nextjs (deploy)
 ```
+
+## Deploy
+Publicado na Vercel (Next.js, Root Directory = raiz do repo). Cada push na `main`
+republica automaticamente. O app sobe **sem variáveis de ambiente** (modo mock);
+as chaves das fases futuras (Supabase/OpenAI/integrações) ficam só no servidor.
 
 ## Identidade visual
 Tema escuro premium: fundo preto esverdeado (`#050A07`), neon verde-limão
