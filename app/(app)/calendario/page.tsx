@@ -13,6 +13,14 @@ import {
   type CalendarView,
 } from "@/components/calendario/CalendarToolbar";
 import { EventModal } from "@/components/calendario/EventModal";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/toast";
 import { APP_TODAY } from "@/lib/constants";
 import {
@@ -33,6 +41,7 @@ export default function CalendarioPage() {
   const [modalOpen, setModalOpen] = React.useState(false);
   const [editingEvent, setEditingEvent] = React.useState<CalendarEventT | null>(null);
   const [pendingEventId, setPendingEventId] = React.useState<string | null>(null);
+  const [eventToDelete, setEventToDelete] = React.useState<CalendarEventT | null>(null);
 
   React.useEffect(() => {
     let mounted = true;
@@ -114,8 +123,9 @@ export default function CalendarioPage() {
     }
   }
 
-  async function handleDeleteEvent(event: CalendarEventT) {
-    if (pendingEventId) return;
+  async function handleConfirmDelete() {
+    const event = eventToDelete;
+    if (!event || pendingEventId) return;
     const previous = events;
     setPendingEventId(event.id);
     setEvents((prev) => prev.filter((item) => item.id !== event.id));
@@ -123,6 +133,7 @@ export default function CalendarioPage() {
     try {
       await deleteCalendarEvent(event.id);
       toast("Evento excluído.");
+      setEventToDelete(null);
     } catch (error) {
       console.error(error);
       setEvents(previous);
@@ -186,7 +197,7 @@ export default function CalendarioPage() {
                       key={event.id}
                       event={event}
                       onEdit={openEditModal}
-                      onDelete={() => void handleDeleteEvent(event)}
+                      onDelete={setEventToDelete}
                       pending={pendingEventId === event.id}
                     />
                   ))
@@ -204,6 +215,43 @@ export default function CalendarioPage() {
         event={editingEvent}
         onSubmit={handleSubmitEvent}
       />
+
+      <Dialog
+        open={eventToDelete !== null}
+        onOpenChange={(open) => {
+          if (!open && !pendingEventId) setEventToDelete(null);
+        }}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-semibold text-content">
+              Excluir evento
+            </DialogTitle>
+            <DialogDescription className="text-sm text-content-muted">
+              Tem certeza que deseja excluir
+              {eventToDelete ? ` "${eventToDelete.title}"` : " este evento"}? Essa
+              ação não pode ser desfeita.
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              onClick={() => setEventToDelete(null)}
+              disabled={pendingEventId !== null}
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="danger"
+              onClick={() => void handleConfirmDelete()}
+              disabled={pendingEventId !== null}
+            >
+              {pendingEventId !== null ? "Excluindo..." : "Excluir evento"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
