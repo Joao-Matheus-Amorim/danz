@@ -5,7 +5,7 @@ Frontend SaaS completo, navegavel, fiel a identidade, com dados mockados
 centralizados, tipos, rotas e estrutura pronta para banco e IA. Docs PMBOK e
 registro de dividas tecnicas.
 
-## Fase 2 - Supabase
+## Fase 2 - Supabase - praticamente operacional no repo
 - Criar projeto Supabase; configurar env (`NEXT_PUBLIC_SUPABASE_*`).
 - Aplicar `database/schema.sql` e `database/rls-policies.sql`.
 - Implementar Supabase Auth (substituir login simbolico).
@@ -18,7 +18,7 @@ Status local:
 - Guia operacional em `docs/supabase-setup.md`.
 - Pendente fora do repo: criar projeto Supabase, aplicar SQLs e preencher `.env.local`.
 
-## Fase 3 - CRUD real
+## Fase 3 - CRUD real - grande parte implementada
 - Camada `lib/repositories/*` com as assinaturas dos helpers do mock-data.
 - Substituir leituras/escritas mock por banco (clientes, boards, tarefas,
   calendario, briefings, campanhas, arquivos, inbox).
@@ -30,6 +30,8 @@ Status local:
   criacao de card e persistencia de DnD via Supabase.
 - `lib/repositories/tasks.ts`: leitura das tarefas do Meu Painel, criacao e
   marcar/desmarcar como concluida via Supabase.
+- `/tarefas`: CRUD operacional de tarefas do workspace, com filtros por texto,
+  status e prioridade, edicao, conclusao/reabertura e exclusao.
 - Meu Painel usa perfil autenticado, cards atribuidos e projetos via
   repositorios reais quando Supabase esta configurado.
 - `lib/repositories/calendar.ts`: leitura do calendario, criacao de evento e
@@ -48,8 +50,8 @@ Status local:
   configurado.
 - Dashboard usa os repositórios reais para KPIs, crescimento, agenda, clientes,
   boards e resumo de campanhas quando Supabase esta configurado.
-- Pendentes da Fase 3: formularios publicos de briefing, edicao/exclusao de
-  eventos e CRUD completo de tarefas fora do Meu Painel.
+- Pendentes da Fase 3: formularios publicos de briefing e edicao/exclusao de
+  eventos.
 
 ## Fase 4 - IA Dogtooth
 - Rota server-side `app/api/dogtooth` usando `OPENAI_API_KEY`.
@@ -72,8 +74,10 @@ Status local:
   `TRELLO_API_TOKEN` e `TRELLO_BOARD_ID`.
 - Importacao nao destrutiva de board/listas/cards para `boards`,
   `board_columns` e `board_cards`.
-- Pendentes: criacao de boards/listas no Trello, webhooks,
-  labels/membros/checklists completos.
+- DL -> Trello iniciado via `/api/trello/cards/push` para enviar cards criados
+  ou movidos dentro de listas importadas do Trello.
+- Pendentes: criacao de boards/listas no Trello, webhooks, labels, membros e
+  checklists completos.
 
 > Nota: o prototipo `danz` foi erradicado (ver `adr-0001`). A unica parte
 > reaproveitavel - as integracoes reais - foi colhida para `lib/integrations/`
@@ -83,3 +87,14 @@ Status local:
 - RBAC por papel (owner/admin/gestor/operador) refinando as RLS.
 - Convites de usuario, gestao de membros, auditoria ativa (`activity_logs`).
 - Notificacoes reais e busca global.
+
+## Proximos marcos objetivos
+
+1. Fechar a Fase 3 operacional:
+   - Edicao e exclusao de eventos no calendario.
+   - Formularios publicos de briefing com gravacao no Supabase.
+
+2. Fechar o primeiro corte Trello da Fase 5:
+   - Criacao de boards/listas no Trello ou politica explicita para nao criar.
+   - Sincronizacao de labels, membros e checklists.
+   - Webhooks para reduzir sincronizacao manual e manter o DL atualizado.
