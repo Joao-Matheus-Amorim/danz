@@ -10,7 +10,7 @@
 | RF05 | Boards: grid, quadro, card, drag and drop e persistencia | Supabase |
 | RF06 | Clientes: tabela, busca, filtro e criacao | Supabase |
 | RF07 | Calendario: grade mensal, filtros e novo evento | Supabase |
-| RF08 | Briefings: controle mensal e checklist | Mock/fallback |
+| RF08 | Briefings: controle mensal e checklist | Checklist mensal em Supabase; formularios publicos em mock/fallback |
 | RF09 | Campanhas: metricas, tabela Meta Ads e aviso de token | Mock/fallback |
 | RF10 | Drive/Documentos/Planilhas: navegacao e shells | Mock/fallback |
 | RF11 | Inbox: conexao WhatsApp, conversas e painel | Mock/fallback |

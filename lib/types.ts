@@ -156,6 +156,7 @@ export interface CalendarEvent {
   time?: string;
   /** Id do Profile responsável. */
   ownerId?: string;
+  ownerName?: string;
   clientId?: string;
 }
 
@@ -167,7 +168,7 @@ export interface BriefingItem {
   id: string;
   /** Mês de referência (ex.: "2026-06"). */
   monthRef: string;
-  clientId: string;
+  clientId?: string;
   clientName: string;
   done: boolean;
 }

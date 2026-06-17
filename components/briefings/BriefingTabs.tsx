@@ -12,9 +12,13 @@ import type { BriefingItem } from "@/lib/types";
 export function BriefingTabs({
   monthLabel,
   items,
+  loading = false,
+  onToggleItem,
 }: {
   monthLabel: string;
   items: BriefingItem[];
+  loading?: boolean;
+  onToggleItem: (item: BriefingItem) => Promise<void> | void;
 }) {
   const { futureFeature } = useToast();
 
@@ -26,7 +30,12 @@ export function BriefingTabs({
       </TabsList>
 
       <TabsContent value="mensal">
-        <BriefingChecklist monthLabel={monthLabel} initialItems={items} />
+        <BriefingChecklist
+          monthLabel={monthLabel}
+          items={items}
+          loading={loading}
+          onToggleItem={onToggleItem}
+        />
       </TabsContent>
 
       <TabsContent value="formularios">

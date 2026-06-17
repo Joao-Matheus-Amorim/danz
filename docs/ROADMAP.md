@@ -32,8 +32,11 @@ Status local:
   marcar/desmarcar como concluida via Supabase.
 - `lib/repositories/calendar.ts`: leitura do calendario, criacao de evento e
   agenda do Meu Painel via Supabase.
-- Pendentes da Fase 3: briefings, campanhas, arquivos, inbox, edicao/exclusao
-  de eventos e CRUD completo de tarefas fora do Meu Painel.
+- `lib/repositories/briefings.ts`: leitura do briefing mensal e marcacao de
+  checklist via Supabase.
+- Pendentes da Fase 3: campanhas, arquivos, inbox, formularios publicos de
+  briefing, edicao/exclusao de eventos e CRUD completo de tarefas fora do Meu
+  Painel.
 
 ## Fase 4 - IA Dogtooth
 - Rota server-side `app/api/dogtooth` usando `OPENAI_API_KEY`.

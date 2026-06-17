@@ -2,9 +2,10 @@ import type { CalendarEvent as CalendarEventType } from "@/lib/types";
 import { EVENT_TYPE_COLOR, EVENT_TYPE_LABEL } from "@/lib/constants";
 import { getProfileById } from "@/lib/mock-data";
 
-/** Item de evento na visão de agenda/lista. */
 export function CalendarEvent({ event }: { event: CalendarEventType }) {
-  const owner = getProfileById(event.ownerId);
+  const mockOwner = getProfileById(event.ownerId);
+  const ownerName = event.ownerName ?? mockOwner?.name;
+
   return (
     <div className="flex items-center gap-3 rounded-xl border border-white/[0.06] bg-surface-muted p-3">
       <span
@@ -16,7 +17,7 @@ export function CalendarEvent({ event }: { event: CalendarEventType }) {
         <p className="text-[11px] text-content-muted">
           {EVENT_TYPE_LABEL[event.type]}
           {event.time ? ` · ${event.time}` : ""}
-          {owner ? ` · ${owner.name}` : ""}
+          {ownerName ? ` · ${ownerName}` : ""}
         </p>
       </div>
     </div>
