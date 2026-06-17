@@ -1,15 +1,12 @@
-node_modules/
-.env
-logs/
-*.log
-coverage/
+/node_modules
+/.next/
+/out/
+/build
 .DS_Store
+*.pem
 npm-debug.log*
-pnpm-lock.yaml
-package-lock.json
-
-# Local persistence
-/data/local/
-*.db
-*.db-shm
-*.db-wal
+.env
+.env*.local
+.vercel
+*.tsbuildinfo
+next-env.d.ts
