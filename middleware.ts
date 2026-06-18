@@ -11,6 +11,12 @@ const isSupabaseConfigured = Boolean(
   process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 );
 
+function redirectPreservingCookies(url: URL, request: NextRequest, response: NextResponse) {
+  const redirect = NextResponse.redirect(url);
+  response.cookies.getAll().forEach((cookie) => redirect.cookies.set(cookie));
+  return redirect;
+}
+
 export async function middleware(request: NextRequest) {
   // Modo mock (sem env vars): nao ha sessao real para validar, mantem o
   // prototipo navegavel como hoje.
@@ -21,7 +27,14 @@ export async function middleware(request: NextRequest) {
 
   if (isPublicPath(pathname)) {
     if (session && pathname === "/login") {
-      return NextResponse.redirect(new URL("/dashboard", request.url));
+      // updateSession() pode ter refrescado o access/refresh token (ex.:
+      // usuario com token expirado mas refresh token valido) e colocado os
+      // novos Set-Cookie em `response`. Como os refresh tokens da Supabase
+      // sao rotativos, descartar esses cookies aqui faria o browser manter
+      // o token ja usado e perder a sessao na proxima passada do
+      // middleware. Copia os cookies para o response de redirect antes de
+      // retornar.
+      return redirectPreservingCookies(new URL("/dashboard", request.url), request, response);
     }
     return response;
   }
@@ -29,7 +42,7 @@ export async function middleware(request: NextRequest) {
   if (!session) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("next", pathname);
-    return NextResponse.redirect(loginUrl);
+    return redirectPreservingCookies(loginUrl, request, response);
   }
 
   return response;
