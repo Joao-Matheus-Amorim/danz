@@ -1,21 +1,23 @@
-# lib/integrations — código colhido do danz (legado)
+# lib/integrations — clientes de APIs externas
 
-Estes arquivos são a **única parte com valor real** do antigo projeto `danz`
-(erradicado): a lógica de integração que realmente chama APIs externas.
-
-| Arquivo | Origem | O que faz |
+| Arquivo | O que faz | Usado por |
 |---|---|---|
-| `meta-ads.legacy.js` | `danz/src/services/metaAds.js` | Chamadas reais à Graph API do Meta (axios + `META_ACCESS_TOKEN`) |
-| `google-sheets.legacy.js` | `danz/src/services/googleSheets.js` | Acesso real ao Google Sheets (`googleapis` + JWT) |
+| `meta-ads.ts` | Chamadas reais à Graph API do Meta (`fetch` nativo + `META_ACCESS_TOKEN`) | `app/api/meta/insights` |
+| `google-sheets.ts` | Acesso real ao Google Sheets (`googleapis` + JWT de service account) | `app/api/sheets/export` |
 
 ## Estado
-- São **CommonJS** (`require`/`module.exports`) e dependem de pacotes ainda **não
-  instalados** neste app (`axios`, `googleapis`).
-- **Não são importados em lugar nenhum** e estão **excluídos do build/lint/typecheck**
-  (ver `tsconfig.json` → `exclude` e `.eslintignore`). Servem só de referência.
+- Portados de `danz` (legado erradicado) para TypeScript server-side. As rotas
+  acima validam sessão (Bearer) e workspace antes de chamar o cliente.
+- Sem os tokens (`META_ACCESS_TOKEN`, `GOOGLE_SERVICE_ACCOUNT_EMAIL`,
+  `GOOGLE_PRIVATE_KEY`) as rotas respondem `400` explicando o que falta — não
+  quebram o build nem o restante do app.
+- Nenhuma tela ainda chama essas rotas (ver TD09/TD06 em
+  `docs/technical-debt-log.md`); falta ligar um botão real em Campanhas/Planilhas
+  quando isso entrar em escopo.
 
-## Plano (Fase 2 — ver docs/roadmap.md)
-Portar para rotas server-side TypeScript em `app/api/` (ex.: `app/api/meta/...`,
-`app/api/sheets/...`), adicionando `axios`/`googleapis` ao `package.json` e lendo os
-tokens de variáveis de ambiente **somente no servidor**. Depois de portado e testado,
-remover o `.legacy.js` correspondente.
+## Próximo passo (quando tiver credenciais do cliente)
+1. Configurar as envs em `.env.local` (dev) e na Vercel/Supabase (prod).
+2. Ligar a UI (ex.: botão "Atualizar do Meta" em Campanhas) chamando
+   `POST /api/meta/insights` com `adAccountId`/`since`/`until`.
+3. Persistir o resultado via repositório (`lib/repositories/campaigns.ts`) em vez
+   de só exibir a resposta da API.

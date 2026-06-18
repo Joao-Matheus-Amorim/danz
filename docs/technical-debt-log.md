@@ -55,13 +55,17 @@
 - **Fase:** 5.
 
 ### TD06 - Meta Ads sem integracao real
-- **Descricao:** metricas e tabela leem campanhas persistidas no Supabase; token
-  Meta ainda nao e configurado de fato.
-- **Motivo:** integracao Meta fora do MVP.
-- **Impacto:** sem dados externos reais de performance.
+- **Descricao:** metricas e tabela leem campanhas persistidas no Supabase; rota
+  `app/api/meta/insights` ja existe e chama a Graph API real, mas falta plugar
+  na UI (botao em Campanhas) e persistir o retorno via repositorio.
+- **Motivo:** depende do `META_ACCESS_TOKEN`/conta de anuncio do cliente, que
+  ainda nao foi recebido.
+- **Impacto:** sem dados externos reais de performance ate ter o token; quando
+  tiver, falta so ligar o botao e salvar o resultado.
 - **Prioridade:** Media.
-- **Plano:** portar `lib/integrations/meta-ads.legacy.js` (Graph API) para rota
-  server-side TS (`app/api/meta/...`).
+- **Plano:** configurar `META_ACCESS_TOKEN` (prod), chamar `POST
+  /api/meta/insights` a partir de Campanhas e persistir via
+  `lib/repositories/campaigns.ts`.
 - **Fase:** 5.
 
 ### TD07 — Estado local volátil (modais, DnD, checklists)
@@ -89,17 +93,19 @@
   mapeamento de labels/membros/checklists.
 - **Fase:** 5.
 
-### TD09 — Integrações reais ainda não portadas (legado `danz` colhido)
-- **Descrição:** `lib/integrations/*.legacy.js` (Meta Ads via Graph API e Google
-  Sheets) foram colhidos do `danz` erradicado, mas ainda não foram portados nem
-  ligados ao app.
-- **Motivo:** são CommonJS e dependem de `axios`/`googleapis`; portar para TS é da
-  Fase 5. Mantidos fora do build/lint/typecheck até lá.
-- **Impacto:** sem dados externos reais (Meta/Sheets) por enquanto.
-- **Prioridade:** Média.
-- **Plano:** portar para rotas server-side TS em `app/api/`, com tokens só no
-  servidor; remover os `.legacy.js` após portar. Ver `lib/integrations/README.md`
-  e `adr-0001`.
+### TD09 — Integrações reais portadas, falta ligar à UI (concluído nesta parte)
+- **Descrição:** `lib/integrations/meta-ads.ts` e `google-sheets.ts` (portados de
+  `danz`/legado) chamam as APIs reais (Graph API e Sheets v4) e são expostos via
+  `app/api/meta/insights` e `app/api/sheets/export`, com validação de sessão e
+  workspace igual ao padrão do Trello. Sem os tokens configurados, as rotas
+  respondem `400` explicando o que falta — não quebram build/lint/typecheck.
+- **Motivo:** as credenciais reais (Meta Ads, Google service account) dependem
+  do cliente, que ainda não foi obtido; o código fica pronto para plugar.
+- **Impacto:** nenhuma tela chama essas rotas ainda — falta o passo de UI
+  (botão em Campanhas/Planilhas) e persistência do resultado via repositório.
+- **Prioridade:** Baixa (infra pronta; só falta credencial + UI).
+- **Plano:** quando tiver o token/service account do cliente, configurar as
+  envs e ligar o botão na UI. Ver `lib/integrations/README.md`.
 - **Fase:** 5.
 
 ### TD10 — Funcionalidades de topbar (busca global, notificações, tema)
