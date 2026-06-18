@@ -89,48 +89,41 @@ export async function ensureBriefingForMonth(monthRef: string): Promise<void> {
     throw new Error("Usuario autenticado nao esta vinculado a um workspace.");
   }
 
-  const { data: existingBriefing, error: briefingError } = await supabase
+  // Upsert por (workspace_id, month_ref) em vez de select+insert: se dois
+  // editores abrirem a pagina ao mesmo tempo no primeiro acesso do mes, ambos
+  // colidem na unique index e o upsert resolve para a mesma linha em vez de
+  // um deles estourar erro de chave duplicada.
+  const { data: briefing, error: briefingError } = await supabase
     .from("briefings")
+    .upsert(
+      { workspace_id: workspaceId, month_ref: monthRef },
+      { onConflict: "workspace_id,month_ref", ignoreDuplicates: false }
+    )
     .select("id")
-    .eq("workspace_id", workspaceId)
-    .eq("month_ref", monthRef)
-    .maybeSingle();
+    .single();
 
   if (briefingError) throw briefingError;
+  const briefingId = briefing.id as string;
 
-  let briefingId = existingBriefing?.id as string | undefined;
-
-  if (!briefingId) {
-    const { data: createdBriefing, error: createBriefingError } = await supabase
-      .from("briefings")
-      .insert({ workspace_id: workspaceId, month_ref: monthRef })
-      .select("id")
-      .single();
-
-    if (createBriefingError) throw createBriefingError;
-    briefingId = createdBriefing.id as string;
-  }
-
-  const [{ data: activeClients, error: clientsError }, { data: existingItems, error: itemsError }] =
-    await Promise.all([
-      supabase.from("clients").select("id, name").eq("workspace_id", workspaceId).eq("status", "ativo"),
-      supabase.from("briefing_items").select("client_id").eq("briefing_id", briefingId),
-    ]);
+  const { data: activeClients, error: clientsError } = await supabase
+    .from("clients")
+    .select("id, name")
+    .eq("workspace_id", workspaceId)
+    .eq("status", "ativo");
 
   if (clientsError) throw clientsError;
-  if (itemsError) throw itemsError;
+  if (!activeClients || activeClients.length === 0) return;
 
-  const clientIdsWithItem = new Set((existingItems ?? []).map((item) => item.client_id));
-  const missingItems = (activeClients ?? []).filter((client) => !clientIdsWithItem.has(client.id));
-
-  if (missingItems.length === 0) return;
-
-  const { error: insertItemsError } = await supabase.from("briefing_items").insert(
-    missingItems.map((client) => ({
+  // Upsert por (briefing_id, client_id) em vez de filtrar items existentes e
+  // inserir so os que faltam: evita duplicar a linha (e o public_token) de um
+  // cliente se dois editores rodarem isso ao mesmo tempo.
+  const { error: insertItemsError } = await supabase.from("briefing_items").upsert(
+    activeClients.map((client) => ({
       briefing_id: briefingId,
       client_id: client.id,
       client_name: client.name,
-    }))
+    })),
+    { onConflict: "briefing_id,client_id", ignoreDuplicates: true }
   );
 
   if (insertItemsError) throw insertItemsError;
