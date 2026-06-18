@@ -142,6 +142,11 @@ export default function BoardsPage() {
   }
 
   async function submitTrelloSync() {
+    if (!canEdit) {
+      toast("Apenas perfis com permissao de edicao podem sincronizar o Trello.");
+      return;
+    }
+
     setSyncingTrello(true);
     try {
       const result = await syncTrelloBoard();
@@ -241,14 +246,16 @@ export default function BoardsPage() {
         subtitle="Organize fluxos visuais com listas, cards, labels e checklists."
         actions={
           <>
-            <Button
-              variant="secondary"
-              onClick={() => void submitTrelloSync()}
-              disabled={syncingTrello}
-            >
-              <RefreshCw className={syncingTrello ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
-              {syncingTrello ? "Sincronizando..." : "Atualizar do Trello"}
-            </Button>
+            {canEdit && (
+              <Button
+                variant="secondary"
+                onClick={() => void submitTrelloSync()}
+                disabled={syncingTrello}
+              >
+                <RefreshCw className={syncingTrello ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
+                {syncingTrello ? "Sincronizando..." : "Atualizar do Trello"}
+              </Button>
+            )}
             {canEdit && (
               <Button variant="primary" onClick={() => setCreateOpen(true)}>
                 <Plus className="h-4 w-4" /> Novo quadro

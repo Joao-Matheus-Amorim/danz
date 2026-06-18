@@ -124,7 +124,7 @@ export async function POST(request: Request) {
 
     const { data: membership, error: membershipError } = await supabase
       .from("workspace_members")
-      .select("workspace_id")
+      .select("workspace_id, role")
       .order("created_at", { ascending: true })
       .limit(1)
       .maybeSingle();
@@ -133,6 +133,13 @@ export async function POST(request: Request) {
     if (!membership?.workspace_id) {
       return NextResponse.json(
         { error: "Usuario autenticado nao esta vinculado a um workspace." },
+        { status: 403 }
+      );
+    }
+
+    if (!["owner", "admin", "gestor"].includes(String(membership.role))) {
+      return NextResponse.json(
+        { error: "Apenas perfis com permissao de edicao podem sincronizar o Trello." },
         { status: 403 }
       );
     }
