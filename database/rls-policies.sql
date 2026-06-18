@@ -63,6 +63,8 @@ drop policy if exists "profiles_self_update" on profiles;
 drop policy if exists "workspaces_member_select" on workspaces;
 drop policy if exists "workspaces_admin_update" on workspaces;
 drop policy if exists "members_select" on workspace_members;
+drop policy if exists "members_admin_update" on workspace_members;
+drop policy if exists "members_admin_delete" on workspace_members;
 drop policy if exists "clients_member_all" on clients;
 drop policy if exists "boards_member_all" on boards;
 drop policy if exists "tasks_member_all" on tasks;
@@ -100,6 +102,13 @@ create policy "workspaces_admin_update" on workspaces
 
 create policy "members_select" on workspace_members
   for select using (is_workspace_member(workspace_id));
+
+create policy "members_admin_update" on workspace_members
+  for update using (is_workspace_admin(workspace_id))
+  with check (is_workspace_admin(workspace_id));
+
+create policy "members_admin_delete" on workspace_members
+  for delete using (is_workspace_admin(workspace_id));
 
 create policy "clients_member_all" on clients
   for all using (is_workspace_member(workspace_id))

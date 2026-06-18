@@ -99,6 +99,14 @@ Status local:
 - Convites de usuario, gestao de membros, auditoria ativa (`activity_logs`).
 - Notificacoes reais e busca global.
 
+Status local:
+- `lib/repositories/members.ts` + `/api/workspace/members/invite`: convite real
+  de usuario (Supabase Auth Admin via `SUPABASE_SERVICE_ROLE_KEY`), listagem de
+  membros do workspace, troca de funcao e remocao de membro, restritos a
+  owner/admin via `members_admin_update`/`members_admin_delete`.
+- Pendente: RBAC guards na UI das demais superficies, auditoria ativa,
+  notificacoes e busca global.
+
 ## Proximos marcos objetivos
 
 1. Fase 3 operacional concluida (CRUDs reais + formularios publicos de briefing).

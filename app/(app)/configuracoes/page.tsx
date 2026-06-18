@@ -1,22 +1,34 @@
 "use client";
 
 import * as React from "react";
-import { Building2, Palette, Users, Plug } from "lucide-react";
+import { Building2, Palette, Users, Plug, Trash2 } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input, Label } from "@/components/ui/input";
+import { Input, Label, Select } from "@/components/ui/input";
 import { Avatar } from "@/components/ui/avatar";
 import { useToast } from "@/components/ui/toast";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import {
+  InviteMemberDialog,
+  type InviteMemberInput,
+} from "@/components/configuracoes/InviteMemberDialog";
 import { INTEGRATION_STATUS_LABEL, INTEGRATION_STATUS_STYLE } from "@/lib/constants";
-import { integrations, profiles } from "@/lib/mock-data";
+import { integrations } from "@/lib/mock-data";
 import {
   getCurrentWorkspace,
   updateCurrentWorkspace,
 } from "@/lib/repositories/workspace";
+import {
+  getWorkspaceMembers,
+  inviteMember,
+  removeMember,
+  updateMemberRole,
+} from "@/lib/repositories/members";
 import { emitWorkspaceUpdated } from "@/lib/events/workspace";
 import { cn } from "@/lib/utils";
+import type { Profile, ProfileRole } from "@/lib/types";
 
 const ROLE_LABEL: Record<string, string> = {
   owner: "Proprietário",
@@ -25,12 +37,21 @@ const ROLE_LABEL: Record<string, string> = {
   operador: "Operador",
 };
 
+const EDITABLE_ROLES: ProfileRole[] = ["admin", "gestor", "operador"];
+
 export default function ConfiguracoesPage() {
   const { futureFeature, toast } = useToast();
   const [wsName, setWsName] = React.useState("");
   const [wsRole, setWsRole] = React.useState("");
   const [loadingWs, setLoadingWs] = React.useState(true);
   const [savingWs, setSavingWs] = React.useState(false);
+
+  const [members, setMembers] = React.useState<Profile[]>([]);
+  const [loadingMembers, setLoadingMembers] = React.useState(true);
+  const [savingMemberId, setSavingMemberId] = React.useState<string | null>(null);
+  const [inviteOpen, setInviteOpen] = React.useState(false);
+  const [memberToRemove, setMemberToRemove] = React.useState<Profile | null>(null);
+  const [removing, setRemoving] = React.useState(false);
 
   React.useEffect(() => {
     let mounted = true;
@@ -53,6 +74,62 @@ export default function ConfiguracoesPage() {
       mounted = false;
     };
   }, [toast]);
+
+  React.useEffect(() => {
+    let mounted = true;
+
+    getWorkspaceMembers()
+      .then((data) => {
+        if (mounted) setMembers(data);
+      })
+      .catch((error) => {
+        console.error(error);
+        if (mounted) toast("Nao foi possivel carregar os usuarios.");
+      })
+      .finally(() => {
+        if (mounted) setLoadingMembers(false);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [toast]);
+
+  async function handleInviteMember(input: InviteMemberInput) {
+    const updated = await inviteMember(input);
+    setMembers(updated);
+    toast("Convite enviado.");
+  }
+
+  async function handleRoleChange(profileId: string, role: ProfileRole) {
+    setSavingMemberId(profileId);
+    try {
+      const updated = await updateMemberRole(profileId, role);
+      setMembers(updated);
+      toast("Função atualizada.");
+    } catch (error) {
+      console.error(error);
+      toast("Nao foi possivel atualizar a função.");
+    } finally {
+      setSavingMemberId(null);
+    }
+  }
+
+  async function handleRemoveMember() {
+    if (!memberToRemove) return;
+    setRemoving(true);
+    try {
+      const updated = await removeMember(memberToRemove.id);
+      setMembers(updated);
+      toast("Usuário removido do workspace.");
+      setMemberToRemove(null);
+    } catch (error) {
+      console.error(error);
+      toast(error instanceof Error ? error.message : "Nao foi possivel remover o usuário.");
+    } finally {
+      setRemoving(false);
+    }
+  }
 
   async function handleSaveWorkspace() {
     if (!wsName.trim() || savingWs) return;
@@ -145,26 +222,78 @@ export default function ConfiguracoesPage() {
           <CardTitle>Usuários e permissões</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
-          {profiles.map((p) => (
-            <div
-              key={p.id}
-              className="flex items-center gap-3 rounded-xl border border-white/[0.06] bg-surface-muted p-3"
-            >
-              <Avatar initials={p.initials} />
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm text-content">{p.name}</p>
-                <p className="text-[11px] text-content-muted">{p.email}</p>
-              </div>
-              <Badge className="text-content-muted border-white/10 bg-white/[0.03]">
-                {ROLE_LABEL[p.role] ?? p.role}
-              </Badge>
-            </div>
-          ))}
-          <Button variant="secondary" onClick={() => futureFeature("Convidar usuário")}>
+          {loadingMembers && (
+            <p className="text-sm text-content-muted">Carregando usuários...</p>
+          )}
+          {!loadingMembers &&
+            members.map((p) => {
+              const isOwner = p.role === "owner";
+              const saving = savingMemberId === p.id;
+              return (
+                <div
+                  key={p.id}
+                  className="flex items-center gap-3 rounded-xl border border-white/[0.06] bg-surface-muted p-3"
+                >
+                  <Avatar initials={p.initials} />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm text-content">{p.name}</p>
+                    <p className="text-[11px] text-content-muted">{p.email}</p>
+                  </div>
+                  {isOwner ? (
+                    <Badge className="text-content-muted border-white/10 bg-white/[0.03]">
+                      {ROLE_LABEL[p.role] ?? p.role}
+                    </Badge>
+                  ) : (
+                    <Select
+                      className="h-9 w-auto"
+                      value={p.role}
+                      disabled={saving}
+                      onChange={(e) => void handleRoleChange(p.id, e.target.value as ProfileRole)}
+                    >
+                      {EDITABLE_ROLES.map((role) => (
+                        <option key={role} value={role}>
+                          {ROLE_LABEL[role]}
+                        </option>
+                      ))}
+                    </Select>
+                  )}
+                  {!isOwner && (
+                    <Button
+                      variant="ghost"
+                      className="text-content-muted hover:text-alert"
+                      onClick={() => setMemberToRemove(p)}
+                      aria-label={`Remover ${p.name}`}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              );
+            })}
+          <Button variant="secondary" onClick={() => setInviteOpen(true)}>
             Convidar usuário
           </Button>
         </CardContent>
       </Card>
+
+      <InviteMemberDialog
+        open={inviteOpen}
+        onOpenChange={setInviteOpen}
+        onSubmit={handleInviteMember}
+      />
+
+      <ConfirmDialog
+        open={Boolean(memberToRemove)}
+        onOpenChange={(open) => {
+          if (!open) setMemberToRemove(null);
+        }}
+        title="Remover usuário"
+        description={`${memberToRemove?.name ?? ""} perderá acesso a este workspace.`}
+        confirmLabel="Remover"
+        pendingLabel="Removendo..."
+        pending={removing}
+        onConfirm={() => void handleRemoveMember()}
+      />
 
       {/* Integrações */}
       <Card>

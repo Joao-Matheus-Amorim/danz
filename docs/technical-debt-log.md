@@ -111,11 +111,15 @@
 - **Fase:** 6.
 
 ### TD11 — Permissões por papel não aplicadas
-- **Descrição:** papéis existem nos tipos/seed e há uma primeira política por papel
-  (`workspaces_admin_update`, edição do workspace restrita a owner/admin), mas a UI
-  ainda não restringe as demais ações por papel.
-- **Motivo:** RBAC fora do MVP.
-- **Impacto:** fora da edição do workspace, todos veem/fazem tudo.
+- **Descrição:** papéis existem nos tipos/seed e há políticas por papel
+  (`workspaces_admin_update`; `members_admin_update`/`members_admin_delete`,
+  restritas a owner/admin via `is_workspace_admin`), incluindo convite real de
+  usuário (`/api/workspace/members/invite`, com `SUPABASE_SERVICE_ROLE_KEY`) e
+  troca de função/remoção de membros em Configurações. A UI ainda não restringe
+  as demais ações (boards, clientes, campanhas etc.) por papel.
+- **Motivo:** RBAC completo fora do MVP.
+- **Impacto:** fora da edição do workspace e gestão de membros, todos veem/fazem
+  tudo nas demais superfícies.
 - **Prioridade:** Média.
-- **Plano:** refinar RLS por papel + guards na UI.
+- **Plano:** refinar RLS por papel + guards na UI nas demais superfícies.
 - **Fase:** 6.
