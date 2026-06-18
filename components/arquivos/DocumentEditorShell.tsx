@@ -37,7 +37,10 @@ export function DocumentEditorShell({
   onDocumentsChange?: (documents: DocumentItem[]) => void;
 }) {
   const { futureFeature, toast } = useToast();
-  const { canEdit } = useRole();
+  const { role } = useRole();
+  // Apenas owner/gestor liberam documento para admin (admin nao pode
+  // repassar a propria liberacao para outros admins).
+  const canManageDocumentAccess = role === "owner" || role === "gestor";
   const [query, setQuery] = React.useState("");
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
   const [admins, setAdmins] = React.useState<Profile[]>([]);
@@ -45,11 +48,11 @@ export function DocumentEditorShell({
   const [accessSaving, setAccessSaving] = React.useState<string | null>(null);
 
   React.useEffect(() => {
-    if (!canEdit) return;
+    if (!canManageDocumentAccess) return;
     getWorkspaceMembers()
       .then((members) => setAdmins(members.filter((member) => member.role === "admin")))
       .catch((error) => console.error(error));
-  }, [canEdit]);
+  }, [canManageDocumentAccess]);
 
   const visible = documents.filter((d) =>
     d.title.toLowerCase().includes(query.toLowerCase())
@@ -147,7 +150,7 @@ export function DocumentEditorShell({
               <Button variant="outline" onClick={() => futureFeature("Abrir editor do Docs")}>
                 Abrir no editor
               </Button>
-              {canEdit && (
+              {canManageDocumentAccess && (
                 <Button variant="ghost" onClick={() => setAccessOpen(true)}>
                   <Users className="h-4 w-4" /> Liberar para admins
                 </Button>

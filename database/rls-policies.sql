@@ -54,6 +54,26 @@ as $$
   );
 $$;
 
+-- Quem pode liberar/revogar documento para admin: owner ou gestor.
+-- Admin nao entra aqui mesmo sendo "editor" em outros dominios, senao um
+-- admin que ja recebeu liberacao poderia liberar o documento para outros
+-- admins (fan-out indevido da liberacao).
+create or replace function is_workspace_manager(ws uuid)
+returns boolean
+language sql
+security definer
+stable
+set search_path = public
+as $$
+  select exists (
+    select 1
+    from workspace_members m
+    where m.workspace_id = ws
+      and m.profile_id = auth.uid()
+      and m.role in ('owner', 'gestor')
+  );
+$$;
+
 -- Editor (owner/admin/gestor) ve todo board do workspace. Operador so ve um
 -- board se foi explicitamente atribuido via board_assignees.
 create or replace function can_view_board(p_board_id uuid)
@@ -325,10 +345,10 @@ create policy "documents_select" on documents
 create policy "documents_member_insert" on documents
   for insert with check (is_workspace_member(workspace_id));
 create policy "documents_member_update" on documents
-  for update using (is_workspace_member(workspace_id))
-  with check (is_workspace_member(workspace_id));
+  for update using (can_view_document(id, workspace_id))
+  with check (can_view_document(id, workspace_id));
 create policy "documents_member_delete" on documents
-  for delete using (is_workspace_member(workspace_id));
+  for delete using (can_view_document(id, workspace_id));
 
 create policy "document_admin_releases_select" on document_admin_releases
   for select using (
@@ -341,14 +361,14 @@ create policy "document_admin_releases_editor_insert" on document_admin_releases
   for insert with check (
     exists (
       select 1 from documents d
-      where d.id = document_admin_releases.document_id and is_workspace_editor(d.workspace_id)
+      where d.id = document_admin_releases.document_id and is_workspace_manager(d.workspace_id)
     )
   );
 create policy "document_admin_releases_editor_delete" on document_admin_releases
   for delete using (
     exists (
       select 1 from documents d
-      where d.id = document_admin_releases.document_id and is_workspace_editor(d.workspace_id)
+      where d.id = document_admin_releases.document_id and is_workspace_manager(d.workspace_id)
     )
   );
 
