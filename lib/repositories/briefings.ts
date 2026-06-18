@@ -73,6 +73,69 @@ export async function listBriefingItems(
   );
 }
 
+/**
+ * Garante que o briefing do mes existe (e tem um item por cliente ativo do
+ * workspace), criando o que faltar. So deve ser chamada por quem tem
+ * permissao de editor (owner/admin/gestor) -- a RLS de briefings/briefing_items
+ * exige is_workspace_editor para insert, entao um operador chamando isso
+ * receberia erro de permissao em vez de criar nada.
+ */
+export async function ensureBriefingForMonth(monthRef: string): Promise<void> {
+  const supabase = getSupabase();
+  if (!supabase) return;
+
+  const workspaceId = await getCurrentWorkspaceId();
+  if (!workspaceId) {
+    throw new Error("Usuario autenticado nao esta vinculado a um workspace.");
+  }
+
+  const { data: existingBriefing, error: briefingError } = await supabase
+    .from("briefings")
+    .select("id")
+    .eq("workspace_id", workspaceId)
+    .eq("month_ref", monthRef)
+    .maybeSingle();
+
+  if (briefingError) throw briefingError;
+
+  let briefingId = existingBriefing?.id as string | undefined;
+
+  if (!briefingId) {
+    const { data: createdBriefing, error: createBriefingError } = await supabase
+      .from("briefings")
+      .insert({ workspace_id: workspaceId, month_ref: monthRef })
+      .select("id")
+      .single();
+
+    if (createBriefingError) throw createBriefingError;
+    briefingId = createdBriefing.id as string;
+  }
+
+  const [{ data: activeClients, error: clientsError }, { data: existingItems, error: itemsError }] =
+    await Promise.all([
+      supabase.from("clients").select("id, name").eq("workspace_id", workspaceId).eq("status", "ativo"),
+      supabase.from("briefing_items").select("client_id").eq("briefing_id", briefingId),
+    ]);
+
+  if (clientsError) throw clientsError;
+  if (itemsError) throw itemsError;
+
+  const clientIdsWithItem = new Set((existingItems ?? []).map((item) => item.client_id));
+  const missingItems = (activeClients ?? []).filter((client) => !clientIdsWithItem.has(client.id));
+
+  if (missingItems.length === 0) return;
+
+  const { error: insertItemsError } = await supabase.from("briefing_items").insert(
+    missingItems.map((client) => ({
+      briefing_id: briefingId,
+      client_id: client.id,
+      client_name: client.name,
+    }))
+  );
+
+  if (insertItemsError) throw insertItemsError;
+}
+
 export async function setBriefingItemDone(
   itemId: string,
   done: boolean,
