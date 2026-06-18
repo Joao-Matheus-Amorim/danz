@@ -60,13 +60,13 @@ export async function POST(request: Request) {
       );
     }
 
-    const client = new GoogleSheetsClient();
-    const spreadsheetId = await client.createSpreadsheet(title);
-
     const serviceRoleKey = requiredEnv("SUPABASE_SERVICE_ROLE_KEY");
     const adminClient = createClient(supabaseUrl, serviceRoleKey, {
       auth: { persistSession: false },
     });
+
+    const client = new GoogleSheetsClient();
+    const spreadsheetId = await client.createSpreadsheet(title);
 
     const { data: sheetRecord, error: insertError } = await adminClient
       .from("sheets")
