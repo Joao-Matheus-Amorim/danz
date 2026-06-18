@@ -29,14 +29,14 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json().catch(() => null);
-    const spreadsheetId = body?.spreadsheetId as string | undefined;
+    const sheetId = body?.sheetId as string | undefined;
     const sheetName = body?.sheetName as string | undefined;
     const rows = body?.rows as Record<string, unknown>[] | undefined;
     const mode = (body?.mode as string | undefined) ?? "replace";
 
-    if (!spreadsheetId || !sheetName || !Array.isArray(rows)) {
+    if (!sheetId || !sheetName || !Array.isArray(rows)) {
       return NextResponse.json(
-        { error: "Informe spreadsheetId, sheetName e rows." },
+        { error: "Informe sheetId, sheetName e rows." },
         { status: 400 }
       );
     }
@@ -70,20 +70,27 @@ export async function POST(request: Request) {
       );
     }
 
+    // sheets.external_id e gravado somente por app/api/sheets/create (service role,
+    // a partir de uma planilha que o proprio servidor criou no Google) — nunca por
+    // escrita direta do tenant (RLS de sheets so permite insert/update a admin, e
+    // mesmo admin nao tem rota para setar external_id arbitrario). Por isso esta
+    // busca por id+workspace_id e prova valida de ownership, diferente de confiar
+    // num spreadsheetId vindo do client.
     const { data: sheetRecord, error: sheetError } = await supabase
       .from("sheets")
-      .select("id")
-      .eq("external_id", spreadsheetId)
+      .select("external_id")
+      .eq("id", sheetId)
       .eq("workspace_id", membership.workspace_id)
       .maybeSingle();
 
     if (sheetError) throw sheetError;
-    if (!sheetRecord) {
+    if (!sheetRecord?.external_id) {
       return NextResponse.json(
         { error: "Planilha nao encontrada neste workspace." },
         { status: 404 }
       );
     }
+    const spreadsheetId = sheetRecord.external_id;
 
     const client = new GoogleSheetsClient();
     const result =

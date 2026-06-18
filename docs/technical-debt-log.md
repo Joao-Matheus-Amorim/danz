@@ -57,13 +57,18 @@
 ### TD06 - Meta Ads sem integracao real
 - **Descricao:** metricas e tabela leem campanhas persistidas no Supabase; rota
   `app/api/meta/insights` ja existe e chama a Graph API real, mas falta plugar
-  na UI (botao em Campanhas) e persistir o retorno via repositorio.
+  na UI (fluxo de vincular conta de anuncio + botao em Campanhas) e persistir
+  o retorno via repositorio. `app/api/meta/insights` recebe `adAccountRecordId`
+  (id interno de `ad_accounts`), nao o id da conta no Meta — o vinculo so e
+  criado por `app/api/meta/ad-accounts/link`, que valida a conta na Graph API
+  e grava via service role, igual ao padrao de `sheets`/TD09.
 - **Motivo:** depende do `META_ACCESS_TOKEN`/conta de anuncio do cliente, que
   ainda nao foi recebido.
 - **Impacto:** sem dados externos reais de performance ate ter o token; quando
   tiver, falta so ligar o botao e salvar o resultado.
 - **Prioridade:** Media.
 - **Plano:** configurar `META_ACCESS_TOKEN` (prod), chamar `POST
+  /api/meta/ad-accounts/link` para vincular a conta do cliente, depois `POST
   /api/meta/insights` a partir de Campanhas e persistir via
   `lib/repositories/campaigns.ts`.
 - **Fase:** 5.
@@ -96,9 +101,16 @@
 ### TD09 — Integrações reais portadas, falta ligar à UI (concluído nesta parte)
 - **Descrição:** `lib/integrations/meta-ads.ts` e `google-sheets.ts` (portados de
   `danz`/legado) chamam as APIs reais (Graph API e Sheets v4) e são expostos via
-  `app/api/meta/insights` e `app/api/sheets/export`, com validação de sessão e
+  `app/api/meta/ad-accounts/link`, `app/api/meta/insights`,
+  `app/api/sheets/create` e `app/api/sheets/export`, com validação de sessão e
   workspace igual ao padrão do Trello. Sem os tokens configurados, as rotas
   respondem `400` explicando o que falta — não quebram build/lint/typecheck.
+  `sheets/create` é a única rota que grava `sheets.external_id` (via service
+  role, depois de criar a planilha de fato no Google) — `sheets/export` só
+  aceita um `sheetId` interno e resolve o `external_id` correspondente no
+  servidor, nunca um `spreadsheetId` vindo do client. Mesmo padrão para
+  `ad_accounts.external_id`/`meta/ad-accounts/link`: `meta/insights` recebe
+  `adAccountRecordId` (id interno), nunca o id da conta no Meta.
 - **Motivo:** as credenciais reais (Meta Ads, Google service account) dependem
   do cliente, que ainda não foi obtido; o código fica pronto para plugar.
 - **Impacto:** nenhuma tela chama essas rotas ainda — falta o passo de UI
@@ -137,10 +149,15 @@
   operador concluir a própria tarefa).
 - **Plano:** Drive/Documentos/Inbox/Chat continuam com policy única
   `_member_all` (todos os membros podem tudo) — fora do escopo desta rodada;
-  avaliar se precisam do mesmo padrão quando ganharem escrita real. `sheets` já
-  recebeu RBAC restrito a admin (`sheets_admin_insert/update/delete`), pois
-  `app/api/sheets/export` (TD09) usa `external_id` dessa tabela para validar
-  ownership antes de escrever — sem essa restrição, qualquer membro podia
-  "plantar" o `external_id` de uma planilha de outro workspace e burlar aquela
-  checagem.
+  avaliar se precisam do mesmo padrão quando ganharem escrita real. `sheets` e
+  `ad_accounts` foram além do padrão admin-only: nenhuma das duas tem
+  `insert`/`update` via RLS de cliente (só `select` para membro e `delete`
+  para admin), porque `app/api/sheets/export` e `app/api/meta/insights`
+  (TD09/TD06) confiam em `external_id` como prova de ownership, e até um admin
+  pode pertencer a múltiplos workspaces — permitir que ele escrevesse essa
+  coluna direto pela tabela reabriria a mesma falha (plantar o `external_id`
+  de um recurso de outro workspace). A única escrita válida é via
+  `app/api/sheets/create` / `app/api/meta/ad-accounts/link`, que usam a
+  service role depois de criar a planilha no Google ou validar a conta na
+  Graph API.
 - **Fase:** 6.

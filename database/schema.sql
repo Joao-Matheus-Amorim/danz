@@ -335,6 +335,17 @@ create table if not exists sheets (
 );
 create index if not exists sheets_workspace_id_idx on sheets (workspace_id);
 
+create table if not exists ad_accounts (
+  id            uuid primary key default gen_random_uuid(),
+  workspace_id  uuid not null references workspaces (id) on delete cascade,
+  external_id   text not null,
+  name          text not null default '',
+  updated_at    timestamptz not null default now(),
+  created_at    timestamptz not null default now(),
+  unique (workspace_id, external_id)
+);
+create index if not exists ad_accounts_workspace_id_idx on ad_accounts (workspace_id);
+
 -- ----------------------------------------------------------------------
 -- Inbox WhatsApp
 -- ----------------------------------------------------------------------

@@ -69,6 +69,7 @@ alter table briefing_items enable row level security;
 alter table drive_files enable row level security;
 alter table documents enable row level security;
 alter table sheets enable row level security;
+alter table ad_accounts enable row level security;
 alter table whatsapp_conversations enable row level security;
 alter table whatsapp_messages enable row level security;
 alter table chat_conversations enable row level security;
@@ -120,6 +121,8 @@ drop policy if exists "sheets_select" on sheets;
 drop policy if exists "sheets_admin_insert" on sheets;
 drop policy if exists "sheets_admin_update" on sheets;
 drop policy if exists "sheets_admin_delete" on sheets;
+drop policy if exists "ad_accounts_select" on ad_accounts;
+drop policy if exists "ad_accounts_admin_delete" on ad_accounts;
 drop policy if exists "wa_conversations_member_all" on whatsapp_conversations;
 drop policy if exists "chat_conversations_member_all" on chat_conversations;
 drop policy if exists "activity_logs_member_select" on activity_logs;
@@ -236,14 +239,24 @@ create policy "documents_member_all" on documents
   for all using (is_workspace_member(workspace_id))
   with check (is_workspace_member(workspace_id));
 
+-- sheets nao tem insert/update via RLS de cliente: external_id e title sao
+-- gravados exclusivamente por app/api/sheets/create usando a service role
+-- (que ignora RLS), depois que o proprio servidor cria a planilha no Google.
+-- Isso impede qualquer membro/admin de "plantar" um external_id de planilha
+-- de outro workspace para passar pela checagem de ownership do export.
 create policy "sheets_select" on sheets
   for select using (is_workspace_member(workspace_id));
-create policy "sheets_admin_insert" on sheets
-  for insert with check (is_workspace_admin(workspace_id));
-create policy "sheets_admin_update" on sheets
-  for update using (is_workspace_admin(workspace_id))
-  with check (is_workspace_admin(workspace_id));
 create policy "sheets_admin_delete" on sheets
+  for delete using (is_workspace_admin(workspace_id));
+
+-- ad_accounts segue o mesmo padrao: external_id (ad account id do Meta) so e
+-- gravado por app/api/meta/ad-accounts/link via service role, depois de
+-- validar a conta na Graph API com o META_ACCESS_TOKEN do servidor. Sem isso,
+-- qualquer membro poderia vincular ao seu workspace o ID de uma conta de
+-- anuncio de outro tenant e ler saldo/insights dela em app/api/meta/insights.
+create policy "ad_accounts_select" on ad_accounts
+  for select using (is_workspace_member(workspace_id));
+create policy "ad_accounts_admin_delete" on ad_accounts
   for delete using (is_workspace_admin(workspace_id));
 
 create policy "wa_conversations_member_all" on whatsapp_conversations

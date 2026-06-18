@@ -27,14 +27,14 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json().catch(() => null);
-    const adAccountId = body?.adAccountId as string | undefined;
+    const adAccountRecordId = body?.adAccountRecordId as string | undefined;
     const level = (body?.level as string | undefined) ?? "campaign";
     const since = body?.since as string | undefined;
     const until = body?.until as string | undefined;
 
-    if (!adAccountId || !since || !until) {
+    if (!adAccountRecordId || !since || !until) {
       return NextResponse.json(
-        { error: "Informe adAccountId, since e until." },
+        { error: "Informe adAccountRecordId, since e until." },
         { status: 400 }
       );
     }
@@ -65,10 +65,28 @@ export async function POST(request: Request) {
       );
     }
 
+    // ad_accounts.external_id so e gravado por app/api/meta/ad-accounts/link
+    // (service role, apos validar a conta na Graph API) — nunca pelo cliente.
+    // Por isso essa busca por id+workspace_id e prova valida de ownership.
+    const { data: adAccount, error: adAccountError } = await supabase
+      .from("ad_accounts")
+      .select("external_id")
+      .eq("id", adAccountRecordId)
+      .eq("workspace_id", membership.workspace_id)
+      .maybeSingle();
+
+    if (adAccountError) throw adAccountError;
+    if (!adAccount?.external_id) {
+      return NextResponse.json(
+        { error: "Conta de anuncio nao encontrada neste workspace." },
+        { status: 404 }
+      );
+    }
+
     const client = new MetaAdsClient(metaAccessToken, process.env.META_API_VERSION || "v19.0");
     const [balance, insights] = await Promise.all([
-      client.getBalance(adAccountId),
-      client.getInsights(adAccountId, level as "campaign" | "adset" | "ad", since, until),
+      client.getBalance(adAccount.external_id),
+      client.getInsights(adAccount.external_id, level as "campaign" | "adset" | "ad", since, until),
     ]);
 
     return NextResponse.json({ balance, insights });

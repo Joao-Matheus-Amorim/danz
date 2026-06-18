@@ -107,6 +107,13 @@ export class MetaAdsClient {
     throw lastError;
   }
 
+  async validateAdAccount(adAccountId: string): Promise<{ id: string; name: string }> {
+    const account = await this.request<{ id: string; name: string }>(`/${adAccountId}`, {
+      fields: "id,name",
+    });
+    return account;
+  }
+
   async getBalance(adAccountId: string): Promise<MetaAdAccountBalance> {
     const account = await this.request<{
       id: string;
