@@ -19,14 +19,27 @@
   filtro explicito de workspace em complemento ao RLS.
 - **Fase:** 2–3.
 
-### TD02 — Autenticação simbólica (`/login`)
+### TD02 — Autenticação simbólica (`/login`) — concluído
 - **Descrição:** qualquer submit leva ao dashboard; sem sessão real.
 - **Motivo:** Supabase Auth fora do escopo do MVP.
 - **Impacto:** sem proteção de rotas nem identidade real.
 - **Prioridade:** Alta.
-- **Plano:** Supabase Auth client-side + guard de sessão foram implementados na
-  Fase 2. Middleware/SSR pode entrar depois com `@supabase/ssr`.
-- **Fase:** 2.
+- **Plano:** Supabase Auth client-side + guard de sessão (`AuthGate`) foram
+  implementados na Fase 2. `middleware.ts` (raiz) + `lib/supabase/middleware.ts`
+  agora leem a sessao via cookie no servidor (`@supabase/ssr`,
+  `createServerClient`/`updateSession`) antes de qualquer pagina renderizar:
+  sem sessao, redireciona para `/login?next=<path>` direto na resposta HTTP,
+  sem o flash client-side que existia antes. `lib/supabase.ts` (client de
+  browser) trocou de `createClient` (supabase-js puro) para
+  `createBrowserClient` (`@supabase/ssr`) para que a sessao fique em cookies e
+  o middleware consiga le-la. Rotas publicas (`/login`, `/b/[token]` — link de
+  briefing por token) ficam fora do guard. Modo mock (sem
+  `NEXT_PUBLIC_SUPABASE_*`) faz o middleware no-op, mantendo o prototipo
+  navegavel como antes. `AuthGate` (client) continua como segunda camada,
+  reagindo a logout/expiracao de sessao em tempo real enquanto a pagina ja
+  esta aberta — o RLS no Postgres permanece a protecao real de dados; isso
+  e so UX/perf.
+- **Fase:** 2 → concluido nesta rodada.
 
 ### TD03 — Dogtooth não chama a OpenAI (`lib/openai.ts`)
 - **Descrição:** `askDogtooth` é um stub determinístico; ações não executam.
