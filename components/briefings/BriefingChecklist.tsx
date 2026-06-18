@@ -12,11 +12,13 @@ export function BriefingChecklist({
   items,
   loading = false,
   onToggleItem,
+  canEdit = true,
 }: {
   monthLabel: string;
   items: BriefingItem[];
   loading?: boolean;
   onToggleItem: (item: BriefingItem) => Promise<void> | void;
+  canEdit?: boolean;
 }) {
   const [pendingItemId, setPendingItemId] = React.useState<string | null>(null);
 
@@ -24,7 +26,7 @@ export function BriefingChecklist({
   const pct = items.length ? Math.round((done / items.length) * 100) : 0;
 
   async function toggle(item: BriefingItem) {
-    if (pendingItemId) return;
+    if (pendingItemId || !canEdit) return;
 
     setPendingItemId(item.id);
     try {
@@ -63,8 +65,8 @@ export function BriefingChecklist({
                 type="button"
                 key={item.id}
                 onClick={() => void toggle(item)}
-                disabled={pendingItemId === item.id}
-                className="flex w-full items-center gap-3 rounded-xl border border-white/[0.06] bg-surface-muted p-3 text-left transition-colors hover:border-neon-border disabled:cursor-wait disabled:opacity-70"
+                disabled={pendingItemId === item.id || !canEdit}
+                className="flex w-full items-center gap-3 rounded-xl border border-white/[0.06] bg-surface-muted p-3 text-left transition-colors hover:border-neon-border disabled:cursor-not-allowed disabled:opacity-70"
               >
                 <span
                   className={cn(

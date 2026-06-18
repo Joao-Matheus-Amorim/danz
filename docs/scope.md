@@ -22,13 +22,19 @@
   Testes Vitest cobrem os repositorios.
 - **Fase 5:** Trello iniciado com importacao de board/listas/cards e envio
   controlado de cards.
+- **Fase 6 (RBAC iniciado):** convite real de usuario, troca de funcao e
+  remocao de membro em Configuracoes (owner/admin); RLS por papel em
+  clientes, boards/cards, tarefas, campanhas, calendario e briefing
+  (operador so le; gestor cria/edita; owner/admin tambem exclui), refletida
+  na UI via `useRole()`.
 
 ## Ainda Fora do Corte Atual
 - Escrita/sincronizacao real de arquivos (Drive/Docs/Sheets) e envio no Inbox.
 - Execucao real de acoes da IA e chamadas OpenAI.
 - Integracoes Google Drive/Docs/Sheets, WhatsApp e Meta Ads.
 - Criacao de boards/listas no Trello, webhooks, labels, membros e checklists.
-- Permissoes completas por papel, convites e operacao multiusuario avancada.
+- RBAC em Drive/Documentos/Planilhas/Inbox/Chat (ainda `_member_all`); auditoria
+  ativa e operacao multiusuario avancada.
 - Busca global, notificacoes reais e alternancia de tema.
 
 ## Entregaveis por Fase
@@ -40,7 +46,8 @@
   salvar workspace em Configuracoes; testes Vitest dos repositorios.
 - **Fase 4:** rota server-side de IA + execucao de acoes do Dogtooth.
 - **Fase 5:** conectores reais; Trello iniciado, demais provedores pendentes.
-- **Fase 6:** RBAC, convites e auditoria ativa.
+- **Fase 6:** RBAC (concluido nos dominios principais) e convites entregues;
+  auditoria ativa pendente.
 
 ## Criterios de Aceite Atuais
 - [x] Todas as paginas existem e navegam.
@@ -66,4 +73,7 @@
 - [x] Dashboard usa dados reais das superficies ja persistidas.
 - [x] Testes Vitest cobrem os repositorios (incl. filtro de workspace).
 - [x] Trello preparado sem expor credenciais no client.
+- [x] Convidar, trocar funcao e remover membro do workspace (owner/admin).
+- [x] RBAC por papel em clientes, boards/cards, tarefas, campanhas, calendario
+      e briefing (RLS + UI via `useRole()`).
 - [x] Docs PMBOK e dividas tecnicas atualizados.

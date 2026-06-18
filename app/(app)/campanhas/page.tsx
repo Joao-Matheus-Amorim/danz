@@ -14,6 +14,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { CampaignModal } from "@/components/campanhas/CampaignModal";
 import { useToast } from "@/components/ui/toast";
+import { useRole } from "@/lib/role/RoleContext";
 import {
   deleteCampaign,
   listCampaigns,
@@ -24,6 +25,7 @@ import type { Campaign } from "@/lib/types";
 
 export default function CampanhasPage() {
   const { futureFeature, toast } = useToast();
+  const { canEdit, canDelete } = useRole();
   const [campaigns, setCampaigns] = React.useState<Campaign[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [editingCampaign, setEditingCampaign] = React.useState<Campaign | null>(null);
@@ -133,8 +135,8 @@ export default function CampanhasPage() {
           <CampaignClientsTable
             campaigns={campaigns}
             loading={loading}
-            onEdit={openEditModal}
-            onDelete={setCampaignToDelete}
+            onEdit={canEdit ? openEditModal : undefined}
+            onDelete={canDelete ? setCampaignToDelete : undefined}
             pendingId={pendingId}
           />
         </TabsContent>

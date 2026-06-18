@@ -104,8 +104,14 @@ Status local:
   de usuario (Supabase Auth Admin via `SUPABASE_SERVICE_ROLE_KEY`), listagem de
   membros do workspace, troca de funcao e remocao de membro, restritos a
   owner/admin via `members_admin_update`/`members_admin_delete`.
-- Pendente: RBAC guards na UI das demais superficies, auditoria ativa,
-  notificacoes e busca global.
+- RBAC aplicado em clientes, boards/colunas/cards, tarefas, campanhas,
+  calendario e briefing/briefing_items: `is_workspace_member` para leitura,
+  `is_workspace_editor` (owner/admin/gestor) para criar/editar e
+  `is_workspace_admin` (owner/admin) para excluir. `lib/role/RoleContext.tsx`
+  (`useRole()`) espelha isso na UI, escondendo/desabilitando criar, editar,
+  excluir e drag-and-drop para quem nao tem permissao.
+- Pendente: RBAC em Drive/Documentos/Planilhas/Inbox/Chat (ainda
+  `_member_all`), auditoria ativa, notificacoes e busca global.
 
 ## Proximos marcos objetivos
 

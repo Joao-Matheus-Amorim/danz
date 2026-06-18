@@ -14,11 +14,13 @@ export function KanbanCard({
   onEdit,
   onDelete,
   pending = false,
+  canDrag = true,
 }: {
   card: BoardCardType;
   onEdit?: (card: BoardCardType) => void;
   onDelete?: (card: BoardCardType) => void;
   pending?: boolean;
+  canDrag?: boolean;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: card.id });
@@ -31,9 +33,10 @@ export function KanbanCard({
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
       {...attributes}
-      {...listeners}
+      {...(canDrag ? listeners : {})}
       className={cn(
-        "group relative cursor-grab rounded-xl border border-white/[0.06] bg-surface p-3 shadow-card transition-shadow active:cursor-grabbing",
+        "group relative rounded-xl border border-white/[0.06] bg-surface p-3 shadow-card transition-shadow",
+        canDrag ? "cursor-grab active:cursor-grabbing" : "cursor-default",
         isDragging && "opacity-50 shadow-neon"
       )}
     >

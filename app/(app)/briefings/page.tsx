@@ -4,6 +4,7 @@ import * as React from "react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { BriefingTabs } from "@/components/briefings/BriefingTabs";
 import { useToast } from "@/components/ui/toast";
+import { useRole } from "@/lib/role/RoleContext";
 import {
   listBriefingItems,
   setBriefingItemDone,
@@ -14,6 +15,7 @@ const CURRENT_MONTH_REF = "2026-06";
 
 export default function BriefingsPage() {
   const { toast } = useToast();
+  const { canEdit } = useRole();
   const [items, setItems] = React.useState<BriefingItem[]>([]);
   const [loadingItems, setLoadingItems] = React.useState(true);
 
@@ -74,6 +76,7 @@ export default function BriefingsPage() {
         items={items}
         loading={loadingItems}
         onToggleItem={handleToggleItem}
+        canEdit={canEdit}
       />
     </div>
   );

@@ -24,6 +24,7 @@ import {
 import { Input, Label, Select } from "@/components/ui/input";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useToast } from "@/components/ui/toast";
+import { useRole } from "@/lib/role/RoleContext";
 import { listClients } from "@/lib/repositories/clients";
 import {
   createTask,
@@ -210,6 +211,7 @@ function TaskModal({
 
 export default function TarefasPage() {
   const { toast } = useToast();
+  const { canEdit, canDelete } = useRole();
   const [tasks, setTasks] = React.useState<Task[]>([]);
   const [clients, setClients] = React.useState<Client[]>([]);
   const [query, setQuery] = React.useState("");
@@ -356,9 +358,11 @@ export default function TarefasPage() {
         title="TAREFAS"
         subtitle="Fila do workspace com criacao, edicao, conclusao e exclusao."
         actions={
-          <Button variant="primary" onClick={openCreateModal}>
-            <Plus className="h-4 w-4" /> Nova tarefa
-          </Button>
+          canEdit ? (
+            <Button variant="primary" onClick={openCreateModal}>
+              <Plus className="h-4 w-4" /> Nova tarefa
+            </Button>
+          ) : undefined
         }
       />
 
@@ -436,9 +440,9 @@ export default function TarefasPage() {
                       <button
                         type="button"
                         onClick={() => void handleToggleDone(task)}
-                        disabled={pendingTaskId === task.id}
+                        disabled={pendingTaskId === task.id || !canEdit}
                         className={cn(
-                          "mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md border transition-colors disabled:cursor-wait disabled:opacity-60",
+                          "mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-md border transition-colors disabled:cursor-not-allowed disabled:opacity-60",
                           task.done
                             ? "border-neon bg-neon text-content"
                             : "border-white/15 hover:border-neon-border"
@@ -474,23 +478,27 @@ export default function TarefasPage() {
                     </p>
 
                     <div className="flex justify-end gap-2">
-                      <Button
-                        variant="secondary"
-                        size="icon"
-                        onClick={() => openEditModal(task)}
-                        aria-label="Editar tarefa"
-                      >
-                        <Edit3 className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="danger"
-                        size="icon"
-                        onClick={() => setTaskToDelete(task)}
-                        disabled={pendingTaskId === task.id}
-                        aria-label="Excluir tarefa"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      {canEdit && (
+                        <Button
+                          variant="secondary"
+                          size="icon"
+                          onClick={() => openEditModal(task)}
+                          aria-label="Editar tarefa"
+                        >
+                          <Edit3 className="h-4 w-4" />
+                        </Button>
+                      )}
+                      {canDelete && (
+                        <Button
+                          variant="danger"
+                          size="icon"
+                          onClick={() => setTaskToDelete(task)}
+                          disabled={pendingTaskId === task.id}
+                          aria-label="Excluir tarefa"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
                   </div>
                 );

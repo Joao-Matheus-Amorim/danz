@@ -37,6 +37,11 @@
 - **RSeg04:** nenhuma credencial real versionada.
 - **RSeg05:** Trello usa token server-side e sessao Supabase do usuario para
   aplicar RLS nas escritas.
+- **RSeg06:** RLS por papel (owner/admin/gestor/operador) em clientes,
+  boards/cards, tarefas, campanhas, calendario e briefing: leitura para
+  qualquer membro, escrita para owner/admin/gestor, exclusao restrita a
+  owner/admin. A UI reflete a mesma regra via `useRole()`, mas a garantia real
+  e o RLS.
 
 ## Requisitos de UX
 - **RUX01:** tema escuro premium consistente.

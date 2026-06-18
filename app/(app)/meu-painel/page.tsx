@@ -248,6 +248,7 @@ export default function MeuPainelPage() {
             loading={loadingTasks}
             onCreateTask={handleCreateTask}
             onToggleTask={handleToggleTask}
+            canEdit={!loadingProfile && profile?.role !== "operador"}
           />
 
           <Card>

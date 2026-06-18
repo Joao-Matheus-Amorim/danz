@@ -13,6 +13,7 @@ export function KanbanColumn({
   onEditCard,
   onDeleteCard,
   pendingCardId,
+  canDrag = true,
 }: {
   column: BoardColumnType;
   cards: BoardCard[];
@@ -20,6 +21,7 @@ export function KanbanColumn({
   onEditCard?: (card: BoardCard) => void;
   onDeleteCard?: (card: BoardCard) => void;
   pendingCardId?: string | null;
+  canDrag?: boolean;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: column.id });
 
@@ -30,14 +32,16 @@ export function KanbanColumn({
           {column.title}
           <span className="ml-2 text-xs text-content-muted">{cards.length}</span>
         </p>
-        <button
-          type="button"
-          onClick={() => onCreateCard?.(column.id)}
-          className="rounded-lg p-1 text-content-muted transition-colors hover:bg-white/[0.06] hover:text-content"
-          aria-label="Adicionar card"
-        >
-          <Plus className="h-4 w-4" />
-        </button>
+        {onCreateCard && (
+          <button
+            type="button"
+            onClick={() => onCreateCard(column.id)}
+            className="rounded-lg p-1 text-content-muted transition-colors hover:bg-white/[0.06] hover:text-content"
+            aria-label="Adicionar card"
+          >
+            <Plus className="h-4 w-4" />
+          </button>
+        )}
       </div>
 
       <div
@@ -57,6 +61,7 @@ export function KanbanColumn({
               onEdit={onEditCard}
               onDelete={onDeleteCard}
               pending={pendingCardId === card.id}
+              canDrag={canDrag}
             />
           ))}
         </SortableContext>

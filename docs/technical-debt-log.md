@@ -110,16 +110,26 @@
 - **Plano:** busca (Supabase/embeddings), notificações (`notifications`), tema.
 - **Fase:** 6.
 
-### TD11 — Permissões por papel não aplicadas
-- **Descrição:** papéis existem nos tipos/seed e há políticas por papel
-  (`workspaces_admin_update`; `members_admin_update`/`members_admin_delete`,
-  restritas a owner/admin via `is_workspace_admin`), incluindo convite real de
-  usuário (`/api/workspace/members/invite`, com `SUPABASE_SERVICE_ROLE_KEY`) e
-  troca de função/remoção de membros em Configurações. A UI ainda não restringe
-  as demais ações (boards, clientes, campanhas etc.) por papel.
-- **Motivo:** RBAC completo fora do MVP.
-- **Impacto:** fora da edição do workspace e gestão de membros, todos veem/fazem
-  tudo nas demais superfícies.
-- **Prioridade:** Média.
-- **Plano:** refinar RLS por papel + guards na UI nas demais superfícies.
+### TD11 — Permissões por papel (RBAC) — concluído nos domínios principais
+- **Descrição:** RLS por papel aplicada em clientes, boards/colunas/cards,
+  tarefas, campanhas, calendário e briefing/briefing_items: `select` para
+  qualquer membro do workspace (`is_workspace_member`), `insert`/`update` para
+  owner/admin/gestor (`is_workspace_editor`) e `delete` restrito a owner/admin
+  (`is_workspace_admin`). Operador é somente-leitura nessas superfícies,
+  inclusive em ações de "marcar como concluído" (tarefas, Meu Painel,
+  checklist de briefing), pois são updates. A UI usa `useRole()`
+  (`lib/role/RoleContext.tsx`) para esconder/desabilitar criar, editar, excluir
+  e drag-and-drop de acordo com o papel, e o RLS garante o mesmo limite mesmo
+  em chamadas diretas ao Supabase. Workspace e membros já tinham guard
+  (`workspaces_admin_update`, `members_admin_update`/`members_admin_delete`).
+- **Motivo:** RBAC completo fora do MVP original; agora cobre os domínios
+  operacionais principais.
+- **Impacto:** nenhum — knowingly trade-off: operador não marca a própria
+  tarefa como concluída (mesma regra de só-leitura aplicada uniformemente).
+  Reavaliar se isso for um problema real de uso.
+- **Prioridade:** Baixa (resolvida; só falta granularidade fina, ex.: permitir
+  operador concluir a própria tarefa).
+- **Plano:** Drive/Documentos/Planilhas/Inbox/Chat continuam com policy única
+  `_member_all` (todos os membros podem tudo) — fora do escopo desta rodada;
+  avaliar se precisam do mesmo padrão quando ganharem escrita real.
 - **Fase:** 6.

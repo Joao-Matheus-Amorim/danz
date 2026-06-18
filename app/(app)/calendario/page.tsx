@@ -15,6 +15,7 @@ import {
 import { EventModal } from "@/components/calendario/EventModal";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useToast } from "@/components/ui/toast";
+import { useRole } from "@/lib/role/RoleContext";
 import { APP_TODAY } from "@/lib/constants";
 import {
   createCalendarEvent,
@@ -27,6 +28,7 @@ import type { CalendarEvent as CalendarEventT } from "@/lib/types";
 
 export default function CalendarioPage() {
   const { toast } = useToast();
+  const { canEdit, canDelete } = useRole();
   const [month, setMonth] = React.useState<Date>(parseISO(APP_TODAY));
   const [view, setView] = React.useState<CalendarView | "todos">("todos");
   const [events, setEvents] = React.useState<CalendarEventT[]>([]);
@@ -149,9 +151,11 @@ export default function CalendarioPage() {
         title="CALENDÁRIO"
         subtitle="O que cada pessoa tem pra fazer: tarefas, posts e reuniões organizados por responsável."
         actions={
-          <Button variant="primary" onClick={openCreateModal}>
-            <Plus className="h-4 w-4" /> Novo evento
-          </Button>
+          canEdit ? (
+            <Button variant="primary" onClick={openCreateModal}>
+              <Plus className="h-4 w-4" /> Novo evento
+            </Button>
+          ) : undefined
         }
       />
 
@@ -195,8 +199,8 @@ export default function CalendarioPage() {
                     <CalendarEvent
                       key={event.id}
                       event={event}
-                      onEdit={openEditModal}
-                      onDelete={setEventToDelete}
+                      onEdit={canEdit ? openEditModal : undefined}
+                      onDelete={canDelete ? setEventToDelete : undefined}
                       pending={pendingEventId === event.id}
                     />
                   ))
@@ -206,7 +210,7 @@ export default function CalendarioPage() {
             <CalendarMonth
               month={month}
               events={events}
-              onSelectEvent={openEditModal}
+              onSelectEvent={canEdit ? openEditModal : undefined}
             />
           )}
         </CardContent>
@@ -217,7 +221,7 @@ export default function CalendarioPage() {
         onOpenChange={setModalOpen}
         event={editingEvent}
         onSubmit={handleSubmitEvent}
-        onDelete={requestDeleteFromModal}
+        onDelete={canDelete ? requestDeleteFromModal : undefined}
       />
 
       <ConfirmDialog

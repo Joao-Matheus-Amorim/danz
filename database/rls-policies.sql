@@ -36,6 +36,24 @@ as $$
   );
 $$;
 
+-- Owner/admin/gestor podem criar e editar dados de dominio; operador so le.
+-- Exclusao continua restrita a is_workspace_admin (owner/admin).
+create or replace function is_workspace_editor(ws uuid)
+returns boolean
+language sql
+security definer
+stable
+set search_path = public
+as $$
+  select exists (
+    select 1
+    from workspace_members m
+    where m.workspace_id = ws
+      and m.profile_id = auth.uid()
+      and m.role in ('owner', 'admin', 'gestor')
+  );
+$$;
+
 alter table workspaces enable row level security;
 alter table profiles enable row level security;
 alter table workspace_members enable row level security;
@@ -66,11 +84,35 @@ drop policy if exists "members_select" on workspace_members;
 drop policy if exists "members_admin_update" on workspace_members;
 drop policy if exists "members_admin_delete" on workspace_members;
 drop policy if exists "clients_member_all" on clients;
+drop policy if exists "clients_select" on clients;
+drop policy if exists "clients_editor_insert" on clients;
+drop policy if exists "clients_editor_update" on clients;
+drop policy if exists "clients_admin_delete" on clients;
 drop policy if exists "boards_member_all" on boards;
+drop policy if exists "boards_select" on boards;
+drop policy if exists "boards_editor_insert" on boards;
+drop policy if exists "boards_editor_update" on boards;
+drop policy if exists "boards_admin_delete" on boards;
 drop policy if exists "tasks_member_all" on tasks;
+drop policy if exists "tasks_select" on tasks;
+drop policy if exists "tasks_editor_insert" on tasks;
+drop policy if exists "tasks_editor_update" on tasks;
+drop policy if exists "tasks_admin_delete" on tasks;
 drop policy if exists "campaigns_member_all" on campaigns;
+drop policy if exists "campaigns_select" on campaigns;
+drop policy if exists "campaigns_editor_insert" on campaigns;
+drop policy if exists "campaigns_editor_update" on campaigns;
+drop policy if exists "campaigns_admin_delete" on campaigns;
 drop policy if exists "calendar_events_member_all" on calendar_events;
+drop policy if exists "calendar_events_select" on calendar_events;
+drop policy if exists "calendar_events_editor_insert" on calendar_events;
+drop policy if exists "calendar_events_editor_update" on calendar_events;
+drop policy if exists "calendar_events_admin_delete" on calendar_events;
 drop policy if exists "briefings_member_all" on briefings;
+drop policy if exists "briefings_select" on briefings;
+drop policy if exists "briefings_editor_insert" on briefings;
+drop policy if exists "briefings_editor_update" on briefings;
+drop policy if exists "briefings_admin_delete" on briefings;
 drop policy if exists "drive_files_member_all" on drive_files;
 drop policy if exists "documents_member_all" on documents;
 drop policy if exists "sheets_member_all" on sheets;
@@ -78,8 +120,20 @@ drop policy if exists "wa_conversations_member_all" on whatsapp_conversations;
 drop policy if exists "chat_conversations_member_all" on chat_conversations;
 drop policy if exists "activity_logs_member_select" on activity_logs;
 drop policy if exists "board_columns_via_board" on board_columns;
+drop policy if exists "board_columns_select" on board_columns;
+drop policy if exists "board_columns_editor_insert" on board_columns;
+drop policy if exists "board_columns_editor_update" on board_columns;
+drop policy if exists "board_columns_admin_delete" on board_columns;
 drop policy if exists "board_cards_via_board" on board_cards;
+drop policy if exists "board_cards_select" on board_cards;
+drop policy if exists "board_cards_editor_insert" on board_cards;
+drop policy if exists "board_cards_editor_update" on board_cards;
+drop policy if exists "board_cards_admin_delete" on board_cards;
 drop policy if exists "briefing_items_via_briefing" on briefing_items;
+drop policy if exists "briefing_items_select" on briefing_items;
+drop policy if exists "briefing_items_editor_insert" on briefing_items;
+drop policy if exists "briefing_items_editor_update" on briefing_items;
+drop policy if exists "briefing_items_admin_delete" on briefing_items;
 drop policy if exists "whatsapp_messages_via_conversation" on whatsapp_messages;
 drop policy if exists "chat_messages_via_conversation" on chat_messages;
 
@@ -110,29 +164,65 @@ create policy "members_admin_update" on workspace_members
 create policy "members_admin_delete" on workspace_members
   for delete using (is_workspace_admin(workspace_id));
 
-create policy "clients_member_all" on clients
-  for all using (is_workspace_member(workspace_id))
-  with check (is_workspace_member(workspace_id));
+create policy "clients_select" on clients
+  for select using (is_workspace_member(workspace_id));
+create policy "clients_editor_insert" on clients
+  for insert with check (is_workspace_editor(workspace_id));
+create policy "clients_editor_update" on clients
+  for update using (is_workspace_editor(workspace_id))
+  with check (is_workspace_editor(workspace_id));
+create policy "clients_admin_delete" on clients
+  for delete using (is_workspace_admin(workspace_id));
 
-create policy "boards_member_all" on boards
-  for all using (is_workspace_member(workspace_id))
-  with check (is_workspace_member(workspace_id));
+create policy "boards_select" on boards
+  for select using (is_workspace_member(workspace_id));
+create policy "boards_editor_insert" on boards
+  for insert with check (is_workspace_editor(workspace_id));
+create policy "boards_editor_update" on boards
+  for update using (is_workspace_editor(workspace_id))
+  with check (is_workspace_editor(workspace_id));
+create policy "boards_admin_delete" on boards
+  for delete using (is_workspace_admin(workspace_id));
 
-create policy "tasks_member_all" on tasks
-  for all using (is_workspace_member(workspace_id))
-  with check (is_workspace_member(workspace_id));
+create policy "tasks_select" on tasks
+  for select using (is_workspace_member(workspace_id));
+create policy "tasks_editor_insert" on tasks
+  for insert with check (is_workspace_editor(workspace_id));
+create policy "tasks_editor_update" on tasks
+  for update using (is_workspace_editor(workspace_id))
+  with check (is_workspace_editor(workspace_id));
+create policy "tasks_admin_delete" on tasks
+  for delete using (is_workspace_admin(workspace_id));
 
-create policy "campaigns_member_all" on campaigns
-  for all using (is_workspace_member(workspace_id))
-  with check (is_workspace_member(workspace_id));
+create policy "campaigns_select" on campaigns
+  for select using (is_workspace_member(workspace_id));
+create policy "campaigns_editor_insert" on campaigns
+  for insert with check (is_workspace_editor(workspace_id));
+create policy "campaigns_editor_update" on campaigns
+  for update using (is_workspace_editor(workspace_id))
+  with check (is_workspace_editor(workspace_id));
+create policy "campaigns_admin_delete" on campaigns
+  for delete using (is_workspace_admin(workspace_id));
 
-create policy "calendar_events_member_all" on calendar_events
-  for all using (is_workspace_member(workspace_id))
-  with check (is_workspace_member(workspace_id));
+create policy "calendar_events_select" on calendar_events
+  for select using (is_workspace_member(workspace_id));
+create policy "calendar_events_editor_insert" on calendar_events
+  for insert with check (is_workspace_editor(workspace_id));
+create policy "calendar_events_editor_update" on calendar_events
+  for update using (is_workspace_editor(workspace_id))
+  with check (is_workspace_editor(workspace_id));
+create policy "calendar_events_admin_delete" on calendar_events
+  for delete using (is_workspace_admin(workspace_id));
 
-create policy "briefings_member_all" on briefings
-  for all using (is_workspace_member(workspace_id))
-  with check (is_workspace_member(workspace_id));
+create policy "briefings_select" on briefings
+  for select using (is_workspace_member(workspace_id));
+create policy "briefings_editor_insert" on briefings
+  for insert with check (is_workspace_editor(workspace_id));
+create policy "briefings_editor_update" on briefings
+  for update using (is_workspace_editor(workspace_id))
+  with check (is_workspace_editor(workspace_id));
+create policy "briefings_admin_delete" on briefings
+  for delete using (is_workspace_admin(workspace_id));
 
 create policy "drive_files_member_all" on drive_files
   for all using (is_workspace_member(workspace_id))
@@ -157,57 +247,108 @@ create policy "chat_conversations_member_all" on chat_conversations
 create policy "activity_logs_member_select" on activity_logs
   for select using (is_workspace_member(workspace_id));
 
-create policy "board_columns_via_board" on board_columns
-  for all using (
+create policy "board_columns_select" on board_columns
+  for select using (
     exists (
-      select 1
-      from boards b
-      where b.id = board_columns.board_id
-        and is_workspace_member(b.workspace_id)
+      select 1 from boards b
+      where b.id = board_columns.board_id and is_workspace_member(b.workspace_id)
+    )
+  );
+create policy "board_columns_editor_insert" on board_columns
+  for insert with check (
+    exists (
+      select 1 from boards b
+      where b.id = board_columns.board_id and is_workspace_editor(b.workspace_id)
+    )
+  );
+create policy "board_columns_editor_update" on board_columns
+  for update using (
+    exists (
+      select 1 from boards b
+      where b.id = board_columns.board_id and is_workspace_editor(b.workspace_id)
     )
   )
   with check (
     exists (
-      select 1
-      from boards b
-      where b.id = board_columns.board_id
-        and is_workspace_member(b.workspace_id)
+      select 1 from boards b
+      where b.id = board_columns.board_id and is_workspace_editor(b.workspace_id)
+    )
+  );
+create policy "board_columns_admin_delete" on board_columns
+  for delete using (
+    exists (
+      select 1 from boards b
+      where b.id = board_columns.board_id and is_workspace_admin(b.workspace_id)
     )
   );
 
-create policy "board_cards_via_board" on board_cards
-  for all using (
+create policy "board_cards_select" on board_cards
+  for select using (
     exists (
-      select 1
-      from boards b
-      where b.id = board_cards.board_id
-        and is_workspace_member(b.workspace_id)
+      select 1 from boards b
+      where b.id = board_cards.board_id and is_workspace_member(b.workspace_id)
+    )
+  );
+create policy "board_cards_editor_insert" on board_cards
+  for insert with check (
+    exists (
+      select 1 from boards b
+      where b.id = board_cards.board_id and is_workspace_editor(b.workspace_id)
+    )
+  );
+create policy "board_cards_editor_update" on board_cards
+  for update using (
+    exists (
+      select 1 from boards b
+      where b.id = board_cards.board_id and is_workspace_editor(b.workspace_id)
     )
   )
   with check (
     exists (
-      select 1
-      from boards b
-      where b.id = board_cards.board_id
-        and is_workspace_member(b.workspace_id)
+      select 1 from boards b
+      where b.id = board_cards.board_id and is_workspace_editor(b.workspace_id)
+    )
+  );
+create policy "board_cards_admin_delete" on board_cards
+  for delete using (
+    exists (
+      select 1 from boards b
+      where b.id = board_cards.board_id and is_workspace_admin(b.workspace_id)
     )
   );
 
-create policy "briefing_items_via_briefing" on briefing_items
-  for all using (
+create policy "briefing_items_select" on briefing_items
+  for select using (
     exists (
-      select 1
-      from briefings br
-      where br.id = briefing_items.briefing_id
-        and is_workspace_member(br.workspace_id)
+      select 1 from briefings br
+      where br.id = briefing_items.briefing_id and is_workspace_member(br.workspace_id)
+    )
+  );
+create policy "briefing_items_editor_insert" on briefing_items
+  for insert with check (
+    exists (
+      select 1 from briefings br
+      where br.id = briefing_items.briefing_id and is_workspace_editor(br.workspace_id)
+    )
+  );
+create policy "briefing_items_editor_update" on briefing_items
+  for update using (
+    exists (
+      select 1 from briefings br
+      where br.id = briefing_items.briefing_id and is_workspace_editor(br.workspace_id)
     )
   )
   with check (
     exists (
-      select 1
-      from briefings br
-      where br.id = briefing_items.briefing_id
-        and is_workspace_member(br.workspace_id)
+      select 1 from briefings br
+      where br.id = briefing_items.briefing_id and is_workspace_editor(br.workspace_id)
+    )
+  );
+create policy "briefing_items_admin_delete" on briefing_items
+  for delete using (
+    exists (
+      select 1 from briefings br
+      where br.id = briefing_items.briefing_id and is_workspace_admin(br.workspace_id)
     )
   );
 

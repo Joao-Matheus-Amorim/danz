@@ -14,11 +14,13 @@ export function MyTasks({
   loading = false,
   onCreateTask,
   onToggleTask,
+  canEdit = true,
 }: {
   tasks: Task[];
   loading?: boolean;
   onCreateTask: (title: string) => Promise<void> | void;
   onToggleTask: (task: Task) => Promise<void> | void;
+  canEdit?: boolean;
 }) {
   const [newTitle, setNewTitle] = React.useState("");
   const [creating, setCreating] = React.useState(false);
@@ -38,7 +40,7 @@ export function MyTasks({
   }
 
   async function toggle(task: Task) {
-    if (pendingTaskId) return;
+    if (pendingTaskId || !canEdit) return;
 
     setPendingTaskId(task.id);
     try {
@@ -64,8 +66,8 @@ export function MyTasks({
             type="button"
             key={task.id}
             onClick={() => void toggle(task)}
-            disabled={pendingTaskId === task.id}
-            className="flex w-full items-center gap-3 rounded-xl border border-white/[0.06] bg-surface-muted p-3 text-left transition-colors hover:border-neon-border disabled:cursor-wait disabled:opacity-70"
+            disabled={pendingTaskId === task.id || !canEdit}
+            className="flex w-full items-center gap-3 rounded-xl border border-white/[0.06] bg-surface-muted p-3 text-left transition-colors hover:border-neon-border disabled:cursor-not-allowed disabled:opacity-70"
           >
             <span
               className={cn(
@@ -94,25 +96,27 @@ export function MyTasks({
   return (
     <Card>
       <CardContent className="p-5">
-        <div className="mb-4 flex items-center gap-2">
-          <Input
-            value={newTitle}
-            onChange={(event) => setNewTitle(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter") void addTask();
-            }}
-            placeholder="Adicionar nova tarefa..."
-            disabled={creating}
-          />
-          <Button
-            variant="primary"
-            size="icon"
-            onClick={() => void addTask()}
-            disabled={creating}
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
-        </div>
+        {canEdit && (
+          <div className="mb-4 flex items-center gap-2">
+            <Input
+              value={newTitle}
+              onChange={(event) => setNewTitle(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") void addTask();
+              }}
+              placeholder="Adicionar nova tarefa..."
+              disabled={creating}
+            />
+            <Button
+              variant="primary"
+              size="icon"
+              onClick={() => void addTask()}
+              disabled={creating}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
 
         <Tabs defaultValue="hoje">
           <TabsList>

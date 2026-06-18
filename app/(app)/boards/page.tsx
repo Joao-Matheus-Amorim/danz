@@ -17,6 +17,7 @@ import { BoardGrid } from "@/components/boards/BoardGrid";
 import { KanbanBoard } from "@/components/boards/KanbanBoard";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useToast } from "@/components/ui/toast";
+import { useRole } from "@/lib/role/RoleContext";
 import {
   createBoard,
   createBoardCard,
@@ -32,6 +33,7 @@ import type { Board, BoardCard, BoardColumn } from "@/lib/types";
 
 export default function BoardsPage() {
   const { toast } = useToast();
+  const { canEdit, canDelete } = useRole();
   const [boards, setBoards] = React.useState<Board[]>([]);
   const [openBoardId, setOpenBoardId] = React.useState<string | null>(null);
   const [columns, setColumns] = React.useState<BoardColumn[]>([]);
@@ -174,6 +176,8 @@ export default function BoardsPage() {
           <KanbanBoard
             columns={columns}
             initialCards={cards}
+            canEdit={canEdit}
+            canDelete={canDelete}
             onCardsChange={async (nextCards) => {
               setCards(nextCards);
               await updateBoardCardPositions(nextCards);
@@ -245,9 +249,11 @@ export default function BoardsPage() {
               <RefreshCw className={syncingTrello ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
               {syncingTrello ? "Sincronizando..." : "Atualizar do Trello"}
             </Button>
-            <Button variant="primary" onClick={() => setCreateOpen(true)}>
-              <Plus className="h-4 w-4" /> Novo quadro
-            </Button>
+            {canEdit && (
+              <Button variant="primary" onClick={() => setCreateOpen(true)}>
+                <Plus className="h-4 w-4" /> Novo quadro
+              </Button>
+            )}
           </>
         }
       />
@@ -259,7 +265,7 @@ export default function BoardsPage() {
         <BoardGrid
           boards={boards}
           onOpen={setOpenBoardId}
-          onDelete={setBoardToDelete}
+          onDelete={canDelete ? setBoardToDelete : undefined}
           pendingId={pendingBoardId}
         />
       )}

@@ -35,6 +35,8 @@ export function KanbanBoard({
   onCreateCard,
   onUpdateCard,
   onDeleteCard,
+  canEdit = true,
+  canDelete = true,
 }: {
   columns: BoardColumn[];
   initialCards: BoardCard[];
@@ -45,6 +47,8 @@ export function KanbanBoard({
     input: { title: string; description?: string }
   ) => Promise<void> | void;
   onDeleteCard?: (card: BoardCard) => Promise<void> | void;
+  canEdit?: boolean;
+  canDelete?: boolean;
 }) {
   const { toast } = useToast();
   const [cards, setCards] = React.useState<BoardCard[]>(initialCards);
@@ -134,7 +138,7 @@ export function KanbanBoard({
   async function onDragEnd(event: DragEndEvent) {
     const { active, over } = event;
     setActiveId(null);
-    if (!over) return;
+    if (!over || !canEdit) return;
 
     const previousCards = cards;
     const nextCards = buildNextCards(String(active.id), String(over.id));
@@ -218,10 +222,11 @@ export function KanbanBoard({
               key={col.id}
               column={col}
               cards={cardsOf(col.id)}
-              onCreateCard={setTargetColumnId}
-              onEditCard={onUpdateCard ? setEditingCard : undefined}
-              onDeleteCard={onDeleteCard ? setCardToDelete : undefined}
+              onCreateCard={canEdit ? setTargetColumnId : undefined}
+              onEditCard={canEdit && onUpdateCard ? setEditingCard : undefined}
+              onDeleteCard={canDelete && onDeleteCard ? setCardToDelete : undefined}
               pendingCardId={pendingCardId}
+              canDrag={canEdit}
             />
           ))}
         </div>

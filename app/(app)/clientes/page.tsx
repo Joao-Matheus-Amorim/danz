@@ -10,6 +10,7 @@ import { ClientModal } from "@/components/clientes/ClientModal";
 import { CreateClientButton } from "@/components/clientes/CreateClientButton";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useToast } from "@/components/ui/toast";
+import { useRole } from "@/lib/role/RoleContext";
 import {
   deleteClient,
   listClients,
@@ -20,6 +21,7 @@ import type { Client, ClientStatus } from "@/lib/types";
 
 export default function ClientesPage() {
   const { futureFeature, toast } = useToast();
+  const { canEdit, canDelete } = useRole();
   const [clients, setClients] = React.useState<Client[]>([]);
   const [query, setQuery] = React.useState("");
   const [status, setStatus] = React.useState<ClientStatus | "todos">("todos");
@@ -108,9 +110,11 @@ export default function ClientesPage() {
             <Button variant="ghost" onClick={() => futureFeature("POP Cliente Novo")}>
               <FileCheck2 className="h-4 w-4" /> POP Cliente Novo
             </Button>
-            <CreateClientButton onCreated={(client) => setClients((prev) => [client, ...prev])}>
-              <Plus className="h-4 w-4" /> Novo cliente
-            </CreateClientButton>
+            {canEdit && (
+              <CreateClientButton onCreated={(client) => setClients((prev) => [client, ...prev])}>
+                <Plus className="h-4 w-4" /> Novo cliente
+              </CreateClientButton>
+            )}
           </>
         }
       />
@@ -142,8 +146,8 @@ export default function ClientesPage() {
       <ClientsTable
         clients={filtered}
         loading={loading}
-        onEdit={openEditModal}
-        onDelete={setClientToDelete}
+        onEdit={canEdit ? openEditModal : undefined}
+        onDelete={canDelete ? setClientToDelete : undefined}
         pendingId={pendingId}
       />
 

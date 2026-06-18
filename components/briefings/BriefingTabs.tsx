@@ -11,11 +11,13 @@ export function BriefingTabs({
   items,
   loading = false,
   onToggleItem,
+  canEdit = true,
 }: {
   monthLabel: string;
   items: BriefingItem[];
   loading?: boolean;
   onToggleItem: (item: BriefingItem) => Promise<void> | void;
+  canEdit?: boolean;
 }) {
   return (
     <Tabs defaultValue="mensal">
@@ -30,6 +32,7 @@ export function BriefingTabs({
           items={items}
           loading={loading}
           onToggleItem={onToggleItem}
+          canEdit={canEdit}
         />
       </TabsContent>
 
