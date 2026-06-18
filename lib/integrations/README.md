@@ -3,7 +3,7 @@
 | Arquivo | O que faz | Usado por |
 |---|---|---|
 | `meta-ads.ts` | Chamadas reais à Graph API do Meta (`fetch` nativo + `META_ACCESS_TOKEN`) | `app/api/meta/insights` |
-| `google-sheets.ts` | Acesso real ao Google Sheets (`googleapis` + JWT de service account) | `app/api/sheets/export` |
+| `google-sheets.ts` | Acesso real ao Google Sheets (`googleapis` + JWT de service account) | `app/api/sheets/create`, `app/api/sheets/export` |
 
 ## Estado
 - Portados de `danz` (legado erradicado) para TypeScript server-side. As rotas
@@ -11,6 +11,13 @@
 - Sem os tokens (`META_ACCESS_TOKEN`, `GOOGLE_SERVICE_ACCOUNT_EMAIL`,
   `GOOGLE_PRIVATE_KEY`) as rotas respondem `400` explicando o que falta — não
   quebram o build nem o restante do app.
+- `sheets.external_id` (qual spreadsheet do Google corresponde a cada registro)
+  é gravado **somente** por `app/api/sheets/create`, usando a service role do
+  Supabase depois que o próprio servidor cria a planilha via Sheets API. A
+  tabela `sheets` não tem `insert`/`update` via RLS de cliente — só `select`
+  (qualquer membro) e `delete` (admin). Isso evita que um usuário "plante" um
+  `external_id` de planilha de outro workspace para passar pela checagem de
+  ownership em `sheets/export`.
 - Nenhuma tela ainda chama essas rotas (ver TD09/TD06 em
   `docs/technical-debt-log.md`); falta ligar um botão real em Campanhas/Planilhas
   quando isso entrar em escopo.

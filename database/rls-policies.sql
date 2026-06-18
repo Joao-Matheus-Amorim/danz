@@ -236,13 +236,13 @@ create policy "documents_member_all" on documents
   for all using (is_workspace_member(workspace_id))
   with check (is_workspace_member(workspace_id));
 
+-- sheets nao tem insert/update via RLS de cliente: external_id e title sao
+-- gravados exclusivamente por app/api/sheets/create usando a service role
+-- (que ignora RLS), depois que o proprio servidor cria a planilha no Google.
+-- Isso impede qualquer membro/admin de "plantar" um external_id de planilha
+-- de outro workspace para passar pela checagem de ownership do export.
 create policy "sheets_select" on sheets
   for select using (is_workspace_member(workspace_id));
-create policy "sheets_admin_insert" on sheets
-  for insert with check (is_workspace_admin(workspace_id));
-create policy "sheets_admin_update" on sheets
-  for update using (is_workspace_admin(workspace_id))
-  with check (is_workspace_admin(workspace_id));
 create policy "sheets_admin_delete" on sheets
   for delete using (is_workspace_admin(workspace_id));
 

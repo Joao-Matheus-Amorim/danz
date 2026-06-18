@@ -36,6 +36,17 @@ export class GoogleSheetsClient {
     return this.sheets;
   }
 
+  async createSpreadsheet(title: string): Promise<string> {
+    const sheets = await this.getSheets();
+    const response = await sheets.spreadsheets.create({
+      requestBody: { properties: { title } },
+      fields: "spreadsheetId",
+    });
+    const spreadsheetId = response.data.spreadsheetId;
+    if (!spreadsheetId) throw new Error("Google Sheets nao retornou spreadsheetId.");
+    return spreadsheetId;
+  }
+
   async validate(spreadsheetId: string) {
     const sheets = await this.getSheets();
     const response = await sheets.spreadsheets.get({

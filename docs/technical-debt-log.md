@@ -96,9 +96,14 @@
 ### TD09 — Integrações reais portadas, falta ligar à UI (concluído nesta parte)
 - **Descrição:** `lib/integrations/meta-ads.ts` e `google-sheets.ts` (portados de
   `danz`/legado) chamam as APIs reais (Graph API e Sheets v4) e são expostos via
-  `app/api/meta/insights` e `app/api/sheets/export`, com validação de sessão e
-  workspace igual ao padrão do Trello. Sem os tokens configurados, as rotas
-  respondem `400` explicando o que falta — não quebram build/lint/typecheck.
+  `app/api/meta/insights`, `app/api/sheets/create` e `app/api/sheets/export`,
+  com validação de sessão e workspace igual ao padrão do Trello. Sem os tokens
+  configurados, as rotas respondem `400` explicando o que falta — não quebram
+  build/lint/typecheck. `sheets/create` é a única rota que grava
+  `sheets.external_id` (via service role, depois de criar a planilha de fato no
+  Google) — `sheets/export` só aceita um `sheetId` interno e resolve o
+  `external_id` correspondente no servidor, nunca um `spreadsheetId` vindo do
+  client.
 - **Motivo:** as credenciais reais (Meta Ads, Google service account) dependem
   do cliente, que ainda não foi obtido; o código fica pronto para plugar.
 - **Impacto:** nenhuma tela chama essas rotas ainda — falta o passo de UI
@@ -137,10 +142,13 @@
   operador concluir a própria tarefa).
 - **Plano:** Drive/Documentos/Inbox/Chat continuam com policy única
   `_member_all` (todos os membros podem tudo) — fora do escopo desta rodada;
-  avaliar se precisam do mesmo padrão quando ganharem escrita real. `sheets` já
-  recebeu RBAC restrito a admin (`sheets_admin_insert/update/delete`), pois
-  `app/api/sheets/export` (TD09) usa `external_id` dessa tabela para validar
-  ownership antes de escrever — sem essa restrição, qualquer membro podia
-  "plantar" o `external_id` de uma planilha de outro workspace e burlar aquela
-  checagem.
+  avaliar se precisam do mesmo padrão quando ganharem escrita real. `sheets` foi
+  além do padrão admin-only: não tem `insert`/`update` via RLS de cliente
+  nenhum (só `select` para membro e `delete` para admin), porque
+  `app/api/sheets/export` (TD09) confia em `sheets.external_id` como prova de
+  ownership, e até um admin pode pertencer a múltiplos workspaces — permitir
+  que ele escrevesse essa coluna direto pela tabela reabriria a mesma falha
+  (plantar o `external_id` de uma planilha de outro workspace). A única
+  escrita válida é via `app/api/sheets/create`, que usa a service role depois
+  de criar a planilha de fato no Google.
 - **Fase:** 6.
