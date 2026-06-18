@@ -17,12 +17,16 @@ import {
   updateClient,
   type UpdateClientInput,
 } from "@/lib/repositories/clients";
-import type { Client, ClientStatus } from "@/lib/types";
+import { getWorkspaceMembers } from "@/lib/repositories/members";
+import type { Client, ClientStatus, Profile } from "@/lib/types";
+
+const MANAGER_ROLES: Profile["role"][] = ["owner", "admin", "gestor"];
 
 export default function ClientesPage() {
   const { futureFeature, toast } = useToast();
   const { canEdit, canDelete } = useRole();
   const [clients, setClients] = React.useState<Client[]>([]);
+  const [managers, setManagers] = React.useState<Profile[]>([]);
   const [query, setQuery] = React.useState("");
   const [status, setStatus] = React.useState<ClientStatus | "todos">("todos");
   const [loading, setLoading] = React.useState(true);
@@ -50,6 +54,21 @@ export default function ClientesPage() {
       mounted = false;
     };
   }, [toast]);
+
+  React.useEffect(() => {
+    if (!canDelete) return;
+    let mounted = true;
+
+    getWorkspaceMembers()
+      .then((members) => {
+        if (mounted) setManagers(members.filter((m) => MANAGER_ROLES.includes(m.role)));
+      })
+      .catch((error) => console.error(error));
+
+    return () => {
+      mounted = false;
+    };
+  }, [canDelete]);
 
   function openEditModal(client: Client) {
     setEditingClient(client);
@@ -155,6 +174,8 @@ export default function ClientesPage() {
         open={modalOpen}
         onOpenChange={setModalOpen}
         client={editingClient}
+        managers={managers}
+        canEditManager={canDelete}
         onSubmit={handleUpdate}
       />
 

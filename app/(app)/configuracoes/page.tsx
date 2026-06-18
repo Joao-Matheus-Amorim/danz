@@ -24,6 +24,7 @@ import {
   getWorkspaceMembers,
   inviteMember,
   removeMember,
+  updateMemberManager,
   updateMemberRole,
 } from "@/lib/repositories/members";
 import { emitWorkspaceUpdated } from "@/lib/events/workspace";
@@ -110,6 +111,20 @@ export default function ConfiguracoesPage() {
     } catch (error) {
       console.error(error);
       toast("Nao foi possivel atualizar a função.");
+    } finally {
+      setSavingMemberId(null);
+    }
+  }
+
+  async function handleManagerChange(profileId: string, managerId: string | null) {
+    setSavingMemberId(profileId);
+    try {
+      const updated = await updateMemberManager(profileId, managerId);
+      setMembers(updated);
+      toast("Gestor responsável atualizado.");
+    } catch (error) {
+      console.error(error);
+      toast("Nao foi possivel atualizar o gestor responsável.");
     } finally {
       setSavingMemberId(null);
     }
@@ -229,6 +244,9 @@ export default function ConfiguracoesPage() {
             members.map((p) => {
               const isOwner = p.role === "owner";
               const saving = savingMemberId === p.id;
+              const availableManagers = members.filter(
+                (m) => m.id !== p.id && (m.role === "gestor" || m.role === "admin" || m.role === "owner")
+              );
               return (
                 <div
                   key={p.id}
@@ -239,6 +257,22 @@ export default function ConfiguracoesPage() {
                     <p className="truncate text-sm text-content">{p.name}</p>
                     <p className="text-[11px] text-content-muted">{p.email}</p>
                   </div>
+                  {p.role === "operador" && (
+                    <Select
+                      className="h-9 w-auto"
+                      value={p.managerId ?? ""}
+                      disabled={saving}
+                      onChange={(e) => void handleManagerChange(p.id, e.target.value || null)}
+                      aria-label={`Gestor responsável por ${p.name}`}
+                    >
+                      <option value="">Sem gestor</option>
+                      {availableManagers.map((m) => (
+                        <option key={m.id} value={m.id}>
+                          {m.name}
+                        </option>
+                      ))}
+                    </Select>
+                  )}
                   {isOwner ? (
                     <Badge className="text-content-muted border-white/10 bg-white/[0.03]">
                       {ROLE_LABEL[p.role] ?? p.role}

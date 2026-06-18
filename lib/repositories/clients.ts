@@ -11,7 +11,10 @@ interface ClientRow {
   status: ClientStatus;
   start_date: string;
   tags: ClientTag[];
+  manager_id: string | null;
 }
+
+const CLIENT_COLUMNS = "id, name, bandeira, plan, status, start_date, tags, manager_id";
 
 function mapClient(row: ClientRow): Client {
   return {
@@ -22,6 +25,7 @@ function mapClient(row: ClientRow): Client {
     status: row.status,
     startDate: row.start_date,
     tags: row.tags ?? [],
+    managerId: row.manager_id,
   };
 }
 
@@ -32,6 +36,7 @@ export interface UpdateClientInput {
   bandeira: string;
   plan: ClientPlan;
   status: ClientStatus;
+  managerId: string | null;
 }
 
 export async function listClients(): Promise<Client[]> {
@@ -45,7 +50,7 @@ export async function listClients(): Promise<Client[]> {
 
   const { data, error } = await supabase
     .from("clients")
-    .select("id, name, bandeira, plan, status, start_date, tags")
+    .select(CLIENT_COLUMNS)
     .eq("workspace_id", workspaceId)
     .order("name", { ascending: true });
 
@@ -72,6 +77,7 @@ export async function createClient(input: {
       status: "ativo",
       startDate: new Date().toISOString().slice(0, 10),
       tags: ["em-dia"],
+      managerId: null,
     };
     mockClientStore = [client, ...mockClientStore];
     return client;
@@ -93,7 +99,7 @@ export async function createClient(input: {
       start_date: new Date().toISOString().slice(0, 10),
       tags: ["em-dia"],
     })
-    .select("id, name, bandeira, plan, status, start_date, tags")
+    .select(CLIENT_COLUMNS)
     .single();
 
   if (error) throw error;
@@ -118,6 +124,7 @@ export async function updateClient(
       bandeira,
       plan: input.plan,
       status: input.status,
+      managerId: input.managerId,
     };
     mockClientStore = mockClientStore.map((item) =>
       item.id === clientId ? updated : item
@@ -137,11 +144,12 @@ export async function updateClient(
       bandeira,
       plan: input.plan,
       status: input.status,
+      manager_id: input.managerId,
       updated_at: new Date().toISOString(),
     })
     .eq("workspace_id", workspaceId)
     .eq("id", clientId)
-    .select("id, name, bandeira, plan, status, start_date, tags")
+    .select(CLIENT_COLUMNS)
     .single();
 
   if (error) throw error;

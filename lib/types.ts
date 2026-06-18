@@ -28,6 +28,8 @@ export interface Profile {
   role: ProfileRole;
   /** Função operacional exibida na UI (ex.: "Tráfego"). */
   jobTitle: string;
+  /** Gestor responsável por este operador (define a carteira de clientes que ele vê). */
+  managerId: string | null;
 }
 
 export interface ActivityLog {
@@ -58,6 +60,8 @@ export interface Client {
   /** Data de início do contrato (ISO 8601). */
   startDate: string;
   tags: ClientTag[];
+  /** Gestor responsável pela carteira deste cliente (null = sem gestor atribuído). */
+  managerId: string | null;
 }
 
 /* ------------------------------------------------------------------ */

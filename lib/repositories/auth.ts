@@ -21,7 +21,7 @@ export async function getCurrentProfileId(): Promise<string> {
   return data.user.id;
 }
 
-function mapProfile(row: ProfileRow, role: ProfileRole): Profile {
+function mapProfile(row: ProfileRow, role: ProfileRole, managerId: string | null): Profile {
   return {
     id: row.id,
     name: row.name,
@@ -29,6 +29,7 @@ function mapProfile(row: ProfileRow, role: ProfileRole): Profile {
     email: row.email,
     role,
     jobTitle: row.job_title,
+    managerId,
   };
 }
 
@@ -50,7 +51,7 @@ export async function getCurrentProfile(): Promise<Profile> {
   const membershipQuery = workspaceId
     ? supabase
         .from("workspace_members")
-        .select("role")
+        .select("role, manager_id")
         .eq("workspace_id", workspaceId)
         .eq("profile_id", profileId)
         .maybeSingle()
@@ -62,5 +63,9 @@ export async function getCurrentProfile(): Promise<Profile> {
   if (profileError) throw profileError;
   if (membershipError) throw membershipError;
 
-  return mapProfile(profile as ProfileRow, (membership?.role ?? "operador") as ProfileRole);
+  return mapProfile(
+    profile as ProfileRow,
+    (membership?.role ?? "operador") as ProfileRole,
+    membership?.manager_id ?? null
+  );
 }

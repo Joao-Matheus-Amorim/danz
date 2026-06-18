@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input, Label, Select } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import type { Client, ClientPlan, ClientStatus } from "@/lib/types";
+import type { Client, ClientPlan, ClientStatus, Profile } from "@/lib/types";
 
 const PLANS: ClientPlan[] = ["Essencial", "Pro", "Premium", "Performance"];
 
@@ -20,23 +20,29 @@ export interface ClientFormInput {
   bandeira: string;
   plan: ClientPlan;
   status: ClientStatus;
+  managerId: string | null;
 }
 
 export function ClientModal({
   open,
   onOpenChange,
   client,
+  managers,
+  canEditManager,
   onSubmit,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   client?: Client | null;
+  managers?: Profile[];
+  canEditManager?: boolean;
   onSubmit: (input: ClientFormInput) => Promise<void> | void;
 }) {
   const [name, setName] = React.useState("");
   const [bandeira, setBandeira] = React.useState("");
   const [plan, setPlan] = React.useState<ClientPlan>("Essencial");
   const [status, setStatus] = React.useState<ClientStatus>("ativo");
+  const [managerId, setManagerId] = React.useState<string | null>(null);
   const [submitting, setSubmitting] = React.useState(false);
 
   const isEditing = Boolean(client);
@@ -47,6 +53,7 @@ export function ClientModal({
     setBandeira(client?.bandeira && client.bandeira !== "-" ? client.bandeira : "");
     setPlan(client?.plan ?? "Essencial");
     setStatus(client?.status ?? "ativo");
+    setManagerId(client?.managerId ?? null);
   }, [open, client]);
 
   async function submit() {
@@ -59,6 +66,7 @@ export function ClientModal({
         bandeira: bandeira.trim() || "-",
         plan,
         status,
+        managerId,
       });
       onOpenChange(false);
     } catch (error) {
@@ -125,6 +133,23 @@ export function ClientModal({
               >
                 <option value="ativo">Ativo</option>
                 <option value="pausado">Pausado</option>
+              </Select>
+            </div>
+          )}
+          {canEditManager && (
+            <div>
+              <Label htmlFor="c-manager">Gestor responsável</Label>
+              <Select
+                id="c-manager"
+                value={managerId ?? ""}
+                onChange={(e) => setManagerId(e.target.value || null)}
+              >
+                <option value="">Sem gestor atribuído</option>
+                {(managers ?? []).map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.name}
+                  </option>
+                ))}
               </Select>
             </div>
           )}

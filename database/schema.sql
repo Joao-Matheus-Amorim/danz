@@ -90,9 +90,11 @@ create table if not exists workspace_members (
   workspace_id uuid not null references workspaces (id) on delete cascade,
   profile_id   uuid not null references profiles (id) on delete cascade,
   role         profile_role not null default 'operador',
+  manager_id   uuid references profiles (id) on delete set null,
   created_at   timestamptz not null default now(),
   primary key (workspace_id, profile_id)
 );
+alter table workspace_members add column if not exists manager_id uuid references profiles (id) on delete set null;
 
 -- ----------------------------------------------------------------------
 -- Clientes
@@ -106,10 +108,13 @@ create table if not exists clients (
   status        client_status not null default 'ativo',
   start_date    date not null default current_date,
   tags          client_tag[] not null default '{}',
+  manager_id    uuid references profiles (id) on delete set null,
   created_at    timestamptz not null default now(),
   updated_at    timestamptz not null default now()
 );
+alter table clients add column if not exists manager_id uuid references profiles (id) on delete set null;
 create index if not exists clients_workspace_id_idx on clients (workspace_id);
+create index if not exists clients_manager_id_idx on clients (manager_id);
 do $$
 begin
   if exists (

@@ -161,3 +161,34 @@
   service role depois de criar a planilha no Google ou validar a conta na
   Graph API.
 - **Fase:** 6.
+
+### TD12 — Carteira de clientes por gestor (visibilidade dentro do workspace)
+- **Descrição:** `clients.manager_id` define o gestor responsável por cada
+  cliente; `workspace_members.manager_id` vincula um operador ao gestor cuja
+  carteira ele compartilha. A função `is_in_client_portfolio(client_id)`
+  (`database/rls-policies.sql`) retorna true para owner/admin (veem tudo), para
+  o gestor responsável (`clients.manager_id = auth.uid()`), e para o operador
+  vinculado a esse gestor (`clients.manager_id = workspace_members.manager_id`
+  do proprio operador). As policies de `select` de `clients`, `tasks`,
+  `campaigns`, `calendar_events` e `briefing_items` passaram a exigir essa
+  função quando a linha tem `client_id`/`id` preenchido — registros sem
+  cliente associado continuam visiveis a todo membro do workspace. A UI expoe
+  a atribuicao em Configuracoes (selecionar gestor de um operador, somente
+  owner/admin/gestor podem ver o seletor de papel, mas so owner/admin definem
+  `manager_id`) e em Clientes (`ClientModal`, seletor "Gestor responsavel",
+  visivel apenas para quem `canDelete`, ou seja, owner/admin).
+- **Motivo:** workspaces com mais de um gestor, cada um cuidando da propria
+  carteira de clientes (ex.: 2 gestores x 15 empresas cada), nao deviam ver
+  boards/tarefas/campanhas/calendario de clientes que nao sao seus nem da
+  propria equipe.
+- **Impacto:** `boards`/`board_columns`/`board_cards` (Trello) nao tem
+  `client_id` no schema, logo nao entram nesse filtro — sincronizacao Trello
+  continua visivel a todo membro do workspace, independente de carteira.
+  Operador sem `manager_id` definido (`null`) nao ve nenhum registro
+  client-scoped, so os sem cliente associado — e o comportamento esperado, nao
+  um bug; precisa atribuir um gestor para o operador herdar a carteira.
+- **Prioridade:** Baixa (resolvida para o caso reportado; refinar se boards
+  precisarem do mesmo escopo).
+- **Plano:** se Trello/boards precisarem de carteira por cliente no futuro,
+  adicionar `client_id` a `boards` e replicar o mesmo padrao de RLS.
+- **Fase:** 6.

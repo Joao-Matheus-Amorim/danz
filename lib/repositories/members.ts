@@ -7,6 +7,7 @@ let mockMembersStore: Profile[] = [...mockProfiles];
 
 interface MemberRow {
   role: ProfileRole;
+  manager_id: string | null;
   profiles: {
     id: string;
     name: string;
@@ -24,6 +25,7 @@ function mapMemberRow(row: MemberRow): Profile {
     email: row.profiles.email,
     role: row.role,
     jobTitle: row.profiles.job_title,
+    managerId: row.manager_id,
   };
 }
 
@@ -36,7 +38,7 @@ export async function getWorkspaceMembers(): Promise<Profile[]> {
 
   const { data, error } = await supabase
     .from("workspace_members")
-    .select("role, profiles ( id, name, initials, email, job_title )")
+    .select("role, manager_id, profiles ( id, name, initials, email, job_title )")
     .eq("workspace_id", workspaceId)
     .order("created_at", { ascending: true });
 
@@ -74,6 +76,35 @@ export async function updateMemberRole(profileId: string, role: ProfileRole): Pr
   const { error } = await supabase
     .from("workspace_members")
     .update({ role })
+    .eq("workspace_id", workspaceId)
+    .eq("profile_id", profileId);
+
+  if (error) throw error;
+  return getWorkspaceMembers();
+}
+
+export async function updateMemberManager(
+  profileId: string,
+  managerId: string | null
+): Promise<Profile[]> {
+  if (managerId === profileId) {
+    throw new Error("Um usuario nao pode ser gestor de si mesmo.");
+  }
+
+  const supabase = getSupabase();
+  if (!supabase) {
+    mockMembersStore = mockMembersStore.map((member) =>
+      member.id === profileId ? { ...member, managerId } : member
+    );
+    return [...mockMembersStore];
+  }
+
+  const workspaceId = await getCurrentWorkspaceId();
+  if (!workspaceId) throw new Error("Usuario autenticado nao esta vinculado a um workspace.");
+
+  const { error } = await supabase
+    .from("workspace_members")
+    .update({ manager_id: managerId })
     .eq("workspace_id", workspaceId)
     .eq("profile_id", profileId);
 
@@ -125,7 +156,7 @@ export async function inviteMember(input: {
       .join("");
     mockMembersStore = [
       ...mockMembersStore,
-      { id, name, initials, email, role: input.role, jobTitle: "" },
+      { id, name, initials, email, role: input.role, jobTitle: "", managerId: null },
     ];
     return [...mockMembersStore];
   }

@@ -48,13 +48,14 @@ export const currentProfile: Profile = {
   email: "danyel@dental-lead.com.br",
   role: "owner",
   jobTitle: "Tráfego",
+  managerId: null,
 };
 
 export const profiles: Profile[] = [
   currentProfile,
-  { id: "u_ana", name: "Ana Lima", initials: "AL", email: "ana@dental-lead.com.br", role: "gestor", jobTitle: "Social Media" },
-  { id: "u_marcos", name: "Marcos Reis", initials: "MR", email: "marcos@dental-lead.com.br", role: "operador", jobTitle: "Designer" },
-  { id: "u_bea", name: "Beatriz Souza", initials: "BS", email: "bea@dental-lead.com.br", role: "operador", jobTitle: "Filmmaker" },
+  { id: "u_ana", name: "Ana Lima", initials: "AL", email: "ana@dental-lead.com.br", role: "gestor", jobTitle: "Social Media", managerId: null },
+  { id: "u_marcos", name: "Marcos Reis", initials: "MR", email: "marcos@dental-lead.com.br", role: "operador", jobTitle: "Designer", managerId: "u_ana" },
+  { id: "u_bea", name: "Beatriz Souza", initials: "BS", email: "bea@dental-lead.com.br", role: "operador", jobTitle: "Filmmaker", managerId: "u_ana" },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -216,6 +217,7 @@ export const clients: Client[] = unitLocations.map((location, index) => ({
   status: "ativo",
   startDate: `2025-06-${String(1 + (index % 28)).padStart(2, "0")}`,
   tags: index % 11 === 0 ? ["critico"] : index % 5 === 0 ? ["atencao"] : ["em-dia"],
+  managerId: null,
 }));
 /* ------------------------------------------------------------------ */
 /* Boards                                                             */

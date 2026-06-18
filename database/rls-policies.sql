@@ -54,6 +54,33 @@ as $$
   );
 $$;
 
+-- Carteira de clientes: owner/admin veem todos os clientes do workspace;
+-- gestor ve so os clientes onde e o manager_id; operador ve a carteira do
+-- gestor ao qual esta vinculado (workspace_members.manager_id). Operador
+-- sem manager_id definido nao tem carteira (nao ve nenhum cliente client-
+-- scoped) -- so owner/admin/gestor responsavel destravam acesso.
+create or replace function is_in_client_portfolio(p_client_id uuid)
+returns boolean
+language sql
+security definer
+stable
+set search_path = public
+as $$
+  select exists (
+    select 1
+    from clients c
+    join workspace_members me
+      on me.workspace_id = c.workspace_id
+      and me.profile_id = auth.uid()
+    where c.id = p_client_id
+      and (
+        me.role in ('owner', 'admin')
+        or c.manager_id = auth.uid()
+        or c.manager_id = me.manager_id
+      )
+  );
+$$;
+
 alter table workspaces enable row level security;
 alter table profiles enable row level security;
 alter table workspace_members enable row level security;
@@ -172,7 +199,10 @@ create policy "members_admin_delete" on workspace_members
   for delete using (is_workspace_admin(workspace_id));
 
 create policy "clients_select" on clients
-  for select using (is_workspace_member(workspace_id));
+  for select using (
+    is_workspace_member(workspace_id)
+    and is_in_client_portfolio(id)
+  );
 create policy "clients_editor_insert" on clients
   for insert with check (is_workspace_editor(workspace_id));
 create policy "clients_editor_update" on clients
@@ -192,7 +222,10 @@ create policy "boards_admin_delete" on boards
   for delete using (is_workspace_admin(workspace_id));
 
 create policy "tasks_select" on tasks
-  for select using (is_workspace_member(workspace_id));
+  for select using (
+    is_workspace_member(workspace_id)
+    and (client_id is null or is_in_client_portfolio(client_id))
+  );
 create policy "tasks_editor_insert" on tasks
   for insert with check (is_workspace_editor(workspace_id));
 create policy "tasks_editor_update" on tasks
@@ -202,7 +235,10 @@ create policy "tasks_admin_delete" on tasks
   for delete using (is_workspace_admin(workspace_id));
 
 create policy "campaigns_select" on campaigns
-  for select using (is_workspace_member(workspace_id));
+  for select using (
+    is_workspace_member(workspace_id)
+    and (client_id is null or is_in_client_portfolio(client_id))
+  );
 create policy "campaigns_editor_insert" on campaigns
   for insert with check (is_workspace_editor(workspace_id));
 create policy "campaigns_editor_update" on campaigns
@@ -212,7 +248,10 @@ create policy "campaigns_admin_delete" on campaigns
   for delete using (is_workspace_admin(workspace_id));
 
 create policy "calendar_events_select" on calendar_events
-  for select using (is_workspace_member(workspace_id));
+  for select using (
+    is_workspace_member(workspace_id)
+    and (client_id is null or is_in_client_portfolio(client_id))
+  );
 create policy "calendar_events_editor_insert" on calendar_events
   for insert with check (is_workspace_editor(workspace_id));
 create policy "calendar_events_editor_update" on calendar_events
@@ -346,6 +385,7 @@ create policy "briefing_items_select" on briefing_items
       select 1 from briefings br
       where br.id = briefing_items.briefing_id and is_workspace_member(br.workspace_id)
     )
+    and (client_id is null or is_in_client_portfolio(client_id))
   );
 create policy "briefing_items_editor_insert" on briefing_items
   for insert with check (

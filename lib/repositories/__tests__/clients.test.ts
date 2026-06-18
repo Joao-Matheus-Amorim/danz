@@ -36,6 +36,7 @@ describe("clients repository (mock mode)", () => {
       bandeira: "Nova",
       plan: "Premium",
       status: "pausado",
+      managerId: null,
     });
 
     expect(updated.name).toBe("ACME DOIS");
@@ -57,6 +58,7 @@ describe("clients repository (mock mode)", () => {
         bandeira: "-",
         plan: "Essencial",
         status: "ativo",
+        managerId: null,
       })
     ).rejects.toThrow();
   });
