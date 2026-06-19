@@ -5,19 +5,31 @@
 
 ---
 
-### TD01 — Dados mockados em `lib/mock-data.ts`
+### TD01 — Dados mockados em `lib/mock-data.ts` — concluído nos domínios revisados
 - **Descrição:** parte do domínio ainda vem de constantes mockadas.
 - **Motivo:** MVP foca em navegação/UX antes do banco.
-- **Impacto:** clientes, boards, calendario, briefing mensal, campanhas,
-  Drive/Documentos/Planilhas, Inbox e tarefas do Meu Painel ja persistem no
-  Supabase; superficies auxiliares de tarefas/calendario/briefing ainda
-  dependem de mock/fallback. O Dashboard e o Meu Painel consomem dados reais
-  das superficies migradas.
-- **Prioridade:** Alta.
-- **Plano:** continuar a camada de repositórios sobre Supabase, mantendo fallback
-  mock apenas durante a transicao de cada superficie. Leituras reais ja aplicam
+- **Impacto:** verificação direta de `lib/repositories/tasks.ts` e
+  `lib/repositories/calendar.ts` confirmou que todas as funções (listagens,
+  criar/editar/excluir) já têm implementação real via Supabase, com fallback
+  mock só quando `getSupabase()` retorna null (sem env vars). O fluxo público
+  de briefing (`app/b/[token]/page.tsx` + `PublicBriefingForm`) também já usa
+  as funções `security definer` (`public_briefing_form`,
+  `submit_briefing_response`) — não depende de mock. O único gap real
+  encontrado: `listBriefingItems()` retornava `[]` silenciosamente quando não
+  existia ainda uma linha `briefings` para o mês corrente, e nada criava essa
+  linha (nem os `briefing_items` por cliente). Corrigido com
+  `ensureBriefingForMonth(monthRef)` (`lib/repositories/briefings.ts`),
+  chamada pela página de Briefings só quando `canEdit` (a RLS de insert exige
+  `is_workspace_editor`; operador continua só-leitura). O mês exibido também
+  deixou de ser hardcoded (`"2026-06"`) e passou a usar o mês atual
+  (`currentMonthRef()`/`monthRefLabel()` em `lib/utils.ts`). Clientes, boards,
+  campanhas, Drive/Documentos/Planilhas, Inbox, Dashboard e Meu Painel já
+  persistiam no Supabase desde rodadas anteriores.
+- **Prioridade:** Baixa (revisão concluída; reabrir só se uma nova superfície
+  nascer mockada).
+- **Plano:** nenhum pendente nos domínios revisados. Leituras reais já aplicam
   filtro explicito de workspace em complemento ao RLS.
-- **Fase:** 2–3.
+- **Fase:** 2–3 → concluído nesta rodada.
 
 ### TD02 — Autenticação simbólica (`/login`) — concluído
 - **Descrição:** qualquer submit leva ao dashboard; sem sessão real.

@@ -291,6 +291,8 @@ create table if not exists briefing_items (
   created_at    timestamptz not null default now()
 );
 create index if not exists briefing_items_briefing_id_idx on briefing_items (briefing_id);
+create unique index if not exists briefing_items_briefing_id_client_id_idx
+  on briefing_items (briefing_id, client_id);
 
 -- Formulario publico de briefing: cada item ganha um token opaco para o link
 -- que o cliente preenche sem login, alem da resposta (campos fixos em jsonb) e

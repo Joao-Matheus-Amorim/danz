@@ -6,12 +6,14 @@ import { BriefingTabs } from "@/components/briefings/BriefingTabs";
 import { useToast } from "@/components/ui/toast";
 import { useRole } from "@/lib/role/RoleContext";
 import {
+  ensureBriefingForMonth,
   listBriefingItems,
   setBriefingItemDone,
 } from "@/lib/repositories/briefings";
 import type { BriefingItem } from "@/lib/types";
+import { currentMonthRef, monthRefLabel } from "@/lib/utils";
 
-const CURRENT_MONTH_REF = "2026-06";
+const CURRENT_MONTH_REF = currentMonthRef();
 
 export default function BriefingsPage() {
   const { toast } = useToast();
@@ -22,7 +24,14 @@ export default function BriefingsPage() {
   React.useEffect(() => {
     let mounted = true;
 
-    listBriefingItems(CURRENT_MONTH_REF)
+    // So owner/admin/gestor cria o briefing do mes (a RLS de insert exige
+    // is_workspace_editor) -- operador so le o que ja existir.
+    const ensure = canEdit
+      ? ensureBriefingForMonth(CURRENT_MONTH_REF)
+      : Promise.resolve();
+
+    ensure
+      .then(() => listBriefingItems(CURRENT_MONTH_REF))
       .then((briefingItems) => {
         if (mounted) setItems(briefingItems);
       })
@@ -37,7 +46,7 @@ export default function BriefingsPage() {
     return () => {
       mounted = false;
     };
-  }, [toast]);
+  }, [canEdit, toast]);
 
   async function handleToggleItem(item: BriefingItem) {
     const previous = items;
@@ -72,7 +81,7 @@ export default function BriefingsPage() {
         subtitle="Modelos, controle mensal e formulários públicos que o cliente preenche."
       />
       <BriefingTabs
-        monthLabel="Junho"
+        monthLabel={monthRefLabel(CURRENT_MONTH_REF)}
         items={items}
         loading={loadingItems}
         onToggleItem={handleToggleItem}

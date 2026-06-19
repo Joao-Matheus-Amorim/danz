@@ -23,6 +23,17 @@ export function formatMonthYear(date: Date): string {
   return format(date, "MMMM 'de' yyyy", { locale: ptBR });
 }
 
+/** Referência de mês no formato usado por `briefings.month_ref` (ex.: "2026-06"). */
+export function currentMonthRef(date = new Date()): string {
+  return format(date, "yyyy-MM");
+}
+
+/** Rótulo de mês por extenso a partir de um month_ref (ex.: "2026-06" -> "Junho"). */
+export function monthRefLabel(monthRef: string): string {
+  const [year, month] = monthRef.split("-").map(Number);
+  return format(new Date(year, month - 1, 1), "MMMM", { locale: ptBR });
+}
+
 /** Converte centavos em moeda BRL. */
 export function formatCurrency(cents: number): string {
   return (cents / 100).toLocaleString("pt-BR", {
